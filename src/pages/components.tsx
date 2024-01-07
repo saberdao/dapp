@@ -48,7 +48,7 @@ const ComponentsPage: React.FC<PageProps> = () => {
 
                 <div className="flex flex-col">
                     <p>Normal input</p>
-                    <Input placeholder="Enter something here" />
+                    <Input type={InputType.TEXT} placeholder="Enter something here" />
                 </div>
 
                 <div className="flex flex-col">
