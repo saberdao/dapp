@@ -13,21 +13,53 @@
     "build": "gatsby build",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "node postinstall.js"
   },
   "dependencies": {
+    "@saberhq/solana-contrib": "^1.15.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.34",
+    "@solana/wallet-adapter-wallets": "^0.19.24",
+    "@solana/web3.js": "^1.87.6",
+    "@ubeswap/token-math": "^5.2.1",
+    "assert": "^2.1.0",
     "autoprefixer": "^10.4.16",
+    "browserify-zlib": "^0.2.0",
+    "clsx": "^2.0.0",
+    "crypto-browserify": "^3.12.0",
     "gatsby": "^5.12.12",
     "gatsby-plugin-postcss": "^6.12.0",
+    "https-browserify": "^1.0.0",
+    "lodash": "^4.17.21",
     "postcss": "^8.4.32",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^3.3.6"
+    "react-icons": "^4.12.0",
+    "react-query": "^3.39.3",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "tailwindcss": "^3.3.6",
+    "url": "^0.11.3",
+    "usehooks-ts": "^2.9.1"
   },
   "devDependencies": {
     "@types/node": "^20.3.3",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.56.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.4.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.33.2",
     "typescript": "^5.1.6"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
   }
 }
