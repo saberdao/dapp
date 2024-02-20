@@ -321,24 +321,6 @@ export type Fees = {
 };
 
 /**
- * Info about the tokens to swap.
- */
-export interface SwapTokenInfo {
-    /**
-     * The account that admin fees go to.
-     */
-    adminFeeAccount: PublicKey;
-    /**
-     * Mint of the token.
-     */
-    mint: PublicKey;
-    /**
-     * This swap's token reserves.
-     */
-    reserve: PublicKey;
-}
-
-/**
  * State of a StableSwap, read from the swap account.
  */
 export interface StableSwapState {
@@ -369,6 +351,9 @@ export interface StableSwapState {
 
     tokenA: SwapTokenInfo;
     tokenB: SwapTokenInfo;
+    
+    tokenAReserveAmount?: string;
+    tokenBReserveAmount?: string;
 
     /**
      * Initial amplification coefficient (A)

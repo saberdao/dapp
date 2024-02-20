@@ -6,9 +6,9 @@ import { useState } from 'react';
  * @param network
  * @returns
  */
-const formatNetwork = (network: WalletAdapterNetwork): string => {
+const formatNetwork = (network: WalletAdapterNetwork) => {
     if (network === 'mainnet-beta') {
-        return 'mainnet';
+        return 'mainnet' as const;
     }
     return network;
 };
@@ -17,7 +17,7 @@ export default function () {
     const [network] = useState(WalletAdapterNetwork.Mainnet);
 
     // @TODO: Set actual endpoint
-    const [endpoint] = useState('https://billowing-flashy-layer.solana-mainnet.quiknode.pro/31a086feb1865b0a075e44c7666b9e811061b76d/');
+    const [endpoint] = useState('https://rpc.ankr.com/solana/010f8ab55e016875312e71da3f611d5c6fec24afde95a876d2c65a25838211a2');
 
     return { network, formattedNetwork: formatNetwork(network), endpoint };
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import Block from './Block';
 import clsx from 'clsx';
 import { Link } from 'gatsby';
+import { ConditionalWrapper } from './ConditionalWrapper';
 
 export default function Table (props: { data: { data: any[]; rowLink: string }[]; blockView?: boolean }) {
     const header = props.data?.[0].data;
@@ -13,7 +14,11 @@ export default function Table (props: { data: { data: any[]; rowLink: string }[]
                 props.blockView && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-5',
             )}>
                 {props.data.slice(1).map((row, i) => (
-                    <Link to={row.rowLink} key={i}>
+                    <ConditionalWrapper
+                        condition={!!row.rowLink}
+                        key={`wrapper-${i}`}
+                        wrapper={(children: any) => <Link to={row.rowLink} key={i}>{children}</Link>}
+                    >
                         <Block className="grid grid-cols-2 gap-1 text-sm mb-5 lg:mb-0 h-full" hover>
                             {row.data.map((item, j) => (
                                 header[j]
@@ -24,7 +29,7 @@ export default function Table (props: { data: { data: any[]; rowLink: string }[]
                                     : <div key={`${i}-${j}`} className="col-span-2">{item}</div>
                             ))}
                         </Block>
-                    </Link>
+                    </ConditionalWrapper>
                 ))}
             </div>
             {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">

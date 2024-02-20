@@ -1,17 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { QueryClient, QueryClientProvider } from 'react-query';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import Navbar from '../components/Navbar';
 import useNetwork from '../hooks/useNetwork';
+import { QueryClient } from '@tanstack/react-query';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+
+const CACHE_TIME = 1000 * 60 * 60;
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            cacheTime: 1000 * 60 * 5,
+            refetchOnWindowFocus: false,
+            gcTime: CACHE_TIME,
         },
+        
     },
+});
+
+const persister = createSyncStoragePersister({
+    storage: typeof window !== 'undefined' ? window.localStorage : null,
 });
 
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -38,7 +48,15 @@ const Dapp = (props: { Component: any; props: any }) => {
     }
 
     return (
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider client={queryClient} persistOptions={{
+            persister,
+            maxAge: CACHE_TIME,
+            dehydrateOptions: {
+                shouldDehydrateQuery: query => {
+                    return ['swaps', 'pools'].includes(query.queryKey.join('-'));
+                },
+            },
+        }}>
             <ConnectionProvider endpoint={endpoint}>
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>
@@ -51,7 +69,7 @@ const Dapp = (props: { Component: any; props: any }) => {
                     </WalletModalProvider>
                 </WalletProvider>
             </ConnectionProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
     );
 };
 
