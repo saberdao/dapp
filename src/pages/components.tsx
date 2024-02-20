@@ -28,6 +28,7 @@ const ComponentsPage: React.FC<PageProps> = () => {
                 <Button>Primary button</Button>
                 <Button type="secondary">Secondary button</Button>
                 <Button size="small">Small button</Button>
+                <Button size="full">Full sized button</Button>
                 <Block className="flex flex-col gap-3">
                     <H2>This is a block</H2>
                     <p>It can contain any text</p>
@@ -43,6 +44,9 @@ const ComponentsPage: React.FC<PageProps> = () => {
                 <Block active className="flex flex-col gap-3">
                     <p>Blocks can also be in an active state</p>
                 </Block>
+                <Block className="flex flex-col gap-3" hover>
+                    <p>Blocks can also have a hover effect</p>
+                </Block>
 
                 <span>Address (with preferred explorer setting): <Address address="Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1" /></span>
 
@@ -56,27 +60,27 @@ const ComponentsPage: React.FC<PageProps> = () => {
                     <Input type={InputType.NUMBER} placeholder="0.00" />
                 </div>
             </div>
-            <Block active className="mt-5 flex flex-col gap-5">
+            <Block className="mt-5 flex flex-col gap-5">
                 <p>Table in a block</p>
                 <Table data={[
-                    [
+                    { rowLink: '', data: [
                         'Column 1',
                         'Column 2',
                         'Column 3',
                         '',
-                    ],
-                    [
+                    ] },
+                    { rowLink: '', data: [
                         'Value 1',
                         123.4,
                         'Something',
                         <Button key="b" size="small">View</Button>,
-                    ],
-                    [
+                    ] },
+                    { rowLink: '', data: [
                         'Value 1',
                         123.4,
                         'Something',
                         <Button type="danger" key="b" size="small">Withdraw</Button>,
-                    ],
+                    ] },
                 ]} />
             </Block>
         </div>

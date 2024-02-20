@@ -1,51 +1,20 @@
-import * as React from 'react';
-import { Link, HeadFC, PageProps } from 'gatsby';
+import React from 'react';
+import type { HeadFC, PageProps } from 'gatsby';
 
-const pageStyles = {
-    color: '#232129',
-    padding: '96px',
-    fontFamily: '-apple-system, Roboto, sans-serif, serif',
-};
-const headingStyles = {
-    marginTop: 0,
-    marginBottom: 64,
-    maxWidth: 320,
-};
-
-const paragraphStyles = {
-    marginBottom: 48,
-};
-const codeStyles = {
-    color: '#8A6534',
-    padding: 4,
-    backgroundColor: '#FFF4DB',
-    fontSize: '1.25rem',
-    borderRadius: 4,
-};
+import dapp from '../hoc/dapp';
+import H1 from '../components/H1';
 
 const NotFoundPage: React.FC<PageProps> = () => {
     return (
-        <main style={pageStyles}>
-            <h1 style={headingStyles}>Page not found</h1>
-            <p style={paragraphStyles}>
-        Sorry 😔, we couldn’t find what you were looking for.
-                <br />
-                {process.env.NODE_ENV === 'development'
-                    ? (
-                        <>
-                            <br />
-            Try creating a page in <code style={codeStyles}>src/pages/</code>.
-                            <br />
-                        </>
-                    )
-                    : null}
-                <br />
-                <Link to="/">Go home</Link>.
+        <div className="max-w-2xl">
+            <H1>Page not found</H1>
+            <p>
+                The page you are looking for does not exist.
             </p>
-        </main>
+        </div>
     );
 };
 
-export default NotFoundPage;
+export default dapp(NotFoundPage);
 
-export const Head: HeadFC = () => <title>Not found</title>;
+export const Head: HeadFC = () => <title>Saber | Solana AMM</title>;

@@ -6,7 +6,13 @@ import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adap
 import Navbar from '../components/Navbar';
 import useNetwork from '../hooks/useNetwork';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            cacheTime: 1000 * 60 * 5,
+        },
+    },
+});
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
