@@ -24,6 +24,7 @@ const KNOWN_GROUPS = [
 
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
+    
     const { watch, register, resetField } = useForm<{
         filterText: string;
         filterCurrency: CurrencyMarket;
@@ -67,7 +68,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                 {isPoolDeprecated(pool.name) ? <p className="line-through">{pool.name}</p> : pool.name}
                             </div>,
                             '$todo',
-                            `$${pool.summary.underlyingTokens[0]}`,
+                            `$${pool.summary.underlyingTokens[0]}|${pool.summary.underlyingTokens[1]}`,
                             `$${(Math.random()*10000).toFixed(2)}`,
                             `${(Math.random()*100).toFixed(2)}%`,
                             <>

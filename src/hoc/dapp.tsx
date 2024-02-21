@@ -14,9 +14,10 @@ const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            refetchOnMount: false,
             gcTime: CACHE_TIME,
-        },
-        
+        },  
     },
 });
 
@@ -53,7 +54,7 @@ const Dapp = (props: { Component: any; props: any }) => {
             maxAge: CACHE_TIME,
             dehydrateOptions: {
                 shouldDehydrateQuery: query => {
-                    return ['swaps', 'pools'].includes(query.queryKey.join('-'));
+                    return ['swaps', 'pools', 'prices'].includes(query.queryKey.join('-'));
                 },
             },
         }}>

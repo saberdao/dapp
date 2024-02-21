@@ -29,10 +29,12 @@ export const appendReserveAmounts = async (connection: Connection, data: readonl
         return acc;
     }, {} as Record<string, string>);
 
-    data.forEach((pool) => {
-        pool.swap.state.tokenAReserveAmount = tokenAmountsObject[pool.swap.state.tokenA.reserve];
-        pool.swap.state.tokenBReserveAmount = tokenAmountsObject[pool.swap.state.tokenB.reserve];
-    });
+    console.log('TODO reserve amounts', tokenAmountsObject);
+
+    // data.forEach((pool) => {
+    //     pool.swap.state.tokenAReserveAmount = tokenAmountsObject[pool.swap.state.tokenA.reserve];
+    //     pool.swap.state.tokenBReserveAmount = tokenAmountsObject[pool.swap.state.tokenB.reserve];
+    // });
 
     return data;
 };

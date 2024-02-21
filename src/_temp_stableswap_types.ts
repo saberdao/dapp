@@ -351,9 +351,6 @@ export interface StableSwapState {
 
     tokenA: SwapTokenInfo;
     tokenB: SwapTokenInfo;
-    
-    tokenAReserveAmount?: string;
-    tokenBReserveAmount?: string;
 
     /**
      * Initial amplification coefficient (A)
