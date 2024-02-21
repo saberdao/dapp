@@ -19,11 +19,8 @@ export enum CurrencyMarket {
     TRY = 'TRY',
 }
 
-export type ReferencePrice = {
-    [k in CurrencyMarket]: {
-        referenceMint: string;
-        price: number;
-    }
+export type OraclePrice = {
+    [x in string]: number;
 }
 
 export const POOL_TAGS = {

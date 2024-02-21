@@ -25,6 +25,7 @@ const KNOWN_GROUPS = [
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
 
+    console.log(pools.data?.pools)
     console.log(pools.data?.pools?.find(x => x.info.name === 'mSOL-SOL'))
     
     const { watch, register, resetField } = useForm<{

@@ -17,7 +17,7 @@ export default function () {
     const { formattedNetwork } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
-    const { data: prices } = useGetPrices();
+    const { data: prices } = useGetPrices(pools?.pools);
     const { data: reserves } = useGetReserves(pools?.pools);
     const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
 
@@ -41,6 +41,10 @@ export default function () {
                     exchangeInfo: IExchangeInfo;
                     virtualPrice: Fraction | null;
                     pair: Pair<StableSwapPool>
+                    usdPrice: {
+                        tokenA: number;
+                        tokenB: number;
+                    }
                 } => {
                     const pool = poolRaw as PoolInfoRaw;
                     const swap: DetailedSwapSummary | null =
@@ -59,7 +63,14 @@ export default function () {
                         },
                     };
 
-                    return { info, ...getExchange(info, reserves, lpTokenAmounts) };
+                    return {
+                        info,
+                        ...getExchange(info, reserves, lpTokenAmounts),
+                        usdPrice: {
+                            tokenA: prices[pool.swap.state.tokenA.mint.toString()],
+                            tokenB: prices[pool.swap.state.tokenB.mint.toString()],
+                        },
+                    };
                 }),
             };
 
