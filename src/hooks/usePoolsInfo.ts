@@ -4,14 +4,12 @@ import useGetPools from './useGetPools';
 import useNetwork from '../hooks/useNetwork';
 import { valuesToKeys } from '../helpers/keys';
 import { parseRawSwapState } from '../helpers/state';
-import { DetailedSwapSummary, PoolInfo, PoolInfoRaw } from '../types';
+import { DetailedSwapSummary, PoolData, PoolInfo, PoolInfoRaw } from '../types';
 import useGetPrices from './useGetPrices';
-import { IExchangeInfo } from '@saberhq/stableswap-sdk';
-import { Fraction } from '@saberhq/token-utils';
 import useGetReserves from './useGetReserves';
-import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
 import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
+import { getPoolTVL } from '../helpers/prices';
 
 export default function () {
     const { formattedNetwork } = useNetwork();
@@ -36,16 +34,7 @@ export default function () {
 
             const data = {
                 addresses: valuesToKeys(pools.addresses),
-                pools: pools.pools.map((poolRaw): {
-                    info: PoolInfo;
-                    exchangeInfo: IExchangeInfo;
-                    virtualPrice: Fraction | null;
-                    pair: Pair<StableSwapPool>
-                    usdPrice: {
-                        tokenA: number;
-                        tokenB: number;
-                    }
-                } => {
+                pools: pools.pools.map((poolRaw): PoolData => {
                     const pool = poolRaw as PoolInfoRaw;
                     const swap: DetailedSwapSummary | null =
                         (swaps.find(
@@ -63,12 +52,18 @@ export default function () {
                         },
                     };
 
-                    return {
+                    const data = {
                         info,
                         ...getExchange(info, reserves, lpTokenAmounts),
                         usdPrice: {
-                            tokenA: prices[pool.swap.state.tokenA.mint.toString()],
-                            tokenB: prices[pool.swap.state.tokenB.mint.toString()],
+                            tokenA: prices[pool.swap.state.tokenA.mint.toString()] ?? 0,
+                            tokenB: prices[pool.swap.state.tokenB.mint.toString()] ?? 0,
+                        },
+                    };
+                    return {
+                        ...data,
+                        metrics: {
+                            tvl: getPoolTVL(data),
                         },
                     };
                 }),

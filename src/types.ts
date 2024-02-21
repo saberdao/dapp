@@ -1,5 +1,6 @@
-import { StableSwapConfig, StableSwapState, SwapTokenInfo } from '@saberhq/stableswap-sdk';
-import { TokenInfo, u64 } from '@saberhq/token-utils';
+import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
+import { IExchangeInfo, StableSwapConfig, StableSwapState, SwapTokenInfo } from '@saberhq/stableswap-sdk';
+import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
 
 export enum Explorer {
@@ -195,4 +196,18 @@ export type StableSwapStateRaw = {
     : StableSwapState[K] extends SwapTokenInfo
     ? SwapTokenInfoRaw
     : StableSwapState[K];
+};
+
+export type PoolData = {
+    info: PoolInfo;
+    exchangeInfo: IExchangeInfo;
+    virtualPrice: Fraction | null;
+    pair: Pair<StableSwapPool>
+    usdPrice: {
+        tokenA: number;
+        tokenB: number;
+    };
+    metrics: {
+        tvl: number;
+    }
 };

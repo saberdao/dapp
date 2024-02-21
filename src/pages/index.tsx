@@ -14,6 +14,8 @@ import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { CurrencyMarket } from '../types';
+import { getPoolTVL } from '../helpers/prices';
+import { toPrecision } from '../helpers/number';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -27,6 +29,7 @@ const IndexPage: React.FC<PageProps> = () => {
 
     console.log(pools.data?.pools)
     console.log(pools.data?.pools?.find(x => x.info.name === 'mSOL-SOL'))
+    console.log(pools.data?.pools?.find(x => x.info.name === 'aaWBTC-renBTC'))
     
     const { watch, register, resetField } = useForm<{
         filterText: string;
@@ -36,7 +39,7 @@ const IndexPage: React.FC<PageProps> = () => {
     }>();
     const poolsView = useReadLocalStorage<PoolsView>('poolsView');
 
-    const header = { data: ['Name', 'Your deposits', 'price 0 | price 1', 'Volume 24h', 'APY', ''] };
+    const header = { data: ['Name', 'Your deposits', 'TVL', 'Volume 24h', 'APY', ''] };
 
     const filterText = watch('filterText');
     const filterCurrency = watch('filterCurrency');
@@ -62,6 +65,7 @@ const IndexPage: React.FC<PageProps> = () => {
 
                         return true;
                     })
+                    .sort((a, b) => a.metrics.tvl - b.metrics.tvl > 0 ? -1 : 1)
                     .map((pool) => ({
                         rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
                         data: [
@@ -70,10 +74,10 @@ const IndexPage: React.FC<PageProps> = () => {
                                 <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
                                 {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
                             </div>,
-                            '$todo',
-                            `$${pool.pair.strategy.getPriceOfToken1(pool.pair.pool).asNumber}`,
-                            `$${(Math.random()*10000).toFixed(2)}`,
-                            `${(Math.random()*100).toFixed(2)}%`,
+                            '',
+                            `$${toPrecision(pool.metrics.tvl, 4)}`,
+                            ``,
+                            ``,
                             <>
                                 {poolsView === PoolsView.LIST && (
                                     <Link to={`/pools/${pool.info.id}`}>
