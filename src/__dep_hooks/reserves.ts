@@ -1,9 +1,9 @@
 import { Connection, ParsedAccountData, PublicKey } from '@solana/web3.js';
 import throat from 'throat';
-import { PoolInfoRaw } from '../_temp_stableswap_types';
 import { chunk } from 'lodash';
+import { PoolInfoRaw, PoolInfoRawWithReserves } from '../types';
 
-export const appendReserveAmounts = async (connection: Connection, data: readonly PoolInfoRaw[]) => {
+export const appendReserveAmounts = async (connection: Connection, data: readonly PoolInfoRaw[]): Promise<PoolInfoRawWithReserves[]> => {
     // First get all reserve token accounts we need to fetch info for
     const accounts = data.map((pool) => ([pool.swap.state.tokenA.reserve, pool.swap.state.tokenB.reserve])).flat();
 
@@ -29,12 +29,16 @@ export const appendReserveAmounts = async (connection: Connection, data: readonl
         return acc;
     }, {} as Record<string, string>);
 
-    console.log('TODO reserve amounts', tokenAmountsObject);
-
-    // data.forEach((pool) => {
-    //     pool.swap.state.tokenAReserveAmount = tokenAmountsObject[pool.swap.state.tokenA.reserve];
-    //     pool.swap.state.tokenBReserveAmount = tokenAmountsObject[pool.swap.state.tokenB.reserve];
-    // });
-
-    return data;
+    return data.map((pool) => {
+        return {
+            ...pool,
+            swap: {
+                ...pool.swap,
+                reserves: {
+                    tokenA: tokenAmountsObject[pool.swap.state.tokenA.reserve],
+                    tokenB: tokenAmountsObject[pool.swap.state.tokenB.reserve],
+                },
+            },
+        };
+    });
 };

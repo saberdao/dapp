@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { PoolInfoRaw } from '../_temp_stableswap_types';
-import { fetchNullableWithSessionCache } from '../helpers/fetch';
+import { fetchNullableWithSessionCache } from './fetch';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { appendReserveAmounts } from '../helpers/reserves';
+import { appendReserveAmounts } from './reserves';
 import useGetPrices from './useGetPrices';
-// import { appendPrices } from '../helpers/prices';
+import { PoolInfoRaw } from '../types';
 
 export default function useGetPools(formattedNetwork: string) {
     const { connection } = useConnection();
@@ -34,9 +33,6 @@ export default function useGetPools(formattedNetwork: string) {
 
             // Get all reserve tokens
             const pools = await appendReserveAmounts(connection, data.pools);
-
-            // Append the prices
-            // pools = appendPrices(pools, prices);
 
             return {
                 addresses: data.addresses,

@@ -3,7 +3,7 @@ import { Link, type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
-import usePoolsInfo from '../hooks/usePoolsInfo';
+import usePoolsInfo from '../__dephooks/usePoolsInfo';
 import Table from '../components/Table';
 import LoadingText from '../components/LoadingText';
 import Button from '../components/Button';
@@ -13,7 +13,7 @@ import ActiveText from '../components/ActiveText';
 import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { useReadLocalStorage } from 'usehooks-ts';
-import { CurrencyMarket } from '../_temp_stableswap_types';
+import { CurrencyMarket } from '../types';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -24,6 +24,8 @@ const KNOWN_GROUPS = [
 
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
+
+    console.log(pools.data)
     
     const { watch, register, resetField } = useForm<{
         filterText: string;

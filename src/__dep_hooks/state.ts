@@ -1,9 +1,16 @@
 import { PublicKey } from '@solana/web3.js';
 import { Percent } from '@ubeswap/token-math';
-import { StableSwapStateRaw, StableSwapState } from '../_temp_stableswap_types';
 import { valuesToKeys } from './keys';
+import { StableSwapState } from '@saberhq/stableswap-sdk';
+import { StableSwapStateRaw } from '../types';
+import { u64 } from '@saberhq/token-utils';
 
 export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState => {
+    // @ts-expect-error u64 extends BN is not typescripted well. It works fine
+    const initialAmpFactor = new u64(state.initialAmpFactor, 'hex');
+    // @ts-expect-error u64 extends BN is not typescripted well. It works fine
+    const targetAmpFactor = new u64(state.targetAmpFactor, 'hex');
+
     return {
         isInitialized: state.isInitialized,
         isPaused: state.isPaused,
@@ -17,8 +24,8 @@ export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState =>
         tokenA: valuesToKeys(state.tokenA),
         tokenB: valuesToKeys(state.tokenB),
 
-        initialAmpFactor: BigInt(`0x${state.initialAmpFactor}`),
-        targetAmpFactor: BigInt(`0x${state.targetAmpFactor}`),
+        initialAmpFactor,
+        targetAmpFactor,
         startRampTimestamp: state.startRampTimestamp,
         stopRampTimestamp: state.stopRampTimestamp,
 

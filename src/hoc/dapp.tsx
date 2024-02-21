@@ -3,10 +3,10 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import Navbar from '../components/Navbar';
-import useNetwork from '../hooks/useNetwork';
 import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import useNetwork from '../hooks/useNetwork';
 
 const CACHE_TIME = 1000 * 60 * 60;
 

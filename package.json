@@ -18,7 +18,12 @@
   },
   "dependencies": {
     "@pythnetwork/client": "^2.19.0",
+    "@saberhq/saber-periphery": "^1.1.3",
+    "@saberhq/sail": "^4.1.0",
     "@saberhq/solana-contrib": "^1.15.0",
+    "@saberhq/stableswap-sdk": "^1.15.0",
+    "@saberhq/token-utils": "^1.15.0",
+    "@sentry/react": "^7.102.0",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.34",
@@ -30,6 +35,7 @@
     "@ubeswap/token-math": "^5.2.1",
     "assert": "^2.1.0",
     "autoprefixer": "^10.4.16",
+    "bignumber.js": "^9.1.2",
     "browserify-zlib": "^0.2.0",
     "clsx": "^2.0.0",
     "crypto-browserify": "^3.12.0",
@@ -38,6 +44,7 @@
     "https-browserify": "^1.0.0",
     "i": "^0.3.7",
     "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "npm": "^10.4.0",
     "postcss": "^8.4.32",
     "react": "^18.2.0",
@@ -52,6 +59,7 @@
     "usehooks-ts": "^2.9.1"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.3.3",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",

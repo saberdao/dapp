@@ -1,9 +1,8 @@
 import { PythHttpClient, getPythProgramKeyForCluster } from '@pythnetwork/client';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useQuery } from '@tanstack/react-query';
-import useNetwork from './useNetwork';
-import { CurrencyMarket } from '../_temp_stableswap_types';
-import { ReferencePrice } from '../types';
+import useNetwork from '../hooks/useNetwork';
+import { CurrencyMarket, ReferencePrice } from '../types';
 
 export default function useGetPrices() {
     const { connection } = useConnection();
