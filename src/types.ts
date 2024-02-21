@@ -142,16 +142,7 @@ export interface PoolInfo {
     swap: {
         config: StableSwapConfig;
         state: StableSwapState;
-        reserves: {
-            tokenA: string;
-            tokenB: string;
-        }
     };
-
-    tokenPrices: {
-        tokenA: number | null;
-        tokenB: number | null;
-    }
     
     newPoolID?: string;
 
@@ -193,40 +184,6 @@ export type PoolInfoRaw = Omit<PoolInfo, 'swap'> & {
             tokenProgramID: string;
         };
         state: StableSwapStateRaw;
-    };
-    hidden?: boolean;
-};
-
-export type PoolInfoRawWithReserves = Omit<PoolInfo, 'swap' | 'tokenPrices'> & {
-    swap: {
-        config: {
-            swapAccount: string;
-            authority: string;
-            swapProgramID: string;
-            tokenProgramID: string;
-        };
-        state: StableSwapStateRaw;
-        reserves: {
-            tokenA: string;
-            tokenB: string;
-        }
-    };
-    hidden?: boolean;
-};
-
-export type PoolInfoRawWithReservesAndPrices = Omit<PoolInfo, 'swap'> & {
-    swap: {
-        config: {
-            swapAccount: string;
-            authority: string;
-            swapProgramID: string;
-            tokenProgramID: string;
-        };
-        state: StableSwapStateRaw;
-        reserves: {
-            tokenA: string;
-            tokenB: string;
-        }
     };
     hidden?: boolean;
 };

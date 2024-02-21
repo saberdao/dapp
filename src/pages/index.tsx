@@ -3,7 +3,7 @@ import { Link, type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
-import usePoolsInfo from '../__dephooks/usePoolsInfo';
+import usePoolsInfo from '../hooks/usePoolsInfo';
 import Table from '../components/Table';
 import LoadingText from '../components/LoadingText';
 import Button from '../components/Button';
@@ -25,7 +25,7 @@ const KNOWN_GROUPS = [
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
 
-    console.log(pools.data)
+    console.log(pools.data?.pools?.find(x => x.info.name === 'mSOL-SOL'))
     
     const { watch, register, resetField } = useForm<{
         filterText: string;
@@ -35,7 +35,7 @@ const IndexPage: React.FC<PageProps> = () => {
     }>();
     const poolsView = useReadLocalStorage<PoolsView>('poolsView');
 
-    const header = { data: ['Name', 'Your deposits', 'TVL', 'Volume 24h', 'APY', ''] };
+    const header = { data: ['Name', 'Your deposits', 'price 0 | price 1', 'Volume 24h', 'APY', ''] };
 
     const filterText = watch('filterText');
     const filterCurrency = watch('filterCurrency');
@@ -47,35 +47,35 @@ const IndexPage: React.FC<PageProps> = () => {
                 header,
                 ...pools.data.pools
                     .filter((pool) => {
-                        if (filterText && !pool.name.toLowerCase().includes(filterText.toLowerCase())) {
+                        if (filterText && !pool.info.name.toLowerCase().includes(filterText.toLowerCase())) {
                             return false;
                         }
 
-                        if (filterCurrency && pool.currency !== filterCurrency) {
+                        if (filterCurrency && pool.info.currency !== filterCurrency) {
                             return false;
                         }
 
-                        if (!filterDeprecated && isPoolDeprecated(pool.name)) {
+                        if (!filterDeprecated && isPoolDeprecated(pool.info.name)) {
                             return false;
                         }
 
                         return true;
                     })
                     .map((pool) => ({
-                        rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.id}`,
+                        rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
                         data: [
-                            <div key={pool.id} className="flex items-center gap-2">
-                                <img className="w-5 h-5" src={pool.tokenIcons[0].logoURI} />
-                                <img className="-ml-3 w-5 h-5" src={pool.tokenIcons[1].logoURI} />
-                                {isPoolDeprecated(pool.name) ? <p className="line-through">{pool.name}</p> : pool.name}
+                            <div key={pool.info.id} className="flex items-center gap-2">
+                                <img className="w-5 h-5" src={pool.info.tokenIcons[0].logoURI} />
+                                <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
+                                {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
                             </div>,
                             '$todo',
-                            `$${pool.summary.underlyingTokens[0]}|${pool.summary.underlyingTokens[1]}`,
+                            `$${pool.pair.strategy.getPriceOfToken1(pool.pair.pool).asNumber}`,
                             `$${(Math.random()*10000).toFixed(2)}`,
                             `${(Math.random()*100).toFixed(2)}%`,
                             <>
                                 {poolsView === PoolsView.LIST && (
-                                    <Link to={`/pools/${pool.id}`}>
+                                    <Link to={`/pools/${pool.info.id}`}>
                                         <Button className="hidden lg:inline-block" size="small" key="button">View</Button>
                                     </Link>
                                 )}

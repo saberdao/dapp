@@ -1,12 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchNullableWithSessionCache } from './fetch';
-import { useConnection } from '@solana/wallet-adapter-react';
-import { appendReserveAmounts } from './reserves';
+import { fetchNullableWithSessionCache } from '../helpers/fetch';
 import useGetPrices from './useGetPrices';
 import { PoolInfoRaw } from '../types';
 
 export default function useGetPools(formattedNetwork: string) {
-    const { connection } = useConnection();
     const { data: prices } = useGetPrices();
 
     return useQuery({
@@ -31,13 +28,7 @@ export default function useGetPools(formattedNetwork: string) {
                 throw Error('Could not find pool data');
             }
 
-            // Get all reserve tokens
-            const pools = await appendReserveAmounts(connection, data.pools);
-
-            return {
-                addresses: data.addresses,
-                pools,
-            };
+            return data;
         },
         enabled: !!formattedNetwork && !!prices,
     });

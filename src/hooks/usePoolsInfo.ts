@@ -2,17 +2,24 @@ import { useQuery } from '@tanstack/react-query';
 import useGetSwaps from './useGetSwaps';
 import useGetPools from './useGetPools';
 import useNetwork from '../hooks/useNetwork';
-import { valuesToKeys } from './keys';
-import { parseRawSwapState } from './state';
-import { DetailedSwapSummary, PoolInfo, PoolInfoRawWithReservesAndPrices } from '../types';
+import { valuesToKeys } from '../helpers/keys';
+import { parseRawSwapState } from '../helpers/state';
+import { DetailedSwapSummary, PoolInfo, PoolInfoRaw } from '../types';
 import useGetPrices from './useGetPrices';
-import { appendPrices } from './prices';
+import { IExchangeInfo } from '@saberhq/stableswap-sdk';
+import { Fraction } from '@saberhq/token-utils';
+import useGetReserves from './useGetReserves';
+import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
+import useGetLPTokenAmounts from './useGetLPTokenAmounts';
+import { getExchange } from '../helpers/exchange';
 
 export default function () {
     const { formattedNetwork } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
     const { data: prices } = useGetPrices();
+    const { data: reserves } = useGetReserves(pools?.pools);
+    const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
 
     return useQuery({
         queryKey: ['registryPoolsInfo'],
@@ -23,17 +30,19 @@ export default function () {
             // prevent re-fetching on every page load.
             // Especially for the reverse balances this
             // saves a ton of RPC calls.
-            if (!swaps || !pools || !prices) {
+            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts) {
                 return;
             }
 
-            // Append the prices
-            const poolsWithPrices: PoolInfoRawWithReservesAndPrices[] = appendPrices(pools.pools, prices);
-
-            return {
+            const data = {
                 addresses: valuesToKeys(pools.addresses),
-                pools: poolsWithPrices.map((poolRaw) => {
-                    const pool = poolRaw as PoolInfoRawWithReservesAndPrices;
+                pools: pools.pools.map((poolRaw): {
+                    info: PoolInfo;
+                    exchangeInfo: IExchangeInfo;
+                    virtualPrice: Fraction | null;
+                    pair: Pair<StableSwapPool>
+                } => {
+                    const pool = poolRaw as PoolInfoRaw;
                     const swap: DetailedSwapSummary | null =
                         (swaps.find(
                             (s: DetailedSwapSummary) => s.id === pool.id,
@@ -47,13 +56,15 @@ export default function () {
                         swap: {
                             config: valuesToKeys(pool.swap.config),
                             state: parseRawSwapState(pool.swap.state),
-                            reserves: pool.swap.reserves,
                         },
                     };
-                    return info;
+
+                    return { info, ...getExchange(info, reserves, lpTokenAmounts) };
                 }),
             };
+
+            return data;
         },
-        enabled: !!swaps && !!pools && !!prices,
+        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts,
     });
 }

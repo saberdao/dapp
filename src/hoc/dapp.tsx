@@ -3,10 +3,10 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import Navbar from '../components/Navbar';
+import useNetwork from '../hooks/useNetwork';
 import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import useNetwork from '../hooks/useNetwork';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -54,7 +54,7 @@ const Dapp = (props: { Component: any; props: any }) => {
             maxAge: CACHE_TIME,
             dehydrateOptions: {
                 shouldDehydrateQuery: query => {
-                    return ['swaps', 'pools', 'prices'].includes(query.queryKey.join('-'));
+                    return ['swaps', 'pools', 'prices', 'reserves-y', 'lpTokenAmounts-y'].includes(query.queryKey.join('-'));
                 },
             },
         }}>

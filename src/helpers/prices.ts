@@ -24,18 +24,16 @@ const findPrice = (pools: readonly PoolInfoRawWithReservesAndPrices[], pool: Poo
         return priceFromOtherPool;
     }
 
-    const state = parseRawSwapState(pool.swap.state);
-
-    const unitPrice = Pair.fromStableSwap({
-        config: valuesToKeys(pool.swap.config),
-        state,
-        exchange: {
-            ampFactor: calculateAmpFactor(state),
-            fees: state.fees
-            lpTotalSupply: TokenAmount;
-            reserves: readonly[IReserve, IReserve];
-        },
-    }).token1Price
+    // const unitPrice = Pair.fromStableSwap({
+    //     config: valuesToKeys(pool.swap.config),
+    //     state,
+    //     exchange: {
+    //         ampFactor: calculateAmpFactor(state),
+    //         fees: state.fees
+    //         lpTotalSupply: TokenAmount;
+    //         reserves: readonly[IReserve, IReserve];
+    //     },
+    // }).token1Price
 
     return parseInt(pool.swap.reserves[key]) / parseInt(pool.swap.reserves[otherKey]) * pool.tokenPrices[otherKey]!;
 };
