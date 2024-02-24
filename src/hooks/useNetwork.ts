@@ -18,6 +18,7 @@ export default function () {
 
     // @TODO: Set actual endpoint
     const [endpoint] = useState('https://rpc.ankr.com/solana/010f8ab55e016875312e71da3f611d5c6fec24afde95a876d2c65a25838211a2');
+    const [wsEndpoint] = useState('wss://rpc.ankr.com/solana/ws/010f8ab55e016875312e71da3f611d5c6fec24afde95a876d2c65a25838211a2');
 
-    return { network, formattedNetwork: formatNetwork(network), endpoint };
+    return { network, wsEndpoint, formattedNetwork: formatNetwork(network), endpoint };
 }

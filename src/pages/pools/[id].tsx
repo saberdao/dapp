@@ -110,7 +110,7 @@ const LiquidityForms = (props: { pool: PoolData }) => {
             <div className="p-5">
                 {selectedTab === 0 && <DepositForm />}
                 {selectedTab === 1 && <WithdrawForm />}
-                {selectedTab === 2 && <StakeForm />}
+                {selectedTab === 2 && <StakeForm pool={props.pool} />}
                 {selectedTab === 3 && <UnstakeForm />}
             </div>
         </>

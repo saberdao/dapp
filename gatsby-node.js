@@ -1,3 +1,5 @@
+const webpack = require('webpack'); 
+
 exports.onCreateWebpackConfig = ({ actions, getConfig }) => {
     const config = getConfig();
     if (config.externals && config.externals[0]) {
@@ -6,6 +8,11 @@ exports.onCreateWebpackConfig = ({ actions, getConfig }) => {
     actions.replaceWebpackConfig(config);
 
     actions.setWebpackConfig({
+        plugins: [
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
+            }),
+        ],
         resolve: {
             fallback: {
                 crypto: require.resolve('crypto-browserify'),
@@ -15,6 +22,7 @@ exports.onCreateWebpackConfig = ({ actions, getConfig }) => {
                 http: require.resolve('stream-http'),
                 stream: require.resolve('stream-browserify'),
                 assert: require.resolve('assert/'),
+                buffer: require.resolve('buffer/'),
             },
         },
     });

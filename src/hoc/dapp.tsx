@@ -2,11 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { ToastContainer } from 'react-toastify';
+
 import Navbar from '../components/Navbar';
 import useNetwork from '../hooks/useNetwork';
 import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+
+import 'react-toastify/dist/ReactToastify.css';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -28,7 +32,7 @@ const persister = createSyncStoragePersister({
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 const Dapp = (props: { Component: any; props: any }) => {
-    const { network, endpoint } = useNetwork();
+    const { network, endpoint, wsEndpoint } = useNetwork();
 
     const wallets = useMemo(
         () => [
@@ -58,7 +62,7 @@ const Dapp = (props: { Component: any; props: any }) => {
                 },
             },
         }}>
-            <ConnectionProvider endpoint={endpoint}>
+            <ConnectionProvider endpoint={endpoint} config={{ wsEndpoint: wsEndpoint }}>
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>
                         <div className="bg-gradient-to-b from-gray-950 bg-fixed to-gray-800 text-white min-h-screen w-full flex justify-center p-5">
@@ -67,6 +71,7 @@ const Dapp = (props: { Component: any; props: any }) => {
                                 <props.Component {...props.props} />
                             </div>
                         </div>
+                        <ToastContainer theme="dark" />
                     </WalletModalProvider>
                 </WalletProvider>
             </ConnectionProvider>
