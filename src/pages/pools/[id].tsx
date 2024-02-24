@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { HeadFC } from 'gatsby';
+import { TokenInfo } from '@saberhq/token-utils';
+import { FaDiscord, FaGithub, FaGlobe, FaMedium, FaTelegram } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import dapp from '../../hoc/dapp';
 import H2 from '../../components/H2';
 import H1 from '../../components/H1';
@@ -12,6 +15,12 @@ import StakeForm from '../../components/pool/StakeForm';
 import WithdrawForm from '../../components/pool/WithdrawForm';
 import UnstakeForm from '../../components/pool/UnstakeForm';
 import DepositForm from '../../components/pool/DepositForm';
+import usePoolsInfo from '../../hooks/usePoolsInfo';
+import { toPrecision } from '../../helpers/number';
+import { IconType } from 'react-icons';
+import { useWallet } from '@solana/wallet-adapter-react';
+import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
+import { PoolData } from '../../types';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -30,11 +39,33 @@ const InfoPanel = (props: { data: any[][] }) => {
     );
 };
 
-const AboutBlock = (props: {}) => {
+const ExternalLink = (props: { href?: string, icon: IconType }) => {
+    if (!props.href) {
+        return null;
+    }
+
     return (
-        <Block className="">
-            <H2>About USDC</H2>
-            <p className="text-gray-400">Some text about USDC here. Plus logo, audit status and link to protocol page</p>
+        <a href={props.href} target="_blank" rel="noreferrer" className="flex items-center justify-center w-8 h-8 bg-saber-dark hover:bg-saber-light transition-colors rounded-full text-white">
+            <props.icon />
+        </a>
+    );
+};
+
+const AboutBlock = (props: { token: TokenInfo }) => {
+    return (
+        <Block className="w-full h-full">
+            <H2>{props.token.symbol}</H2>
+            {props.token.extensions?.description ? <div className="mb-3 text-secondary">
+                {props.token.extensions?.description}
+            </div> : null}
+            <div className="flex items-center gap-1">
+                <ExternalLink href={props.token.extensions?.website} icon={FaGlobe} />
+                <ExternalLink href={props.token.extensions?.discord} icon={FaDiscord} />
+                <ExternalLink href={props.token.extensions?.github} icon={FaGithub} />
+                <ExternalLink href={props.token.extensions?.medium} icon={FaMedium} />
+                <ExternalLink href={props.token.extensions?.twitter} icon={FaXTwitter} />
+                <ExternalLink href={props.token.extensions?.tggroup} icon={FaTelegram} />
+            </div>
         </Block>
     );
 };
@@ -62,15 +93,16 @@ const FarmRewards = () => {
     </div>;
 };
 
-const LiquidityForms = () => {
+const LiquidityForms = (props: { pool: PoolData }) => {
     const [selectedTab, setSelectedTab] = useState(0);
+    const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
 
     const tabs = [
         { name: 'Deposit', current: selectedTab === 0 },
-        { name: 'Withdraw', current: selectedTab === 1 },
-        { name: 'Stake', current: selectedTab === 2 },
+        lpTokenBalance?.balance && { name: 'Withdraw', current: selectedTab === 1 },
+        lpTokenBalance?.balance && { name: 'Stake', current: selectedTab === 2 },
         { name: 'Unstake', current: selectedTab === 3 },
-    ];
+    ].filter((x): x is { name: string, current: boolean } => !!x);
 
     return (
         <>
@@ -85,65 +117,103 @@ const LiquidityForms = () => {
     );
 };
 
-const LiquidityBlock = () => {
+const LiquidityBlock = (props: { pool: PoolData }) => {
+    const { wallet } = useWallet();
+    const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
+
+    if (!wallet?.adapter.publicKey) {
+        return (
+            <Block className="">
+                <H2>Your Liquidity</H2>
+                <p className="text-secondary">
+                    Connect wallet to view and manage your liquidity.
+                </p>
+            </Block>
+        );
+    }
+
     return (
         <>
             <Block className="">
                 <H2>Your Liquidity</H2>
                 <InfoPanel data={[
                     ['Staked', `$${(Math.random() * 1000).toFixed(2)}`],
-                    ['LP tokens in wallet (if >0)', `${(Math.random() * 1000000).toFixed(2)}`],
+                    lpTokenBalance && lpTokenBalance.balance.value.uiAmount ?  ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`] : [],
                     ['Farm rewards', <FarmRewards key="f" />],
                     ['', <Button size="small" key="g">Claim</Button>],
-                ]} />
+                ].filter(x => x.length !== 0)} />
             </Block>
 
             <Block className="mt-5" noPadding>
-                <LiquidityForms />
+                <LiquidityForms pool={props.pool} />
             </Block></>
     );
 };
 
 const PoolPage = (props: { params: { id: string }}) => {
+    const pools = usePoolsInfo();
+    const pool = useMemo(() => {
+        return pools?.data?.pools?.find(x => x.info.id === props.params.id);
+    }, [props.params.id, pools]);
+
+    if (!pool) {
+        return null;
+    }
+
     const poolData = [
         ['---'],
-        ['Token A deposits + logo', `$${(Math.random() * 1000).toFixed(2)}`],
-        ['Token B deposits + logo', `$${(Math.random() * 1000).toFixed(2)}`],
+        [
+            <div key={`${pool.info.tokens[0].address}-deposits`} className="flex items-center gap-1">
+                <img src={pool.info.tokens[0].logoURI} className="w-5 h-5" />
+                <p>{pool.info.tokens[0].symbol}</p>
+            </div>,
+            `$${toPrecision(pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA, 4)}`,
+        ],
+        [
+            <div key={`${pool.info.tokens[1].address}-deposits`} className="flex items-center gap-1">
+                <img src={pool.info.tokens[1].logoURI} className="w-5 h-5" />
+                <p>{pool.info.tokens[1].symbol}</p>
+            </div>,
+            `$${toPrecision(pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB, 4)}`,
+        ],
         ['---'],
-        ['24h volume', `$${(Math.random() * 1000).toFixed(2)}`],
-        ['24h fees', `$${(Math.random() * 100).toFixed(2)}`],
+        ['24h volume', 'TODO'],
+        ['24h fees', 'TODO'],
         ['---'],
-        ['Virtual price', `${(Math.random() * 10).toFixed(2)}`],
-        ['Concentration coefficient', `${(Math.random() * 1000).toFixed(0)}`],
+        ['Virtual price', `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'}`],
+        ['Concentration coefficient', `${pool.pair.pool.exchange.ampFactor}x`],
         ['---'],
-        ['Trade fee', `${(Math.random() * 10).toFixed(2)}%`],
-        ['Withdraw fee', `${(Math.random() * 10).toFixed(2)}%`],
+        ['Trade fee', `${pool.pair.pool.exchange.fees.trade.asNumber * 100}%`],
+        ['Withdraw fee', `${pool.pair.pool.exchange.fees.withdraw.asNumber * 100}%`],
     ];
 
     const addressData = [
-        ['Swap account', <Address key={0} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
-        ['Pool token address', <Address key={1} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
-        ['Token A mint', <Address key={2} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
-        ['Token B mint', <Address key={3} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
-        ['Token B reserve', <Address key={4} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
-        ['Token B reserve', <Address key={5} address='Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1' />],
+        ['Swap account', <Address key={0} address={pool.pair.pool.config.swapAccount.toString()} />],
+        ['Pool token address', <Address key={1} address={pool.pair.pool.state.poolTokenMint.toString()} />],
+        ['Token A mint', <Address key={2} address={pool.pair.pool.state.tokenA.mint.toString()} />],
+        ['Token B mint', <Address key={3} address={pool.pair.pool.state.tokenB.mint.toString()} />],
+        ['Token B reserve', <Address key={4} address={pool.pair.pool.state.tokenA.reserve.toString()} />],
+        ['Token B reserve', <Address key={5} address={pool.pair.pool.state.tokenB.reserve.toString()} />],
     ];
+
+    console.log(pool);
 
     return (
         <div>
-            <H1>Pool name + logo</H1>
+            <H1>{pool.info.name}</H1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="col-span-2">
                     <Block className="">
                         <div className="grid grid-cols-2">
                             <div>
                                 <p className="text-gray-400">Total deposits</p>
-                                <p className="text-2xl font-bold text-gray-300">${(Math.random() * 1000).toFixed(2)}</p>
+                                <p className="text-2xl font-bold text-gray-300">${toPrecision(pool.metrics.tvl, 4)}</p>
                             </div>
                             <div className="flex flex-col items-end">
-                                <p className="text-gray-400">APY</p>
+                                <p className="text-gray-400">Staking APY</p>
                                 <div className="flex flex-col justify-center gap-1 text-lg font-bold text-gray-300">
-                                    <div className="flex items-center gap-1 justify-end">
+                                    todo
+                                    {/* <div className="flex items-center gap-1 justify-end">
                                         {(Math.random() * 10).toFixed(2)}%
                                         <Saber className="text-saber-dark bg-white rounded-full p-1" />+
                                     </div>
@@ -157,7 +227,7 @@ const PoolPage = (props: { params: { id: string }}) => {
                                     <div className="flex items-center gap-1 justify-end">
                                         {(Math.random() * 10).toFixed(2)}%
                                         <img className="w-6 h-6" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Fd8xyHHRjTvxfZrBirb6MaxSmrZYw99gRSqFUKdFwFvw.png" />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>
@@ -165,12 +235,12 @@ const PoolPage = (props: { params: { id: string }}) => {
                     </Block>
 
                     <div className="block lg:hidden mt-5">
-                        <LiquidityBlock />
+                        <LiquidityBlock pool={pool} />
                     </div>
 
                     <div className="grid sm:grid-cols-2 mt-5 gap-5 text-sm">
-                        <AboutBlock />
-                        <AboutBlock />
+                        <AboutBlock token={pool.info.tokens[0]} />
+                        <AboutBlock token={pool.info.tokens[1]} />
                     </div>
 
                     <Block className="mt-5">
@@ -179,7 +249,7 @@ const PoolPage = (props: { params: { id: string }}) => {
                     </Block>
                 </div>
                 <div className="lg:block hidden">
-                    <LiquidityBlock />
+                    <LiquidityBlock pool={pool} />
                 </div>
             </div>
         </div>

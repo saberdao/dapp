@@ -14,7 +14,6 @@ import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { CurrencyMarket } from '../types';
-import { getPoolTVL } from '../helpers/prices';
 import { toPrecision } from '../helpers/number';
 
 const KNOWN_GROUPS = [
@@ -26,10 +25,6 @@ const KNOWN_GROUPS = [
 
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
-
-    console.log(pools.data?.pools)
-    console.log(pools.data?.pools?.find(x => x.info.name === 'mSOL-SOL'))
-    console.log(pools.data?.pools?.find(x => x.info.name === 'aaWBTC-renBTC'))
     
     const { watch, register, resetField } = useForm<{
         filterText: string;
@@ -76,8 +71,8 @@ const IndexPage: React.FC<PageProps> = () => {
                             </div>,
                             '',
                             `$${toPrecision(pool.metrics.tvl, 4)}`,
-                            ``,
-                            ``,
+                            'tvl',
+                            'x',
                             <>
                                 {poolsView === PoolsView.LIST && (
                                     <Link to={`/pools/${pool.info.id}`}>

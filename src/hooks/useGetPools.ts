@@ -1,19 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchNullableWithSessionCache } from '../helpers/fetch';
-import useGetPrices from './useGetPrices';
 import { PoolInfoRaw } from '../types';
 
 export default function useGetPools(formattedNetwork: string) {
-    const { data: prices } = useGetPrices();
-
     return useQuery({
         queryKey: ['pools'],
         staleTime: 1000 * 60,
         queryFn: async () => {
-            if (!prices) { 
-                return;
-            }
-
             const data = await fetchNullableWithSessionCache<{
                 addresses: {
                     landlord: string;
@@ -30,6 +23,6 @@ export default function useGetPools(formattedNetwork: string) {
 
             return data;
         },
-        enabled: !!formattedNetwork && !!prices,
+        enabled: !!formattedNetwork,
     });
 }
