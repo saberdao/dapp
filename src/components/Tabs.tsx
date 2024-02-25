@@ -3,7 +3,7 @@ import React from 'react';
 
 export default function Tabs(props: {
     tabs: { name: string, current: boolean }[],
-    setSelectedTab: (tab: number) => void,
+    setSelectedTab: (tab: string) => void,
 }) {
     const { tabs } = props;
 
@@ -13,7 +13,7 @@ export default function Tabs(props: {
                 {tabs.map((tab, tabIdx) => (
                     <button
                         key={tab.name}
-                        onClick={() => props.setSelectedTab(tabIdx)}
+                        onClick={() => props.setSelectedTab(tab.name)}
                         className={clsx(
                             tab.current ? 'text-white from-saber-dark to-saber-light' : 'text-white hover:from-saber-dark/50 hover:to-saber-light/50 from-slate-900 to-slate-800',
                             tabIdx === 0 ? 'rounded-tl-lg' : '',

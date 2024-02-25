@@ -23,7 +23,7 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
 
             try {
                 const balance = await connection.getTokenAccountBalance(userAta.accounts.lptoken.address, 'processed');
-                return { balance };
+                return { balance, userAta: userAta.accounts.lptoken.address };
             } catch (e) {
                 // Account not initialised
                 return undefined;

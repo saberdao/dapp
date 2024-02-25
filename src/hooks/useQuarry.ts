@@ -1,24 +1,17 @@
 import { QuarrySDK } from '@quarryprotocol/quarry-sdk';
-import { SolanaProvider } from '@saberhq/solana-contrib';
-import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useQuery } from '@tanstack/react-query';
+import useProvider from './useProvider';
 
 export default function useQuarry() {
-    const wallet = useAnchorWallet();
-    const { connection } = useConnection();
+    const { provider } = useProvider();
 
     return useQuery({
         queryKey: ['quarry'],
         queryFn: async () => {
-            if (!wallet) {
+            if (!provider) {
                 return null;
             }
 
-            const provider = SolanaProvider.load({
-                connection,
-                sendConnection: connection,
-                wallet,
-            });
             const sdk = QuarrySDK.load({
                 provider,
             });

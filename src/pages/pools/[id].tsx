@@ -94,24 +94,24 @@ const FarmRewards = () => {
 };
 
 const LiquidityForms = (props: { pool: PoolData }) => {
-    const [selectedTab, setSelectedTab] = useState(0);
+    const [selectedTab, setSelectedTab] = useState('Deposit');
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
 
     const tabs = [
-        { name: 'Deposit', current: selectedTab === 0 },
-        lpTokenBalance?.balance && { name: 'Withdraw', current: selectedTab === 1 },
-        lpTokenBalance?.balance && { name: 'Stake', current: selectedTab === 2 },
-        { name: 'Unstake', current: selectedTab === 3 },
+        { name: 'Deposit', current: selectedTab === 'Deposit' },
+        lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
+        lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Stake', current: selectedTab === 'Stake' },
+        { name: 'Unstake', current: selectedTab === 'Unstake' },
     ].filter((x): x is { name: string, current: boolean } => !!x);
 
     return (
         <>
             <Tabs tabs={tabs} setSelectedTab={setSelectedTab} />
             <div className="p-5">
-                {selectedTab === 0 && <DepositForm />}
-                {selectedTab === 1 && <WithdrawForm />}
-                {selectedTab === 2 && <StakeForm pool={props.pool} />}
-                {selectedTab === 3 && <UnstakeForm />}
+                {selectedTab === 'Deposit' && <DepositForm />}
+                {selectedTab === 'Withdraw' && <WithdrawForm pool={props.pool} />}
+                {selectedTab === 'Stake' && <StakeForm pool={props.pool} />}
+                {selectedTab === 'Unstake' && <UnstakeForm />}
             </div>
         </>
     );
@@ -137,9 +137,9 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
             <Block className="">
                 <H2>Your Liquidity</H2>
                 <InfoPanel data={[
-                    ['Staked', `$${(Math.random() * 1000).toFixed(2)}`],
+                    ['Staked', 'todo'],
                     lpTokenBalance && lpTokenBalance.balance.value.uiAmount ?  ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`] : [],
-                    ['Farm rewards', <FarmRewards key="f" />],
+                    ['Farm rewards (todo)', <FarmRewards key="f" />],
                     ['', <Button size="small" key="g">Claim</Button>],
                 ].filter(x => x.length !== 0)} />
             </Block>
