@@ -1,7 +1,6 @@
 import {
     Saber,
     SABER_CODERS,
-    SBR_REWARDER,
     WrappedTokenActions,
 } from '@saberhq/saber-periphery';
 import type { TransactionEnvelope } from '@saberhq/solana-contrib';
@@ -15,7 +14,6 @@ import {
     getOrCreateATAs,
     NATIVE_MINT,
     Percent,
-    Token,
     TokenAmount,
     ZERO,
 } from '@saberhq/token-utils';
@@ -31,7 +29,7 @@ import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
 import useProvider from '../../useProvider';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { createVersionedTransaction } from '../../../helpers/transaction';
-import useQuarry from '../../useQuarry';
+import useQuarryMiner from '../useQuarryMiner';
 
 interface IDeposit {
   tokenAmounts: readonly TokenAmount[];
@@ -50,7 +48,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     const { wallet } = useWallet();
     const { saber } = useProvider();
     const { connection } = useConnection();
-    const { data: quarry } = useQuarry();
+    const { data: miner } = useQuarryMiner(pool.info.lpToken);
 
     // tokens may still be in wrapped form
     const ssTokens = useStableSwapTokens(pool);
@@ -174,7 +172,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
-            invariant(quarry, 'quarry not loaded');
+            invariant(miner, 'quarry not loaded');
 
             invariant(wallet?.adapter.publicKey);
 
@@ -235,11 +233,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             // If the LP token checkbox wasn't checked, apply stake.
             if (!noStake) {
-                const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
-                const quarryW = await rewarderW.getQuarry(new Token(pool.info.lpToken));
-                const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
-
-                const stakeTX = minerW.stake(estimatedMint.mintAmount);
+                const stakeTX = miner.miner.stake(estimatedMint.mintAmount);
                 allInstructions.push(...stakeTX.instructions);
             }
 
@@ -295,7 +289,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
             invariant(wallet?.adapter.publicKey, 'wallet not connected');
-            invariant(quarry, 'quarry not loaded');
+            invariant(miner, 'quarry not loaded');
 
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
@@ -359,11 +353,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             // If the LP token checkbox wasn't checked, apply stake.
             if (!noStake) {
-                const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
-                const quarryW = await rewarderW.getQuarry(new Token(pool.info.lpToken));
-                const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
-
-                const stakeTX = minerW.stake(estimatedMint.mintAmount);
+                const stakeTX = miner.miner.stake(estimatedMint.mintAmount);
                 allInstructions.push(...stakeTX.instructions);
             }
 
