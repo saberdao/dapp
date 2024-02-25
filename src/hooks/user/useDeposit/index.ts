@@ -1,6 +1,7 @@
 import {
     Saber,
     SABER_CODERS,
+    SBR_REWARDER,
     WrappedTokenActions,
 } from '@saberhq/saber-periphery';
 import type { TransactionEnvelope } from '@saberhq/solana-contrib';
@@ -14,6 +15,7 @@ import {
     getOrCreateATAs,
     NATIVE_MINT,
     Percent,
+    Token,
     TokenAmount,
     ZERO,
 } from '@saberhq/token-utils';
@@ -29,6 +31,7 @@ import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
 import useProvider from '../../useProvider';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { createVersionedTransaction } from '../../../helpers/transaction';
+import useQuarry from '../../useQuarry';
 
 interface IDeposit {
   tokenAmounts: readonly TokenAmount[];
@@ -36,17 +39,18 @@ interface IDeposit {
 }
 
 export interface IUseDeposit {
-  handleDeposit: () => Promise<string | undefined>;
-  depositDisabledReason?: string;
-  priceImpact: Percent | null;
-  estimatedDepositSlippage: Percent | null;
-  estimatedMint: ReturnType<typeof calculateEstimatedMintAmount> | null;
+    handleDeposit: (noStake: boolean) => Promise<string | undefined>;
+    depositDisabledReason?: string;
+    priceImpact: Percent | null;
+    estimatedDepositSlippage: Percent | null;
+    estimatedMint: ReturnType<typeof calculateEstimatedMintAmount> | null;
 }
 
 export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     const { wallet } = useWallet();
     const { saber } = useProvider();
     const { connection } = useConnection();
+    const { data: quarry } = useQuarry();
 
     // tokens may still be in wrapped form
     const ssTokens = useStableSwapTokens(pool);
@@ -146,10 +150,11 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             swap: StableSwap,
             exchangeInfo: IExchangeInfo,
             mints: {
-        lp: PublicKey;
-        tokenA: PublicKey;
-        tokenB: PublicKey;
-      },
+                lp: PublicKey;
+                tokenA: PublicKey;
+                tokenB: PublicKey;
+            },
+            noStake: boolean,
         ): Promise<string | undefined> => {
             const allInstructions = [];
             // create ATAs if they don't exist
@@ -169,6 +174,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
+            invariant(quarry, 'quarry not loaded');
 
             invariant(wallet?.adapter.publicKey);
 
@@ -197,11 +203,12 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 );
 
                 // minimum lp token amount to receive from the deposit, considering slippage
-                minimumPoolTokenAmount =
-          estimatedMint.mintAmount.reduceBy(maxSlippagePercent);
+                minimumPoolTokenAmount = estimatedMint.mintAmount.reduceBy(maxSlippagePercent);
             } catch (e) {
                 //
             }
+
+            invariant(estimatedMint, 'minimumPoolTokenAmount is null');
 
             allInstructions.push(
                 swap.deposit({
@@ -226,6 +233,16 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 ephemeralAccount,
             ]);
 
+            // If the LP token checkbox wasn't checked, apply stake.
+            if (!noStake) {
+                const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
+                const quarryW = await rewarderW.getQuarry(new Token(pool.info.lpToken));
+                const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
+
+                const stakeTX = minerW.stake(estimatedMint.mintAmount);
+                allInstructions.push(...stakeTX.instructions);
+            }
+
             const vt = await createVersionedTransaction(
                 connection,
                 txEnv.instructions,
@@ -240,7 +257,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     );
 
     const handleDeposit = useCallback(
-        async (): Promise<string | undefined> => {
+        async (noStake: boolean): Promise<string | undefined> => {
             if (!swap || !pool.exchangeInfo) {
                 throw new Error('swap or wallet or exchangeInfo is null');
             }
@@ -254,13 +271,14 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             if (
                 mints.tokenA.equals(NATIVE_MINT) ||
-        mints.tokenB.equals(NATIVE_MINT)
+                mints.tokenB.equals(NATIVE_MINT)
             ) {
                 return await handleSolDeposit(
                     Saber.load({ provider: saber.provider }),
                     swap,
                     pool.exchangeInfo,
                     mints,
+                    noStake,
                 );
             }
 
@@ -277,6 +295,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
             invariant(wallet?.adapter.publicKey, 'wallet not connected');
+            invariant(quarry, 'quarry not loaded');
 
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
@@ -319,11 +338,12 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 );
 
                 // minimum lp token amount to receive from the deposit, considering slippage
-                minimumPoolTokenAmount =
-          estimatedMint.mintAmount.reduceBy(maxSlippagePercent);
+                minimumPoolTokenAmount = estimatedMint.mintAmount.reduceBy(maxSlippagePercent);
             } catch (e) {
                 //
             }
+
+            invariant(estimatedMint, 'minimumPoolTokenAmount is null');
 
             allInstructions.push(
                 swap.deposit({
@@ -336,6 +356,16 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                     minimumPoolTokenAmount: minimumPoolTokenAmount.toU64(),
                 }),
             );
+
+            // If the LP token checkbox wasn't checked, apply stake.
+            if (!noStake) {
+                const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
+                const quarryW = await rewarderW.getQuarry(new Token(pool.info.lpToken));
+                const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
+
+                const stakeTX = minerW.stake(estimatedMint.mintAmount);
+                allInstructions.push(...stakeTX.instructions);
+            }
 
             const txEnv: TransactionEnvelope = saber.newTx(allInstructions);
 

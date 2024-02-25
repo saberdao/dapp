@@ -13,7 +13,7 @@ import { useDeposit } from '../../hooks/user/useDeposit';
 import { useMutation } from '@tanstack/react-query';
 
 export default function DepositForm (props: { pool: PoolData }) {
-    const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number }>();
+    const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
     const [lastStakeHash, setLastStakeHash] = useState('');
     const { data: ataInfo, refetch } = useUserATAs([
         new Token(props.pool.info.tokens[0]),
@@ -22,6 +22,7 @@ export default function DepositForm (props: { pool: PoolData }) {
 
     const amountTokenA = watch('amountTokenA');
     const amountTokenB = watch('amountTokenB');
+    const noStake = watch('noStake');
     const usdValue = useMemo(() => {
         return amountTokenA * props.pool.usdPrice.tokenA + amountTokenB * props.pool.usdPrice.tokenB;
     }, [amountTokenA, amountTokenB]);
@@ -41,7 +42,7 @@ export default function DepositForm (props: { pool: PoolData }) {
     const { mutate: execDeposit, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['deposit', lastStakeHash],
         mutationFn: async () => {
-            const hash = await deposit?.handleDeposit();
+            const hash = await deposit?.handleDeposit(noStake);
             return hash;
         },
     });
@@ -100,7 +101,7 @@ export default function DepositForm (props: { pool: PoolData }) {
 
             <div className="mt-3" />
 
-            <Input type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
+            <Input register={register('noStake')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
 
             <div className="mt-3" />
             
