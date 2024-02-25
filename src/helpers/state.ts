@@ -6,9 +6,7 @@ import { StableSwapStateRaw } from '../types';
 import { u64 } from '@saberhq/token-utils';
 
 export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState => {
-    // @ts-expect-error u64 extends BN is not typescripted well. It works fine
     const initialAmpFactor = new u64(state.initialAmpFactor, 'hex');
-    // @ts-expect-error u64 extends BN is not typescripted well. It works fine
     const targetAmpFactor = new u64(state.targetAmpFactor, 'hex');
 
     return {

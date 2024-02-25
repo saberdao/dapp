@@ -34,6 +34,7 @@ export default function useUserATAs(mints: (Token | null | undefined)[]) {
                     let balance = '0';
                     let isInitialized = false;
                     try {
+                        // @TODO batch and cache this
                         const balanceResult = await connection.getTokenAccountBalance(acc.ata);
                         balance = balanceResult.value.amount;
                         isInitialized = true;

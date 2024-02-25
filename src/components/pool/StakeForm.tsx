@@ -17,25 +17,22 @@ export default function StakeForm (props: { pool: PoolData }) {
     const [lastStakeHash, setLastStakeHash] = useState('');
 
     const { mutate: execStake, isPending, isSuccess, data: hash } = useMutation({
-        mutationKey: ['stake'],
+        mutationKey: ['stake', lastStakeHash],
         mutationFn: stake,
     });
 
     // Do it like this so that when useMutation is called twice, the toast will only show once.
     // But it still works with multiple stake invocations.
     useEffect(() => {
-        setTimeout(() => {
-            // Wait a bit so the RPC is updated
-            refetch();
-        }, 2000);
-
         if (lastStakeHash) {
             toast.success((
                 <div className="text-sm">
                     <p>Transaction successful! Your transaction hash:</p>
                     <TX tx={lastStakeHash} />
                 </div>
-            ));
+            ), {
+                onClose: () => refetch(),
+            });
         }
     }, [lastStakeHash]);
     

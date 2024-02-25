@@ -27,8 +27,8 @@ export default function WithdrawForm (props: { pool: PoolData }) {
         pool: props.pool,
     });
 
-    const { mutate: execStake, isPending, isSuccess, data: hash } = useMutation({
-        mutationKey: ['stake'],
+    const { mutate: execWithdraw, isPending, isSuccess, data: hash } = useMutation({
+        mutationKey: ['withdraw', lastStakeHash],
         mutationFn: async () => {
             const hash = withdraw?.handleWithdraw();
             return hash;
@@ -38,18 +38,15 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     // Do it like this so that when useMutation is called twice, the toast will only show once.
     // But it still works with multiple stake invocations.
     useEffect(() => {
-        setTimeout(() => {
-            // Wait a bit so the RPC is updated
-            refetch();
-        }, 2000);
-
         if (lastStakeHash) {
             toast.success((
                 <div className="text-sm">
                     <p>Transaction successful! Your transaction hash:</p>
                     <TX tx={lastStakeHash} />
                 </div>
-            ));
+            ), {
+                onClose: () => refetch(),
+            });
         }
     }, [lastStakeHash]);
 
@@ -78,7 +75,7 @@ export default function WithdrawForm (props: { pool: PoolData }) {
                 ? <Button disabled size="full">
                     Withdrawing...
                 </Button>
-                : <Button size="full" onClick={() => execStake()}>
+                : <Button size="full" onClick={() => execWithdraw()}>
                     Withdraw
                 </Button>}
         </div>
