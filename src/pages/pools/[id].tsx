@@ -18,9 +18,14 @@ import DepositForm from '../../components/pool/DepositForm';
 import usePoolsInfo from '../../hooks/usePoolsInfo';
 import { toPrecision } from '../../helpers/number';
 import { IconType } from 'react-icons';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { PoolData } from '../../types';
+import useQuarryMiner from '../../hooks/user/useQuarryMiner';
+import BN from 'bn.js';
+import { createVersionedTransaction } from '../../helpers/transaction';
+import { toast } from 'react-toastify';
+import TX from '../../components/TX';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -70,38 +75,41 @@ const AboutBlock = (props: { token: TokenInfo }) => {
     );
 };
 
-const FarmRewards = () => {
-    const [farmRewards, setFarmRewards] = useState(0);
+const FarmRewards = (props: { pool: PoolData }) => {
+    const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
+    console.log(miner)
+    const [farmRewards, setFarmRewards] = useState(miner?.data?.rewardsEarned.toNumber());
 
-    const digits = Math.max(0, Math.min(4, 4 - Math.ceil(Math.log10(farmRewards))));
+    const digits = Math.max(0, Math.min(4, 4 - Math.ceil(Math.log10(farmRewards ?? 1))));
 
-    const startFarmLoop = () => {
-        setInterval(() => {
-            setFarmRewards(x => x + 0.00013);
-        }, 1);
-    };
+    // const startFarmLoop = () => {
+    //     setInterval(() => {
+    //         setFarmRewards(x => (x ?? 0) + 0.00013);
+    //     }, 1);
+    // };
 
-    useEffect(() => {
-        startFarmLoop();
-    }, []);
+    // useEffect(() => {
+    //     startFarmLoop();
+    // }, []);
 
     return <div className="grid grid-cols-2 gap-1 w-full">
         <div className="flex justify-end">
             <Saber className="rounded-full p-1 text-saber-dark bg-white" />
         </div>
-        <div className="text-right font-mono">{farmRewards.toFixed(digits)}</div>
+        <div className="text-right font-mono">{miner?.data?.rewardsEarned.toNumber()}</div>
     </div>;
 };
 
 const LiquidityForms = (props: { pool: PoolData }) => {
     const [selectedTab, setSelectedTab] = useState('Deposit');
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
+    const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
 
     const tabs = [
         { name: 'Deposit', current: selectedTab === 'Deposit' },
         lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
         lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Stake', current: selectedTab === 'Stake' },
-        { name: 'Unstake', current: selectedTab === 'Unstake' },
+        miner?.data?.balance.gt(new BN(0)) && { name: 'Unstake', current: selectedTab === 'Unstake' },
     ].filter((x): x is { name: string, current: boolean } => !!x);
 
     return (
@@ -119,7 +127,29 @@ const LiquidityForms = (props: { pool: PoolData }) => {
 
 const LiquidityBlock = (props: { pool: PoolData }) => {
     const { wallet } = useWallet();
+    const { connection } = useConnection();
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
+    const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+
+    const claim = async () => {
+        if (!miner || !wallet?.adapter.publicKey) {
+            return undefined;
+        }
+        const claimTx = await miner.miner.claim();
+
+        const vt = await createVersionedTransaction(connection, claimTx.instructions, wallet.adapter.publicKey);
+        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
+        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+
+        toast.success((
+            <div className="text-sm">
+                <p>Transaction successful! Your transaction hash:</p>
+                <TX tx={hash} />
+            </div>
+        ), {
+            onClose: () => refetch(),
+        });
+    };
 
     if (!wallet?.adapter.publicKey) {
         return (
@@ -139,8 +169,8 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
                 <InfoPanel data={[
                     ['Staked', 'todo'],
                     lpTokenBalance && lpTokenBalance.balance.value.uiAmount ?  ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`] : [],
-                    ['Farm rewards (todo)', <FarmRewards key="f" />],
-                    ['', <Button size="small" key="g">Claim</Button>],
+                    ['Farm rewards (todo)', <FarmRewards key="f" pool={props.pool} />],
+                    ['', <Button size="small" key="g" onClick={claim}>Claim</Button>],
                 ].filter(x => x.length !== 0)} />
             </Block>
 

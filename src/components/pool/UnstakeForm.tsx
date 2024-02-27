@@ -9,17 +9,35 @@ import BigNumber from 'bignumber.js';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import TX from '../TX';
-import useUnstake from '../../hooks/user/useUnstake';
+import { useWithdraw } from '../../hooks/user/useWithdraw';
+import { Token, TokenAmount } from '@saberhq/token-utils';
+import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 
 export default function UnunstakeForm (props: { pool: PoolData }) {
-    const { register, watch, setValue } = useForm<{ amount: number }>();
+    const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
-    const { unstake } = useUnstake(props.pool.info.lpToken);
     const [lastStakeHash, setLastStakeHash] = useState('');
+    const tokens = useStableSwapTokens(props.pool);
+
+    const amount = watch('amount');
+
+    const withdraw = useWithdraw({
+        withdrawPoolTokenAmount: TokenAmount.parse(new Token(props.pool.info.lpToken), amount ? `${amount}` : '0'),
+        withdrawToken: undefined, // Always do a balanced withdraw. We can optionally later swap to one using Jup for better price
+        wrappedTokens: tokens?.wrappedTokens,
+        pool: props.pool,
+        actions: {
+            withdraw: !watch('noWithdraw'),
+            unstake: true,
+        },
+    });
 
     const { mutate: execUnstake, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['unstake', lastStakeHash],
-        mutationFn: unstake,
+        mutationFn: async () => {
+            const hash = await withdraw?.handleWithdraw();
+            return hash;
+        },
     });
 
     // Do it like this so that when useMutation is called twice, the toast will only show once.
@@ -36,8 +54,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
             });
         }
     }, [lastStakeHash]);
-
-    const amount = watch('amount');
 
     const balance = useMemo(() => {
         if (!miner?.data) {
@@ -67,7 +83,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 >{balance}</div>
             </div>
 
-            <Input type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
+            <Input register={register('noWithdraw')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
 
             <div className="mt-5" />
             
@@ -75,7 +91,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 ? <Button disabled size="full">
                     Unstaking...
                 </Button>
-                : <Button size="full" onClick={() => execUnstake(amount)}>
+                : <Button size="full" onClick={() => execUnstake()}>
                     Unstake
                 </Button>}
             

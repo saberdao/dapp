@@ -20,5 +20,7 @@ export default function useQuarry() {
                 sdk,
             };
         },
+        enabled: !!provider,
+        staleTime: 1000 * 60,
     });
 }

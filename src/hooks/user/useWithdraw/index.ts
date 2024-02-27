@@ -1,7 +1,7 @@
 import { SABER_CODERS, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { Percent } from '@saberhq/token-utils';
-import { getOrCreateATAs, TokenAmount } from '@saberhq/token-utils';
-import { type Signer } from '@solana/web3.js';
+import { getOrCreateATAs, Token, TokenAmount } from '@saberhq/token-utils';
+import { TransactionInstruction, type Signer } from '@solana/web3.js';
 import { useMemo } from 'react';
 import invariant from 'tiny-invariant';
 
@@ -15,19 +15,26 @@ import useSettings from '../../useSettings';
 import { StableSwap } from '@saberhq/stableswap-sdk';
 import useUserGetLPTokenBalance from '../useGetLPTokenBalance';
 import { createVersionedTransaction } from '../../../helpers/transaction';
+import BigNumber from 'bignumber.js';
+import useQuarryMiner from '../useQuarryMiner';
 
 export interface IWithdrawal {
-  withdrawPoolTokenAmount?: TokenAmount;
-  /**
-   * If undefined, this is "withdraw all"
-   */
-  withdrawToken?: WrappedToken;
-  /**
-   * All wrapped tokens.
-   */
-  wrappedTokens?: WrappedToken[];
+    withdrawPoolTokenAmount?: TokenAmount;
+    /**
+     * If undefined, this is "withdraw all"
+     */
+    withdrawToken?: WrappedToken;
+    /**
+     * All wrapped tokens.
+     */
+    wrappedTokens?: WrappedToken[];
 
-  pool: PoolData;
+    pool: PoolData;
+
+    actions: {
+        unstake: boolean,
+        withdraw: boolean,
+    }
 }
 
 export interface WithdrawCalculationResult {
@@ -58,10 +65,12 @@ export const useWithdraw = ({
     withdrawToken,
     wrappedTokens,
     pool,
+    actions,
 }: IWithdrawal): IUseWithdraw | undefined => {
     const { wallet } = useWallet();
     const { provider, saber } = useProvider();
     const { connection } = useConnection();
+    const { data: miner } = useQuarryMiner(pool.info.lpToken, true);
     const { data: userLP } = useUserGetLPTokenBalance(pool.info.lpToken.address);
 
     const { maxSlippagePercent } = useSettings();
@@ -110,7 +119,10 @@ export const useWithdraw = ({
     const swap = new StableSwap(pool.info.swap.config, pool.info.swap.state);
 
     const handleWithdraw = async () => {
-        if (!wallet.adapter.publicKey || !userLP) {
+        if (!actions.unstake && !actions.withdraw) {
+            throw new Error('No actions');
+        }
+        if (!wallet.adapter.publicKey || !userLP || !miner?.data) {
             throw new Error('wallet is null');
         }
         if (!wrappedTokens) {
@@ -123,97 +135,96 @@ export const useWithdraw = ({
             throw new Error('missing minimums');
         }
 
-        if (withdrawToken !== undefined) {
-            const minimum = minimums[0].token.equals(withdrawToken.value)
-                ? minimums[0].toString()
-                : minimums[1].toString();
+        const withdrawIxs: TransactionInstruction[] = [];
 
-            const txEnv = await saber.router
-                .createWithdrawOneActionFacade({
-                    swap,
-                    inputAmount: withdrawPoolTokenAmount,
-                    minimumAmountOut: new TokenAmount(
-                        withdrawToken.isWrapped()
-                            ? withdrawToken.value
-                            : withdrawToken.underlying,
-                        minimum,
-                    ),
-                    adWithdrawAction: withdrawToken.isWrapped()
-                        ? {
-                            action: 'adWithdraw',
-                            underlying: withdrawToken.underlying,
-                            decimals: withdrawToken.value.decimals,
-                            outputToken: withdrawToken.underlying,
-                        }
-                        : undefined,
-                })
-                .manualSSWithdrawOne();
-            invariant(txEnv, 'transaction envelope not found on withdraw one');
-
-            console.log('todo');
-            console.log(`Withdraw ${withdrawPoolTokenAmount.format()} LP for ${
-                withdrawToken.underlying.symbol
-            }`);
-            // await handleTX(
-            //     txEnv,
-            //     `Withdraw ${withdrawPoolTokenAmount.format()} LP for ${
-            //         withdrawToken.underlying.symbol
-            //     }`,
-            // );
-        } else {
-            const allInstructions = [];
-            const {
-                accounts: { tokenA: userAccountA, tokenB: userAccountB },
-                instructions,
-            } = await getOrCreateATAs({
-                provider,
-                mints: {
-                    tokenA: pool.exchangeInfo.reserves[0].amount.token.mintAccount,
-                    tokenB: pool.exchangeInfo.reserves[1].amount.token.mintAccount,
-                },
-            });
-
-            allInstructions.push(...instructions);
-
-            const allSigners: Signer[] = [];
-            allInstructions.push(
-                swap.withdraw({
-                    userAuthority: wallet.adapter.publicKey!,
-                    userAccountA,
-                    userAccountB,
-                    sourceAccount: userLP.userAta,
-                    poolTokenAmount: withdrawPoolTokenAmount.toU64(),
-                    minimumTokenA: minimums[0].toU64(),
-                    minimumTokenB: minimums[1].toU64(),
-                }),
-            );
-
-            await Promise.all(
-                wrappedTokens.map(async (wTok) => {
-                    if (wTok.isWrapped()) {
-                        const action = await WrappedTokenActions.loadWithActions(
-                            provider,
-                            SABER_CODERS.AddDecimals.getProgram(provider),
-                            wTok.underlying,
-                            wTok.value.decimals,
-                        );
-                        const unwrapTx = await action.unwrapAll();
-                        allInstructions.push(...unwrapTx.instructions);
-                    }
-                }),
-            );
-
-            const txEnv = saber.newTx(allInstructions, allSigners);
-            const vt = await createVersionedTransaction(
-                connection,
-                txEnv.instructions,
-                wallet.adapter.publicKey,
-            );
-
-            const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-            await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-            return hash;
+        if (actions.unstake) {
+            const maxAmount = BigNumber.min(new BigNumber(miner.data.balance.toString()), withdrawPoolTokenAmount.raw.toString());
+            const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
+            const stakeTX = miner.miner.withdraw(amount);
+            withdrawIxs.push(...stakeTX.instructions);
         }
+
+        if (actions.withdraw) {
+            if (withdrawToken !== undefined) {
+                const minimum = minimums[0].token.equals(withdrawToken.value)
+                    ? minimums[0].toString()
+                    : minimums[1].toString();
+
+                const txEnv = await saber.router
+                    .createWithdrawOneActionFacade({
+                        swap,
+                        inputAmount: withdrawPoolTokenAmount,
+                        minimumAmountOut: new TokenAmount(
+                            withdrawToken.isWrapped()
+                                ? withdrawToken.value
+                                : withdrawToken.underlying,
+                            minimum,
+                        ),
+                        adWithdrawAction: withdrawToken.isWrapped()
+                            ? {
+                                action: 'adWithdraw',
+                                underlying: withdrawToken.underlying,
+                                decimals: withdrawToken.value.decimals,
+                                outputToken: withdrawToken.underlying,
+                            }
+                            : undefined,
+                    })
+                    .manualSSWithdrawOne();
+                invariant(txEnv, 'transaction envelope not found on withdraw one');
+
+                withdrawIxs.push(...txEnv.instructions);
+            } else {
+                const allInstructions = [];
+                const {
+                    accounts: { tokenA: userAccountA, tokenB: userAccountB },
+                    instructions,
+                } = await getOrCreateATAs({
+                    provider,
+                    mints: {
+                        tokenA: pool.exchangeInfo.reserves[0].amount.token.mintAccount,
+                        tokenB: pool.exchangeInfo.reserves[1].amount.token.mintAccount,
+                    },
+                });
+
+                allInstructions.push(...instructions);
+
+                const allSigners: Signer[] = [];
+                allInstructions.push(
+                    swap.withdraw({
+                        userAuthority: wallet.adapter.publicKey!,
+                        userAccountA,
+                        userAccountB,
+                        sourceAccount: userLP.userAta,
+                        poolTokenAmount: withdrawPoolTokenAmount.toU64(),
+                        minimumTokenA: minimums[0].toU64(),
+                        minimumTokenB: minimums[1].toU64(),
+                    }),
+                );
+
+                await Promise.all(
+                    wrappedTokens.map(async (wTok) => {
+                        if (wTok.isWrapped()) {
+                            const action = await WrappedTokenActions.loadWithActions(
+                                provider,
+                                SABER_CODERS.AddDecimals.getProgram(provider),
+                                wTok.underlying,
+                                wTok.value.decimals,
+                            );
+                            const unwrapTx = await action.unwrapAll();
+                            allInstructions.push(...unwrapTx.instructions);
+                        }
+                    }),
+                );
+
+                const txEnv = saber.newTx(allInstructions, allSigners);
+                withdrawIxs.push(...txEnv.instructions);
+            }
+        }
+
+        const vt = await createVersionedTransaction(connection, withdrawIxs, wallet.adapter.publicKey);
+        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
+        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+        return hash;
     };
 
     const withdrawDisabledReason = !pool

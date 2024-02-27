@@ -25,6 +25,10 @@ export default function WithdrawForm (props: { pool: PoolData }) {
         withdrawToken: undefined, // Always do a balanced withdraw. We can optionally later swap to one using Jup for better price
         wrappedTokens: tokens?.wrappedTokens,
         pool: props.pool,
+        actions: {
+            withdraw: true,
+            unstake: false,
+        },
     });
 
     const { mutate: execWithdraw, isPending, isSuccess, data: hash } = useMutation({
