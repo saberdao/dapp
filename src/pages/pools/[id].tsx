@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { HeadFC } from 'gatsby';
-import { TokenInfo } from '@saberhq/token-utils';
+import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import { FaDiscord, FaGithub, FaGlobe, FaMedium, FaTelegram } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import dapp from '../../hoc/dapp';
@@ -28,6 +28,10 @@ import useClaimableRewards from '../../hooks/user/useClaimableRewards';
 import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
 import TX from '../../components/TX';
+import { calculateWithdrawAll } from '../../hooks/user/useWithdraw/calculateWithdrawAll';
+import useSettings from '../../hooks/useSettings';
+import { SBR_INFO } from '../../utils/builtinTokens';
+import useDailyRewards from '../../hooks/user/useDailyRewards';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -116,7 +120,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
 const FarmRewards = (props: { pool: PoolData }) => {
     return <div className="grid grid-cols-2 gap-1 w-full">
         <div className="flex justify-end">
-            <Saber className="rounded-full p-1 text-saber-dark bg-white" />
+            <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
         </div>
         <div className="text-right font-mono">
             <FarmCounter pool={props.pool} />
@@ -152,8 +156,28 @@ const LiquidityForms = (props: { pool: PoolData }) => {
 const LiquidityBlock = (props: { pool: PoolData }) => {
     const { wallet } = useWallet();
     const [lastStakeHash, setLastStakeHash] = useState('');
-    const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
+    const { maxSlippagePercent } = useSettings();
+    const { dailyRewards } = useDailyRewards(props.pool.info.lpToken);
+
+    const stakedUsdValue = useMemo(() => {
+        if (!miner?.data) {
+            return 0;
+        }
+
+        const values = calculateWithdrawAll({
+            poolTokenAmount: new TokenAmount(new Token(props.pool.info.lpToken), miner.data.balance),
+            maxSlippagePercent,
+            exchangeInfo: props.pool.exchangeInfo,
+        });
+
+        const valueA = values.estimates[0] ? values.estimates[0].asNumber : 0;
+        const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
+        
+        const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
+        return usdValue;
+    }, [miner]);
 
     const { claim } = useClaim(props.pool.info.lpToken);
     const { mutate: execClaim, isPending, isSuccess, data: hash } = useMutation({
@@ -196,21 +220,51 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
 
     return (
         <>
-            <Block className="">
+            <Block className="flex flex-col gap-1">
                 <H2>Your Liquidity</H2>
                 <InfoPanel data={[
-                    ['Staked', 'todo'],
+                    ['Staked', `$${toPrecision(stakedUsdValue, 4)}`],
                     lpTokenBalance && lpTokenBalance.balance.value.uiAmount ?  ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`] : [],
-                    ['Farm rewards (todo)', <FarmRewards key="f" pool={props.pool} />],
-                    ['', isPending
-                        ? <Button disabled size="small" key="g">Claiming...</Button>
-                        : <Button size="small" key="g" onClick={execClaim}>Claim</Button>],
+                    ['SBR Rewards', <FarmRewards key="f" pool={props.pool} />],
                 ].filter(x => x.length !== 0)} />
+
+                {miner?.data && (isPending
+                    ? <Button size="full" disabled key="g">Claiming...</Button>
+                    : <Button size="full" key="g" onClick={execClaim}>Claim</Button>)}
+                
+                {dailyRewards > 0 && <div key="daily-rewards" className="flex items-center justify-end gap-1 text-xs text-gray-500 font-mono">
+                    You are farming
+                    <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
+                    {toPrecision(dailyRewards, 4)} / day
+                </div>}
             </Block>
 
             <Block className="mt-5" noPadding>
                 <LiquidityForms pool={props.pool} />
             </Block></>
+    );
+};
+
+const EmissionRate = (props: { pool: PoolData }) => {
+    const { data: miner } = useQuarryMiner(props.pool.info.lpToken);
+
+    const emissionRate = useMemo(() => {
+        if (!miner) {
+            return 0;
+        }
+
+        const annualRate = miner.miner.quarry.quarryData.annualRewardsRate;
+        const dailyRate = annualRate.div(new BN(365));
+        const rate = dailyRate.div(new BN(10 ** SBR_INFO.decimals));
+
+        return rate.toNumber();
+    }, [miner]);
+
+    return (
+        <div key="sbr-emission-rate" className="flex gap-1">
+            <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />
+            {toPrecision(emissionRate, 4)} / day
+        </div>
     );
 };
 
@@ -225,6 +279,8 @@ const PoolPage = (props: { params: { id: string }}) => {
     }
 
     const poolData = [
+        ['---'],
+        ['SBR emission rate', pool ? <EmissionRate pool={pool} /> : null],
         ['---'],
         [
             <div key={`${pool.info.tokens[0].address}-deposits`} className="flex items-center gap-1">
@@ -260,8 +316,6 @@ const PoolPage = (props: { params: { id: string }}) => {
         ['Token B reserve', <Address key={5} address={pool.pair.pool.state.tokenB.reserve.toString()} />],
     ];
 
-    console.log(pool);
-
     return (
         <div>
             <H1>{pool.info.name}</H1>
@@ -275,23 +329,27 @@ const PoolPage = (props: { params: { id: string }}) => {
                             </div>
                             <div className="flex flex-col items-end">
                                 <p className="text-gray-400">Staking APY</p>
-                                <div className="flex flex-col justify-center gap-1 text-lg font-bold text-gray-300">
-                                    todo
-                                    {/* <div className="flex items-center gap-1 justify-end">
-                                        {(Math.random() * 10).toFixed(2)}%
-                                        <Saber className="text-saber-dark bg-white rounded-full p-1" />+
+                                <div className="flex flex-col justify-center text-lg font-bold text-gray-300">
+                                    <div className="text-right">
+                                        25%
                                     </div>
-                                    <div className="flex items-center gap-1 justify-end">
-                                        {(Math.random() * 10).toFixed(2)}%
-                                        <div className="flex gap-2">
-                                            <img className="w-6 h-6" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.svg" />
-                                            <img className="-ml-4 w-6 h-6" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png" />
-                                        </div>+
+                                    <div className="flex gap-1 text-xs font-normal">
+                                        <div className="flex items-center gap-1 justify-end">
+                                            {(Math.random() * 10).toFixed(2)}%
+                                            <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />+
+                                        </div>
+                                        <div className="flex items-center gap-1 justify-end">
+                                            {(Math.random() * 10).toFixed(2)}%
+                                            <div className="flex gap-2">
+                                                <img className="w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.svg" />
+                                                <img className="-ml-4 w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png" />
+                                            </div>+
+                                        </div>
+                                        <div className="flex items-center gap-1 justify-end">
+                                            {(Math.random() * 10).toFixed(2)}%
+                                            <img className="w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Fd8xyHHRjTvxfZrBirb6MaxSmrZYw99gRSqFUKdFwFvw.png" />
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1 justify-end">
-                                        {(Math.random() * 10).toFixed(2)}%
-                                        <img className="w-6 h-6" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Fd8xyHHRjTvxfZrBirb6MaxSmrZYw99gRSqFUKdFwFvw.png" />
-                                    </div> */}
                                 </div>
                             </div>
                         </div>

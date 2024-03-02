@@ -12,12 +12,16 @@ import TX from '../TX';
 import { useWithdraw } from '../../hooks/user/useWithdraw';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
+import { calculateWithdrawAll } from '../../hooks/user/useWithdraw/calculateWithdrawAll';
+import useSettings from '../../hooks/useSettings';
+import { toPrecision } from '../../helpers/number';
 
 export default function UnunstakeForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
+    const { maxSlippagePercent } = useSettings();
 
     const amount = watch('amount');
 
@@ -39,6 +43,24 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
             return hash;
         },
     });
+
+    const stakedUsdValue = useMemo(() => {
+        if (!miner?.data) {
+            return 0;
+        }
+
+        const values = calculateWithdrawAll({
+            poolTokenAmount: TokenAmount.parse(new Token(props.pool.info.lpToken), (amount ?? 0).toString()),
+            maxSlippagePercent,
+            exchangeInfo: props.pool.exchangeInfo,
+        });
+
+        const valueA = values.estimates[0] ? values.estimates[0].asNumber : 0;
+        const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
+        
+        const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
+        return usdValue;
+    }, [miner, amount]);
 
     // Do it like this so that when useMutation is called twice, the toast will only show once.
     // But it still works with multiple stake invocations.
@@ -63,8 +85,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
         const balance = BigNumber(miner.data.balance.toString());
         return balance.div(new BigNumber(10 ** miner.miner.quarry.token.decimals)).toNumber();
     }, [miner]);
-
-    const usdValue = 'TODO'; // @todo update this
 
     if (isSuccess && hash && lastStakeHash !== hash) {
         setLastStakeHash(hash);
@@ -96,7 +116,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 </Button>}
             
             <div className="text-right text-gray-400 text-xs mt-2">
-                ${amount > 0 ? usdValue : '—'}
+                ${amount > 0 ? toPrecision(stakedUsdValue, 4) : '—'}
             </div>
         </div>
     );

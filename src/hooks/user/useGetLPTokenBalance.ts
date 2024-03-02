@@ -26,7 +26,7 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
                 return { balance, userAta: userAta.accounts.lptoken.address };
             } catch (e) {
                 // Account not initialised
-                return undefined;
+                return null;
             }
         },
         staleTime: 1000 * 60,
