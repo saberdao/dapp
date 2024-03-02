@@ -211,3 +211,40 @@ export type PoolData = {
         tvl: number;
     }
 };
+
+interface TokenMeta {
+    mint: string;
+    decimals: number;
+}
+
+interface QuarryMeta {
+    quarry: string;
+    stakedToken: TokenMeta;
+}
+
+type QuarryMetaWithReplicas = QuarryMeta & {
+  primaryToken: TokenMeta;
+  primaryTokenInfo: TokenInfo | null;
+  mergePool: string;
+  replicaMint: string;
+  primaryQuarries: {
+    rewarder: string;
+    quarry: string;
+    rewardsToken: TokenMeta;
+  }[];
+  replicaQuarries: {
+    rewarder: string;
+    quarry: string;
+    rewardsToken: TokenMeta;
+  }[];
+  isReplica: boolean;
+  slug: string;
+};
+
+export interface RewarderMeta {
+    authority: string;
+    rewardsToken: TokenMeta;
+    rewardsTokenInfo: TokenInfo | null;
+    mintWrapper: string;
+    quarries: QuarryMetaWithReplicas[];
+}

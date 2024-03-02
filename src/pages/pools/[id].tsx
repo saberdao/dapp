@@ -18,13 +18,15 @@ import DepositForm from '../../components/pool/DepositForm';
 import usePoolsInfo from '../../hooks/usePoolsInfo';
 import { toPrecision } from '../../helpers/number';
 import { IconType } from 'react-icons';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { PoolData } from '../../types';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 import BN from 'bn.js';
-import { createVersionedTransaction } from '../../helpers/transaction';
+import useClaim from '../../hooks/user/useClaim';
+import useClaimableRewards from '../../hooks/user/useClaimableRewards';
 import { toast } from 'react-toastify';
+import { useMutation } from '@tanstack/react-query';
 import TX from '../../components/TX';
 
 const InfoPanel = (props: { data: any[][] }) => {
@@ -75,28 +77,50 @@ const AboutBlock = (props: { token: TokenInfo }) => {
     );
 };
 
+const FarmCounter = (props: { pool: PoolData }) => {
+    const { claimableRewards }= useClaimableRewards(props.pool.info.lpToken);
+    const [amounts, setAmounts] = useState<number | null>(null);
+    const [started, setStarted] = useState(false);
+
+    useEffect(() => {
+        if (claimableRewards?.()) {
+            setStarted(true);
+        }
+    }, [claimableRewards]);
+
+    useEffect(() => {
+        let playing = true;
+        const doFrame = () => {
+            setAmounts(claimableRewards() ?? 0);
+            if (playing) {
+                requestAnimationFrame(doFrame);
+            }
+        };
+        doFrame();
+        return () => {
+            playing = false;
+        };
+    }, [started]);
+
+    const digits = useMemo(() => {
+        return amounts && Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(amounts ?? 1))));
+    }, [amounts]);
+    
+    if (amounts && digits) {
+        return <p>{amounts.toFixed(digits)}</p>;
+    }
+
+    return 0;
+};
+
 const FarmRewards = (props: { pool: PoolData }) => {
-    const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
-    console.log(miner)
-    const [farmRewards, setFarmRewards] = useState(miner?.data?.rewardsEarned.toNumber());
-
-    const digits = Math.max(0, Math.min(4, 4 - Math.ceil(Math.log10(farmRewards ?? 1))));
-
-    // const startFarmLoop = () => {
-    //     setInterval(() => {
-    //         setFarmRewards(x => (x ?? 0) + 0.00013);
-    //     }, 1);
-    // };
-
-    // useEffect(() => {
-    //     startFarmLoop();
-    // }, []);
-
     return <div className="grid grid-cols-2 gap-1 w-full">
         <div className="flex justify-end">
             <Saber className="rounded-full p-1 text-saber-dark bg-white" />
         </div>
-        <div className="text-right font-mono">{miner?.data?.rewardsEarned.toNumber()}</div>
+        <div className="text-right font-mono">
+            <FarmCounter pool={props.pool} />
+        </div>
     </div>;
 };
 
@@ -127,29 +151,37 @@ const LiquidityForms = (props: { pool: PoolData }) => {
 
 const LiquidityBlock = (props: { pool: PoolData }) => {
     const { wallet } = useWallet();
-    const { connection } = useConnection();
+    const [lastStakeHash, setLastStakeHash] = useState('');
+    const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
-    const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
 
-    const claim = async () => {
-        if (!miner || !wallet?.adapter.publicKey) {
-            return undefined;
+    const { claim } = useClaim(props.pool.info.lpToken);
+    const { mutate: execClaim, isPending, isSuccess, data: hash } = useMutation({
+        mutationKey: ['deposit', lastStakeHash],
+        mutationFn: async () => {
+            const hash = await claim();
+            return hash;
+        },
+    });
+
+    // Do it like this so that when useMutation is called twice, the toast will only show once.
+    // But it still works with multiple stake invocations.
+    useEffect(() => {
+        if (lastStakeHash) {
+            toast.success((
+                <div className="text-sm">
+                    <p>Transaction successful! Your transaction hash:</p>
+                    <TX tx={lastStakeHash} />
+                </div>
+            ), {
+                onClose: () => refetch(),
+            });
         }
-        const claimTx = await miner.miner.claim();
+    }, [lastStakeHash]);
 
-        const vt = await createVersionedTransaction(connection, claimTx.instructions, wallet.adapter.publicKey);
-        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-
-        toast.success((
-            <div className="text-sm">
-                <p>Transaction successful! Your transaction hash:</p>
-                <TX tx={hash} />
-            </div>
-        ), {
-            onClose: () => refetch(),
-        });
-    };
+    if (isSuccess && hash && lastStakeHash !== hash) {
+        setLastStakeHash(hash);
+    }
 
     if (!wallet?.adapter.publicKey) {
         return (
@@ -170,7 +202,9 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
                     ['Staked', 'todo'],
                     lpTokenBalance && lpTokenBalance.balance.value.uiAmount ?  ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`] : [],
                     ['Farm rewards (todo)', <FarmRewards key="f" pool={props.pool} />],
-                    ['', <Button size="small" key="g" onClick={claim}>Claim</Button>],
+                    ['', isPending
+                        ? <Button disabled size="small" key="g">Claiming...</Button>
+                        : <Button size="small" key="g" onClick={execClaim}>Claim</Button>],
                 ].filter(x => x.length !== 0)} />
             </Block>
 
