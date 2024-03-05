@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link, type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
+import { useWallet } from '@solana/wallet-adapter-react';
 import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
 import usePoolsInfo from '../hooks/usePoolsInfo';
@@ -25,6 +26,7 @@ const KNOWN_GROUPS = [
 
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
+    const { wallet } = useWallet();
     
     const { watch, register, resetField } = useForm<{
         filterText: string;
@@ -34,7 +36,7 @@ const IndexPage: React.FC<PageProps> = () => {
     }>();
     const poolsView = useReadLocalStorage<PoolsView>('poolsView');
 
-    const header = { data: ['Name', 'Your deposits', 'TVL', 'Volume 24h', 'APY', ''] };
+    const header = { data: ['Name', wallet?.adapter.publicKey ? 'Your deposits' : undefined, 'TVL', 'Volume 24h', 'APY', ' '].filter(Boolean) };
 
     const filterText = watch('filterText');
     const filterCurrency = watch('filterCurrency');
@@ -60,7 +62,17 @@ const IndexPage: React.FC<PageProps> = () => {
 
                         return true;
                     })
-                    .sort((a, b) => a.metrics.tvl - b.metrics.tvl > 0 ? -1 : 1)
+                    .sort((a, b) => {
+                        if ((a.userInfo?.stakedUsdValue ?? 0) > (b.userInfo?.stakedUsdValue ?? 0)) {
+                            return -1;
+                        }
+
+                        if ((a.userInfo?.stakedUsdValue ?? 0) < (b.userInfo?.stakedUsdValue ?? 0)) {
+                            return 1;
+                        }
+
+                        return a.metrics.tvl - b.metrics.tvl > 0 ? -1 : 1;
+                    })
                     .map((pool) => ({
                         rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
                         data: [
@@ -69,18 +81,18 @@ const IndexPage: React.FC<PageProps> = () => {
                                 <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
                                 {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
                             </div>,
-                            '',
+                            wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),
                             `$${toPrecision(pool.metrics.tvl, 4)}`,
                             'tvl',
                             'x',
                             <>
-                                {poolsView === PoolsView.LIST && (
+                                {poolsView !== PoolsView.GRID && (
                                     <Link to={`/pools/${pool.info.id}`}>
                                         <Button className="hidden lg:inline-block" size="small" key="button">View</Button>
                                     </Link>
                                 )}
                             </>,
-                        ]})),
+                        ].filter(Boolean)})),
             ];
         }
 
@@ -88,7 +100,7 @@ const IndexPage: React.FC<PageProps> = () => {
             header,
             ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) }),
         ];
-    }, [pools]);
+    }, [pools, wallet]);
 
     return (
         <div>

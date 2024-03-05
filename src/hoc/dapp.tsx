@@ -58,7 +58,7 @@ const Dapp = (props: { Component: any; props: any }) => {
             maxAge: CACHE_TIME,
             dehydrateOptions: {
                 shouldDehydrateQuery: query => {
-                    return ['swaps', 'pools', 'prices-y', 'reserves-y', 'lpTokenAmounts-y', 'tokenList', 'rewardsList'].includes(query.queryKey.join('-'));
+                    return ['swaps', 'pools', 'prices', 'reserves', 'lpTokenAmounts', 'tokenList', 'rewardsList' ,'miner'].includes(query.queryKey[0] as string);
                 },
             },
         }}>

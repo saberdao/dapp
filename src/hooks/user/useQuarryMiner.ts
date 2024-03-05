@@ -18,7 +18,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
             const quarryW = await rewarderW.getQuarry(new Token(lpToken));
             const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
-            // @TODO: if fetchData, calculate 1 token $ worth
 
             return {
                 miner: minerW,

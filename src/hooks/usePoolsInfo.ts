@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import useGetSwaps from './useGetSwaps';
 import useGetPools from './useGetPools';
 import useNetwork from '../hooks/useNetwork';
@@ -10,6 +11,56 @@ import useGetReserves from './useGetReserves';
 import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
 import { getPoolTVL } from '../helpers/prices';
+import { ParsedAccountData, PublicKey } from '@solana/web3.js';
+import { QUARRY_ADDRESSES } from '@quarryprotocol/quarry-sdk';
+import { chunk } from 'lodash';
+import throat from 'throat';
+import { Percent, Token, TokenAmount, getATAAddressSync } from '@saberhq/token-utils';
+import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
+import useSettings from './useSettings';
+
+function encode(input: string): Uint8Array {
+    const encoder = new TextEncoder();
+    return encoder.encode(input);
+}
+
+const calculateUsdValue = (pool: PoolData, balance: string, maxSlippagePercent: Percent) => {
+    const values = calculateWithdrawAll({
+        poolTokenAmount: new TokenAmount(new Token(pool.info.lpToken), balance),
+        maxSlippagePercent,
+        exchangeInfo: pool.exchangeInfo,
+    });
+
+    const valueA = values.estimates[0] ? values.estimates[0].asNumber : 0;
+    const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
+
+    const usdValue = valueA * pool.usdPrice.tokenA + valueB * pool.usdPrice.tokenB;
+
+    return usdValue;
+};
+
+const getStakedBalanceAta = (
+    owner: PublicKey,
+    lpTokenAddress: PublicKey,
+) => {
+    const k = PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(encode('Miner')),
+            new PublicKey('BMMiE1bNCW61k3rw4Kfzx7er36JMrEsFGr1Bcng9i6Aq').toBytes(),
+            owner.toBytes(),
+        ],
+        new PublicKey(QUARRY_ADDRESSES.Mine),
+    );
+    const ata = getATAAddressSync({
+        mint: new PublicKey(lpTokenAddress),
+        owner: k[0],
+    });
+
+    return {
+        ata,
+        lpTokenAddress,
+    };
+};
 
 export default function () {
     const { formattedNetwork } = useNetwork();
@@ -18,9 +69,12 @@ export default function () {
     const { data: prices } = useGetPrices(pools?.pools);
     const { data: reserves } = useGetReserves(pools?.pools);
     const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
+    const { connection } = useConnection();
+    const { maxSlippagePercent } = useSettings();
+    const { wallet } = useWallet();
 
     return useQuery({
-        queryKey: ['registryPoolsInfo'],
+        queryKey: ['registryPoolsInfo', wallet?.adapter.publicKey ? 'connected' : 'disconnected'],
         queryFn: async () => {
             // Only run when we have the dependent info
             // Note these are also in the enabled boolean,
@@ -68,6 +122,46 @@ export default function () {
                     };
                 }),
             };
+
+            if (wallet?.adapter.publicKey) {
+                // Also add all staked balances
+                const balanceAddresses = data.pools.map((pool) => {
+                    return getStakedBalanceAta(
+                        wallet.adapter.publicKey!,
+                        new PublicKey(pool.info.lpToken.address),
+                    );
+                });
+
+                // Now we need to fetch the balances of all these addresses, we can do that in chunks of 100
+                const chunks = chunk(balanceAddresses, 100);
+                
+                // Ask the RPC to execute this
+                const tokenAmounts = (await Promise.all(chunks.map(throat(10, async (chunk) => {
+                    const result = await connection.getMultipleParsedAccounts(
+                        chunk.map((account) => new PublicKey(account.ata)),
+                    );
+                    return result.value.map((item, i) => {
+                        return {
+                            address: chunk[i].ata,
+                            lpTokenAddress: chunk[i].lpTokenAddress,
+                            amount: (item?.data as ParsedAccountData)?.parsed.info.tokenAmount.amount,
+                        };
+                    });
+                })))).flat();
+
+                // Merge into pools by updating by reference
+                tokenAmounts.map((amount) => {
+                    if (amount.amount) {
+                        const pool = data.pools.find((pool) => pool.info.lpToken.address === amount.lpTokenAddress.toString());
+                        if (pool) {
+                            pool.userInfo = {
+                                stakedBalance: amount.amount,
+                                stakedUsdValue: calculateUsdValue(pool, amount.amount, maxSlippagePercent),
+                            };
+                        }
+                    }
+                });
+            }
 
             return data;
         },

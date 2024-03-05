@@ -210,6 +210,10 @@ export type PoolData = {
     metrics: {
         tvl: number;
     }
+    userInfo?: {
+        stakedBalance: string;
+        stakedUsdValue: number;
+    }
 };
 
 interface TokenMeta {
