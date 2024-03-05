@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { Link } from 'gatsby';
 import { ConditionalWrapper } from './ConditionalWrapper';
 
-export default function Table (props: { data: { data: any[]; rowLink: string }[]; blockView?: boolean }) {
+export default function Table (props: { data: { data: any[]; rowLink: string; }[]; blockView?: boolean }) {
     const header = props.data?.[0].data;
 
     return (
@@ -37,14 +37,18 @@ export default function Table (props: { data: { data: any[]; rowLink: string }[]
                     <thead className="text-xs uppercase bg-gradient-to-tr from-gray-950 to-slate-700 text-slate-200">
                         <tr className="">
                             {header.map((header, i) => 
-                                <th className="px-3 py-2" key={i}>{header}</th>)}
+                                <th className="px-3 py-2" key={i}>
+                                    {header}
+                                </th>)}
                         </tr>
                     </thead>
                     <tbody className="">
                         {props.data.slice(1).map((row, i) => (
                             <tr key={i} className=" bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900 bg-opacity-50">
                                 {row.data.map((item, j) => (
-                                    <td colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1} className="px-3 py-2" key={`${i}-${j}`}>{item}</td>
+                                    <td colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1} className="px-3 py-2" key={`${i}-${j}`}>
+                                        {item}
+                                    </td>
                                 ))}
                             </tr>
                         ))}

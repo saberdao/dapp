@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -14,9 +14,10 @@ import ActiveText from '../components/ActiveText';
 import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { useReadLocalStorage } from 'usehooks-ts';
-import { CurrencyMarket } from '../types';
+import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
+import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -25,25 +26,122 @@ const KNOWN_GROUPS = [
     CurrencyMarket.ETH,
 ] as const;
 
+enum SORTS {
+    'DEFAULT' = 'DEFAULT',
+    'VOLUME_ASC' = 'VOLUME_ASC',
+    'VOLUME_DESC' = 'VOLUME_DESC',
+    'APY_ASC' = 'APY_ASC',
+    'APY_DESC' = 'APY_DESC',
+    'TVL_ASC' = 'TVL_ASC',
+    'TVL_DESC' = 'TVL_DESC',
+}
+
+const sortReadable = {
+    [SORTS.DEFAULT]: 'Default',
+    [SORTS.VOLUME_DESC]: 'Volume (desc)',
+    [SORTS.VOLUME_ASC]: 'Volume (asc)',
+    [SORTS.TVL_DESC]: 'TVL (desc)',
+    [SORTS.TVL_ASC]: 'TVL (asc)',
+    [SORTS.APY_DESC]: 'APY (desc)',
+    [SORTS.APY_ASC]: 'APY (asc)',
+} as const;
+
+const sortFunctions = {
+    [SORTS.DEFAULT]: (a: PoolData, b: PoolData) => {
+        if ((a.userInfo?.stakedUsdValue ?? 0) > (b.userInfo?.stakedUsdValue ?? 0)) {
+            return -1;
+        }
+
+        if ((a.userInfo?.stakedUsdValue ?? 0) < (b.userInfo?.stakedUsdValue ?? 0)) {
+            return 1;
+        }
+
+        return (a.metrics?.tvl ?? 0) - (b.metrics?.tvl ?? 0) > 0 ? -1 : 1;
+    },
+    [SORTS.VOLUME_DESC]: (a: PoolData, b: PoolData) => {
+        return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? -1 : 1;
+    },
+    [SORTS.VOLUME_ASC]: (a: PoolData, b: PoolData) => {
+        return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? 1 : -1;
+    },
+    [SORTS.TVL_DESC]: (a: PoolData, b: PoolData) => {
+        return (a.metrics?.tvl ?? 0) > (b.metrics?.tvl ?? 0) ? -1 : 1;
+    },
+    [SORTS.TVL_ASC]: (a: PoolData, b: PoolData) => {
+        return (a.metrics?.tvl ?? 0) > (b.metrics?.tvl ?? 0) ? 1 : -1;
+    },
+    [SORTS.APY_DESC]: (a: PoolData, b: PoolData) => {
+        return (a.metrics?.totalApy ?? 0) > (b.metrics?.totalApy ?? 0) ? -1 : 1;
+    },
+    [SORTS.APY_ASC]: (a: PoolData, b: PoolData) => {
+        return (a.metrics?.totalApy ?? 0) > (b.metrics?.totalApy ?? 0) ? 1 : -1;
+    },
+} as const;
+
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
     const { data: price } = useGetPrices();
     const { wallet } = useWallet();
+    const [sort, setSort] = useState(SORTS.DEFAULT);
     
     const { watch, register, resetField } = useForm<{
         filterText: string;
         filterCurrency: CurrencyMarket;
         filterDeprecated: boolean;
         poolView: string;
+        sortDropdown: SORTS;
+        sortDropdownMobile: SORTS;
     }>();
 
     const poolsView = useReadLocalStorage<PoolsView>('poolsView');
 
-    const header = { data: ['Name', wallet?.adapter.publicKey ? 'Your deposits' : undefined, 'TVL', 'Volume 24h', 'APY', ' '].filter(Boolean) };
+    const header = {
+        data: [
+            'Name',
+            wallet?.adapter.publicKey ? <div key="header-volume" className="flex items-center">
+                <div className="flex-grow">Your deposits</div>
+                {poolsView !== PoolsView.GRID && <div className="hidden lg:block">
+                    {sort !== SORTS.DEFAULT && <FaSort className="cursor-pointer" onClick={() => setSort(SORTS.DEFAULT)} />}
+                    {sort == SORTS.DEFAULT && <FaSortDown />}
+                </div>}
+            </div> : undefined,
+            <div key="header-volume" className="flex items-center">
+                <div className="flex-grow">TVL</div>
+                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
+                    {sort !== SORTS.TVL_ASC && sort !== SORTS.TVL_DESC && <FaSort onClick={() => setSort(SORTS.TVL_DESC)} />}
+                    {sort == SORTS.TVL_DESC && <FaSortDown onClick={() => setSort(SORTS.TVL_ASC)} />}
+                    {sort == SORTS.TVL_ASC && <FaSortUp onClick={() => setSort(SORTS.TVL_DESC)} />}
+                </div>}
+            </div>,
+            <div key="header-volume" className="flex items-center">
+                <div className="flex-grow">Volume 24h</div>
+                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
+                    {sort !== SORTS.VOLUME_ASC && sort !== SORTS.VOLUME_DESC && <FaSort onClick={() => setSort(SORTS.VOLUME_DESC)} />}
+                    {sort == SORTS.VOLUME_DESC && <FaSortDown onClick={() => setSort(SORTS.VOLUME_ASC)} />}
+                    {sort == SORTS.VOLUME_ASC && <FaSortUp onClick={() => setSort(SORTS.VOLUME_DESC)} />}
+                </div>}
+            </div>,
+            <div key="header-volume" className="flex items-center">
+                <div className="flex-grow">APY</div>
+                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
+                    {sort !== SORTS.APY_ASC && sort !== SORTS.APY_DESC && <FaSort onClick={() => setSort(SORTS.APY_DESC)} />}
+                    {sort == SORTS.APY_DESC && <FaSortDown onClick={() => setSort(SORTS.APY_ASC)} />}
+                    {sort == SORTS.APY_ASC && <FaSortUp onClick={() => setSort(SORTS.APY_DESC)} />}
+                </div>}
+            </div>,
+            ' ',
+        ].filter(Boolean),
+    };
 
     const filterText = watch('filterText');
     const filterCurrency = watch('filterCurrency');
     const filterDeprecated = watch('filterDeprecated');
+    const sortDropdown = watch('sortDropdown');
+    const sortDropdownMobile = watch('sortDropdownMobile');
+
+    useEffect(() => {
+        setSort(sortDropdown || sortDropdownMobile);
+    }, [sortDropdown, sortDropdownMobile]);
 
     const data = useMemo(() => {
         if (pools.data && price) {
@@ -65,17 +163,7 @@ const IndexPage: React.FC<PageProps> = () => {
 
                         return true;
                     })
-                    .sort((a, b) => {
-                        if ((a.userInfo?.stakedUsdValue ?? 0) > (b.userInfo?.stakedUsdValue ?? 0)) {
-                            return -1;
-                        }
-
-                        if ((a.userInfo?.stakedUsdValue ?? 0) < (b.userInfo?.stakedUsdValue ?? 0)) {
-                            return 1;
-                        }
-
-                        return (a.metrics?.tvl ?? 0) - (b.metrics?.tvl ?? 0) > 0 ? -1 : 1;
-                    })
+                    .sort(sortFunctions[sort])
                     .map((pool) => {
                         return {
                             rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
@@ -113,6 +201,27 @@ const IndexPage: React.FC<PageProps> = () => {
             <div className="block lg:flex items-center mb-3">
                 <div className="flex-grow"><H1>Pools</H1></div>
                 <div className="flex flex-wrap justify-end items-center gap-3">
+                    {poolsView === PoolsView.GRID && <Input
+                        type={InputType.DROPDOWN}
+                        register={register('sortDropdown')}
+                        placeholder="Sort by"
+                        values={Object.values(SORTS).map((group) => {
+                            // Return as [key, human readable value]
+                            return [group, sortReadable[group]];
+                        })}
+                    />}
+                    {/* Always show on mobile */}
+                    <div className="block lg:hidden">
+                        <Input
+                            type={InputType.DROPDOWN}
+                            register={register('sortDropdownMobile')}
+                            placeholder="Sort by"
+                            values={Object.values(SORTS).map((group) => {
+                                // Return as [key, human readable value]
+                                return [group, sortReadable[group]];
+                            })}
+                        />
+                    </div>
                     {!filterCurrency
                         ? <Input
                             type={InputType.DROPDOWN}

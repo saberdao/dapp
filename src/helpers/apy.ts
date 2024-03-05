@@ -24,6 +24,10 @@ export const getEmissionApy = (pool: PoolData, sbrPrice: number) => {
     const annualRate = pool.quarryData.annualRewardsRate;
     const rate = annualRate.div(new BN(10 ** SBR_INFO.decimals));
 
+    if (rate.toNumber() < 365) {
+        return 0;
+    }
+
     // Get staked TVL
     const stakedTokens = pool.quarryData.totalTokensDeposited.toString();
     const values = calculateWithdrawAll({
