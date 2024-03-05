@@ -32,6 +32,7 @@ import { calculateWithdrawAll } from '../../hooks/user/useWithdraw/calculateWith
 import useSettings from '../../hooks/useSettings';
 import { SBR_INFO } from '../../utils/builtinTokens';
 import useDailyRewards from '../../hooks/user/useDailyRewards';
+import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -129,13 +130,14 @@ const FarmRewards = (props: { pool: PoolData }) => {
 };
 
 const LiquidityForms = (props: { pool: PoolData }) => {
-    const [selectedTab, setSelectedTab] = useState('Deposit');
+    const deprecated = isPoolDeprecated(props.pool.info.name);
+    const [selectedTab, setSelectedTab] = useState(deprecated ? 'Unstake' : 'Deposit');
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
 
     const tabs = [
-        { name: 'Deposit', current: selectedTab === 'Deposit' },
-        lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
+        !deprecated && { name: 'Deposit', current: selectedTab === 'Deposit' },
+        !deprecated && lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
         lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Stake', current: selectedTab === 'Stake' },
         miner?.data?.balance.gt(new BN(0)) && { name: 'Unstake', current: selectedTab === 'Unstake' },
     ].filter((x): x is { name: string, current: boolean } => !!x);
@@ -341,8 +343,8 @@ const PoolPage = (props: { params: { id: string }}) => {
                                         <div className="flex items-center gap-1 justify-end">
                                             {toPrecision(pool.metrics?.feeApy ?? 0, 4)}%
                                             <div className="flex gap-2">
-                                                <img className="w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.svg" />
-                                                <img className="-ml-4 w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png" />
+                                                <img className="w-4 h-4 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
+                                                <img className="-ml-4 w-4 h-4 rounded-full" src={pool.info.tokenIcons[1].logoURI} />
                                             </div>+
                                         </div>
                                         {/* <div className="flex items-center gap-1 justify-end">
