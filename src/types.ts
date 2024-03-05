@@ -1,7 +1,9 @@
+import { MineProgram } from '@quarryprotocol/quarry-sdk';
 import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
 import { IExchangeInfo, StableSwapConfig, StableSwapState, SwapTokenInfo } from '@saberhq/stableswap-sdk';
 import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
+import { PoolMetricInfo } from './hooks/usePoolsData';
 
 export enum Explorer {
     SOLSCAN = 'SOLSCAN'
@@ -136,6 +138,7 @@ export interface PoolInfo {
     underlyingIcons: readonly [TokenInfo, TokenInfo];
     currency: CurrencyMarket;
     lpToken: TokenInfo;
+    quarry: string;
 
     swap: {
         config: StableSwapConfig;
@@ -207,13 +210,18 @@ export type PoolData = {
         tokenA: number;
         tokenB: number;
     };
-    metrics: {
+    metricInfo?: PoolMetricInfo;
+    metrics?: {
         tvl: number;
+        feeApy: number;
+        emissionApy: number;
+        totalApy: number;
     }
     userInfo?: {
         stakedBalance: string;
         stakedUsdValue: number;
     }
+    quarryData?: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
 };
 
 interface TokenMeta {

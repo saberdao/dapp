@@ -12,12 +12,16 @@ import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
 import { getPoolTVL } from '../helpers/prices';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
-import { QUARRY_ADDRESSES } from '@quarryprotocol/quarry-sdk';
+import { QUARRY_ADDRESSES, QuarrySDK } from '@quarryprotocol/quarry-sdk';
 import { chunk } from 'lodash';
 import throat from 'throat';
 import { Percent, Token, TokenAmount, getATAAddressSync } from '@saberhq/token-utils';
 import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
 import useSettings from './useSettings';
+import useQuarry from './useQuarry';
+import { getEmissionApy, getFeeApy } from '../helpers/apy';
+import usePoolsData from './usePoolsData';
+import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -41,12 +45,13 @@ const calculateUsdValue = (pool: PoolData, balance: string, maxSlippagePercent: 
 
 const getStakedBalanceAta = (
     owner: PublicKey,
+    quarry: PublicKey,
     lpTokenAddress: PublicKey,
 ) => {
     const k = PublicKey.findProgramAddressSync(
         [
             Buffer.from(encode('Miner')),
-            new PublicKey('BMMiE1bNCW61k3rw4Kfzx7er36JMrEsFGr1Bcng9i6Aq').toBytes(),
+            quarry.toBytes(),
             owner.toBytes(),
         ],
         new PublicKey(QUARRY_ADDRESSES.Mine),
@@ -62,13 +67,33 @@ const getStakedBalanceAta = (
     };
 };
 
+const getQuarryInfo = async (quarry: QuarrySDK, pools: PoolData[]) => {
+    // Get quarry info
+    const rewarders = pools.map((pool) => pool.info.quarry);
+
+    const chunks = chunk(rewarders, 100);
+
+    // Ask the RPC to execute this
+    const rewarderInfo = (await Promise.all(chunks.map(throat(10, async (chunk) => {
+        const result: Awaited<ReturnType<typeof quarry.programs.Mine.account.quarry.fetch>>[] = await quarry.programs.Mine.account.quarry.fetchMultiple(chunk) as any;
+        return result;
+    })))).flat();
+    
+    // Merge in pool
+    pools.forEach(pool => {
+        pool.quarryData = rewarderInfo.find((info) => info?.tokenMintKey.toString() === pool.info.lpToken.address);
+    });
+};
+
 export default function () {
     const { formattedNetwork } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
-    const { data: prices } = useGetPrices(pools?.pools);
+    const { data: prices } = useGetPrices();
     const { data: reserves } = useGetReserves(pools?.pools);
+    const { data: poolsInfo } = usePoolsData();
     const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
+    const { data: quarry } = useQuarry();
     const { connection } = useConnection();
     const { maxSlippagePercent } = useSettings();
     const { wallet } = useWallet();
@@ -82,7 +107,7 @@ export default function () {
             // prevent re-fetching on every page load.
             // Especially for the reverse balances this
             // saves a ton of RPC calls.
-            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts) {
+            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo) {
                 return;
             }
 
@@ -116,18 +141,33 @@ export default function () {
                     };
                     return {
                         ...data,
-                        metrics: {
-                            tvl: getPoolTVL(data),
-                        },
                     };
                 }),
             };
+
+            await getQuarryInfo(quarry.sdk, data.pools);
+
+            data.pools.forEach((pool) => {
+                const metricInfo = poolsInfo?.find(info => info.poolId === pool.info.swap.config.swapAccount.toString());
+                pool.metricInfo = metricInfo;
+
+                const tvl = getPoolTVL(pool);
+                const feeApy = getFeeApy(metricInfo?.['24hFeeInUsd'] ?? 0, tvl ?? 0);
+                const emissionApy = getEmissionApy(pool, prices[SBR_ADDRESS.toString()]);
+                pool.metrics = {
+                    tvl,
+                    feeApy,
+                    emissionApy,
+                    totalApy: feeApy + emissionApy,
+                };
+            });
 
             if (wallet?.adapter.publicKey) {
                 // Also add all staked balances
                 const balanceAddresses = data.pools.map((pool) => {
                     return getStakedBalanceAta(
                         wallet.adapter.publicKey!,
+                        new PublicKey(pool.info.quarry),
                         new PublicKey(pool.info.lpToken.address),
                     );
                 });
@@ -165,6 +205,6 @@ export default function () {
 
             return data;
         },
-        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts,
+        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo,
     });
 }

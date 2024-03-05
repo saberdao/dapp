@@ -6,3 +6,5 @@ export const explorers = {
         tx: 'https://solscan.io/tx/',
     },
 };
+
+export const SABER_DATA_REPO = 'https://raw.githubusercontent.com/rockooor/saber-data/main/';

@@ -1,21 +1,19 @@
 import { Saber } from '@saberhq/saber-periphery';
-import { SolanaProvider } from '@saberhq/solana-contrib';
+import { SignerWallet, SolanaProvider } from '@saberhq/solana-contrib';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
+import { Keypair } from '@solana/web3.js';
+import { useMemo } from 'react';
 
 export default function useProvider() {
     const wallet = useAnchorWallet();
     const { connection } = useConnection();
 
-    if (!wallet) { 
-        return {
-            provider: null,
-        };
-    }
-
-    const provider = SolanaProvider.init({
-        connection,
-        wallet,
-    });
+    const provider = useMemo(() => {
+        return SolanaProvider.init({
+            connection,
+            wallet: wallet ?? new SignerWallet(Keypair.generate()),
+        });
+    }, [wallet]);
 
     return {
         provider,

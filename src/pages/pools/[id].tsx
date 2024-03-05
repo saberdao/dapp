@@ -297,8 +297,8 @@ const PoolPage = (props: { params: { id: string }}) => {
             `$${toPrecision(pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB, 4)}`,
         ],
         ['---'],
-        ['24h volume', 'TODO'],
-        ['24h fees', 'TODO'],
+        ['24h volume', `$${toPrecision(pool.metricInfo?.volumeInUSD ?? 0)}`],
+        ['24h fees', `$${toPrecision(pool.metricInfo?.['24hFeeInUsd'] ?? 0)}`],
         ['---'],
         ['Virtual price', `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'}`],
         ['Concentration coefficient', `${pool.pair.pool.exchange.ampFactor}x`],
@@ -325,30 +325,30 @@ const PoolPage = (props: { params: { id: string }}) => {
                         <div className="grid grid-cols-2">
                             <div>
                                 <p className="text-gray-400">Total deposits</p>
-                                <p className="text-2xl font-bold text-gray-300">${toPrecision(pool.metrics.tvl, 4)}</p>
+                                <p className="text-2xl font-bold text-gray-300">${toPrecision(pool.metrics?.tvl ?? 0, 4)}</p>
                             </div>
                             <div className="flex flex-col items-end">
                                 <p className="text-gray-400">Staking APY</p>
                                 <div className="flex flex-col justify-center text-lg font-bold text-gray-300">
                                     <div className="text-right">
-                                        25%
+                                        {toPrecision(pool.metrics?.totalApy ?? 0, 4)}%
                                     </div>
                                     <div className="flex gap-1 text-xs font-normal">
                                         <div className="flex items-center gap-1 justify-end">
-                                            {(Math.random() * 10).toFixed(2)}%
+                                            {toPrecision(pool.metrics?.emissionApy ?? 0, 4)}%
                                             <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />+
                                         </div>
                                         <div className="flex items-center gap-1 justify-end">
-                                            {(Math.random() * 10).toFixed(2)}%
+                                            {toPrecision(pool.metrics?.feeApy ?? 0, 4)}%
                                             <div className="flex gap-2">
                                                 <img className="w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.svg" />
                                                 <img className="-ml-4 w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png" />
                                             </div>+
                                         </div>
-                                        <div className="flex items-center gap-1 justify-end">
+                                        {/* <div className="flex items-center gap-1 justify-end">
                                             {(Math.random() * 10).toFixed(2)}%
                                             <img className="w-4 h-4" src="https://cdn.jsdelivr.net/gh/saber-hq/spl-token-icons@master/icons/101/Fd8xyHHRjTvxfZrBirb6MaxSmrZYw99gRSqFUKdFwFvw.png" />
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
                             </div>

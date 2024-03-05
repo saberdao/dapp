@@ -16,6 +16,7 @@ import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { CurrencyMarket } from '../types';
 import { toPrecision } from '../helpers/number';
+import useGetPrices from '../hooks/useGetPrices';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -26,6 +27,7 @@ const KNOWN_GROUPS = [
 
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
+    const { data: price } = useGetPrices();
     const { wallet } = useWallet();
     
     const { watch, register, resetField } = useForm<{
@@ -34,6 +36,7 @@ const IndexPage: React.FC<PageProps> = () => {
         filterDeprecated: boolean;
         poolView: string;
     }>();
+
     const poolsView = useReadLocalStorage<PoolsView>('poolsView');
 
     const header = { data: ['Name', wallet?.adapter.publicKey ? 'Your deposits' : undefined, 'TVL', 'Volume 24h', 'APY', ' '].filter(Boolean) };
@@ -43,7 +46,7 @@ const IndexPage: React.FC<PageProps> = () => {
     const filterDeprecated = watch('filterDeprecated');
 
     const data = useMemo(() => {
-        if (pools.data) {
+        if (pools.data && price) {
             return [
                 header,
                 ...pools.data.pools
@@ -71,28 +74,31 @@ const IndexPage: React.FC<PageProps> = () => {
                             return 1;
                         }
 
-                        return a.metrics.tvl - b.metrics.tvl > 0 ? -1 : 1;
+                        return (a.metrics?.tvl ?? 0) - (b.metrics?.tvl ?? 0) > 0 ? -1 : 1;
                     })
-                    .map((pool) => ({
-                        rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
-                        data: [
-                            <div key={pool.info.id} className="flex items-center gap-2">
-                                <img className="w-5 h-5" src={pool.info.tokenIcons[0].logoURI} />
-                                <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
-                                {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
-                            </div>,
-                            wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),
-                            `$${toPrecision(pool.metrics.tvl, 4)}`,
-                            'tvl',
-                            'x',
-                            <>
-                                {poolsView !== PoolsView.GRID && (
-                                    <Link to={`/pools/${pool.info.id}`}>
-                                        <Button className="hidden lg:inline-block" size="small" key="button">View</Button>
-                                    </Link>
-                                )}
-                            </>,
-                        ].filter(Boolean)})),
+                    .map((pool) => {
+                        return {
+                            rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
+                            data: [
+                                <div key={pool.info.id} className="flex items-center gap-2">
+                                    <img className="w-5 h-5" src={pool.info.tokenIcons[0].logoURI} />
+                                    <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
+                                    {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
+                                </div>,
+                                wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),
+                                `$${toPrecision(pool.metrics?.tvl ?? 0, 4)}`,
+                                pool.metricInfo?.volumeInUSD ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}` : '$0',
+                                `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
+                                <>
+                                    {poolsView !== PoolsView.GRID && (
+                                        <Link to={`/pools/${pool.info.id}`}>
+                                            <Button className="hidden lg:inline-block" size="small" key="button">View</Button>
+                                        </Link>
+                                    )}
+                                </>,
+                            ].filter(Boolean),
+                        };
+                    }),
             ];
         }
 

@@ -8,10 +8,6 @@ export default function useQuarry() {
     return useQuery({
         queryKey: ['quarry'],
         queryFn: async () => {
-            if (!provider) {
-                return null;
-            }
-
             const sdk = QuarrySDK.load({
                 provider,
             });

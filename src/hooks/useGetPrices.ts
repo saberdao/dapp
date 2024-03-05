@@ -2,12 +2,17 @@ import { PythHttpClient, getPythProgramKeyForCluster } from '@pythnetwork/client
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useQuery } from '@tanstack/react-query';
 import useNetwork from '../hooks/useNetwork';
-import { OraclePrice, PoolInfoRaw } from '../types';
+import { OraclePrice } from '../types';
 import { chunk } from 'lodash';
+import useGetPools from './useGetPools';
 
-export default function useGetPrices(pools?: readonly PoolInfoRaw[]) {
+export default function useGetPrices() {
+    const { formattedNetwork } = useNetwork();
     const { connection } = useConnection();
+    const { data: poolData } = useGetPools(formattedNetwork);
     const { network } = useNetwork();
+
+    const pools = poolData?.pools;
 
     return useQuery({
         queryKey: ['prices', (pools ?? []).length > 0 ? 'y' : 'n'],
