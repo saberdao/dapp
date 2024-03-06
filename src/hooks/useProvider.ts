@@ -8,14 +8,19 @@ export default function useProvider() {
     const wallet = useAnchorWallet();
     const { connection } = useConnection();
 
+    const randomSigner = useMemo(() => {
+        return new SignerWallet(Keypair.generate());
+    }, []);
+
     const provider = useMemo(() => {
         return SolanaProvider.init({
             connection,
-            wallet: wallet ?? new SignerWallet(Keypair.generate()),
+            wallet: wallet ?? randomSigner,
         });
     }, [wallet]);
 
     return {
+        connected: !!wallet,
         provider,
         saber: Saber.load({ provider }),
     };

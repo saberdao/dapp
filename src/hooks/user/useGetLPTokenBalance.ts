@@ -20,7 +20,6 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
                 },
                 owner: wallet.adapter.publicKey,
             });
-
             try {
                 const balance = await connection.getTokenAccountBalance(userAta.accounts.lptoken.address, 'processed');
                 return { balance, userAta: userAta.accounts.lptoken.address };
@@ -29,7 +28,6 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
                 return null;
             }
         },
-        staleTime: 1000 * 60,
         enabled: !!wallet?.adapter.publicKey && !!lpToken,
     });
 }

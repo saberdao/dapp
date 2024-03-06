@@ -163,7 +163,7 @@ const IndexPage: React.FC<PageProps> = () => {
 
                         return true;
                     })
-                    .sort(sortFunctions[sort])
+                    .sort(sortFunctions[sort || SORTS.DEFAULT])
                     .map((pool) => {
                         return {
                             rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,

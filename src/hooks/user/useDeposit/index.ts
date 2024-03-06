@@ -1,5 +1,4 @@
 import {
-    Saber,
     SABER_CODERS,
     WrappedTokenActions,
 } from '@saberhq/saber-periphery';
@@ -18,7 +17,7 @@ import {
     ZERO,
 } from '@saberhq/token-utils';
 import type { PublicKey } from '@solana/web3.js';
-import { Keypair } from '@solana/web3.js';
+import { ComputeBudgetProgram, Keypair } from '@solana/web3.js';
 import { useCallback, useMemo } from 'react';
 import invariant from 'tiny-invariant';
 import { PoolData } from '../../../types';
@@ -48,7 +47,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     const { wallet } = useWallet();
     const { saber } = useProvider();
     const { connection } = useConnection();
-    const { data: miner } = useQuarryMiner(pool.info.lpToken);
+    const { data } = useQuarryMiner(pool.info.lpToken);
 
     // tokens may still be in wrapped form
     const ssTokens = useStableSwapTokens(pool);
@@ -144,7 +143,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
     const handleSolDeposit = useCallback(
         async (
-            saber: Saber,
             swap: StableSwap,
             exchangeInfo: IExchangeInfo,
             mints: {
@@ -152,6 +150,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 tokenA: PublicKey;
                 tokenB: PublicKey;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             noStake: boolean,
         ): Promise<string | undefined> => {
             const allInstructions = [];
@@ -172,21 +171,24 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
-            invariant(miner, 'quarry not loaded');
+            invariant(data, 'quarry not loaded');
 
             invariant(wallet?.adapter.publicKey);
 
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
 
+            allInstructions.push(ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports: 100000,
+            }));
+
             // Create an ephemeral account for wrapped SOL
             const ephemeralAccount = Keypair.generate();
-            const { init, accountKey, close } =
-        await createEphemeralWrappedSolAccount({
-            provider: saber.provider,
-            amount: mints.tokenA.equals(NATIVE_MINT) ? amountA : amountB,
-            accountKP: ephemeralAccount,
-        });
+            const { init, accountKey, close } = await createEphemeralWrappedSolAccount({
+                provider: saber.provider,
+                amount: mints.tokenA.equals(NATIVE_MINT) ? amountA : amountB,
+                accountKP: ephemeralAccount,
+            });
             allInstructions.push(...init.instructions);
 
             let minimumPoolTokenAmount = new TokenAmount(
@@ -227,21 +229,34 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             // Close the ephemeral account for wrapped SOL
             allInstructions.push(...close.instructions);
 
+            // This is turned off for now, until we are sure we can deal with the
+            // transaction sizes for all cases.
+            // If the LP token checkbox wasn't checked, apply stake.
+            // if (!noStake) {
+            //     if (!(await saber.provider.getAccountInfo(data.miner.minerKey))) {
+            //         const newMiner = await data.quarry.createMiner({ authority: wallet.adapter.publicKey });
+            //         allInstructions.push(...newMiner.tx.instructions);
+            //     }
+            //     const ataTX = await data.miner.createATAIfNotExists();
+            //     if (ataTX) {
+            //         allInstructions.push(...ataTX.instructions);
+            //     }
+
+            //     const stakeTX = data.miner.stake(estimatedMint.mintAmount);
+            //     allInstructions.push(...stakeTX.instructions);
+            // }
+
             const txEnv: TransactionEnvelope = saber.newTx(allInstructions, [
                 ephemeralAccount,
             ]);
-
-            // If the LP token checkbox wasn't checked, apply stake.
-            if (!noStake) {
-                const stakeTX = miner.miner.stake(estimatedMint.mintAmount);
-                allInstructions.push(...stakeTX.instructions);
-            }
 
             const vt = await createVersionedTransaction(
                 connection,
                 txEnv.instructions,
                 wallet.adapter.publicKey,
             );
+
+            vt.transaction.sign(txEnv.signers);
 
             const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
             await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
@@ -268,7 +283,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 mints.tokenB.equals(NATIVE_MINT)
             ) {
                 return await handleSolDeposit(
-                    Saber.load({ provider: saber.provider }),
                     swap,
                     pool.exchangeInfo,
                     mints,
@@ -277,6 +291,10 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             }
 
             const allInstructions = [];
+            allInstructions.push(ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports: 100000,
+            }));
+
             // create pool token account if it doesn't exist
             const result = await getOrCreateATAs({
                 provider: saber.provider,
@@ -289,7 +307,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
             invariant(wallet?.adapter.publicKey, 'wallet not connected');
-            invariant(miner, 'quarry not loaded');
+            invariant(data, 'quarry not loaded');
 
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
@@ -351,11 +369,22 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 }),
             );
 
+            // This is turned off for now, until we are sure we can deal with the
+            // transaction sizes for all cases.
             // If the LP token checkbox wasn't checked, apply stake.
-            if (!noStake) {
-                const stakeTX = miner.miner.stake(estimatedMint.mintAmount);
-                allInstructions.push(...stakeTX.instructions);
-            }
+            // if (!noStake) {
+            //     if (!(await saber.provider.getAccountInfo(data.miner.minerKey))) {
+            //         const newMiner = await data.quarry.createMiner({ authority: wallet.adapter.publicKey });
+            //         allInstructions.push(...newMiner.tx.instructions);
+            //     }
+            //     const ataTX = await data.miner.createATAIfNotExists();
+            //     if (ataTX) {
+            //         allInstructions.push(...ataTX.instructions);
+            //     }
+
+            //     const stakeTX = data.miner.stake(estimatedMint.mintAmount);
+            //     allInstructions.push(...stakeTX.instructions);
+            // }
 
             const txEnv: TransactionEnvelope = saber.newTx(allInstructions);
 

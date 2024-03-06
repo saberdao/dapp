@@ -15,10 +15,12 @@ import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 import { calculateWithdrawAll } from '../../hooks/user/useWithdraw/calculateWithdrawAll';
 import useSettings from '../../hooks/useSettings';
 import { toPrecision } from '../../helpers/number';
+import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 
 export default function UnunstakeForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
     const { maxSlippagePercent } = useSettings();
@@ -31,7 +33,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
         wrappedTokens: tokens?.wrappedTokens,
         pool: props.pool,
         actions: {
-            withdraw: !watch('noWithdraw'),
+            withdraw: false,
             unstake: true,
         },
     });
@@ -72,7 +74,10 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                     <TX tx={lastStakeHash} />
                 </div>
             ), {
-                onClose: () => refetch(),
+                onClose: () => {
+                    refetch();
+                    refetchLP();
+                },
             });
         }
     }, [lastStakeHash]);
@@ -103,9 +108,9 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 >{balance}</div>
             </div>
 
-            <Input register={register('noWithdraw')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
+            {/* <Input register={register('noWithdraw')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
 
-            <div className="mt-5" />
+            <div className="mt-5" /> */}
             
             {isPending
                 ? <Button disabled size="full">

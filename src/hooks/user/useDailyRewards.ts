@@ -22,21 +22,15 @@ export default function useDailyRewards(lpToken: TokenInfo) {
             miner.data.rewardsEarned,
         ));
 
-        setTimeout(() => {
-            if (!miner?.data) {
-                return;
-            }
+        const timeInSecT1 = Math.floor(Date.now() / 1000) + 86400;
+        const rewardsT1 = new TokenAmount(new Token(lpToken), payroll.calculateRewardsEarned(
+            new BN(timeInSecT1),
+            miner.data.balance,
+            miner.data.rewardsPerTokenPaid,
+            miner.data.rewardsEarned,
+        ));
 
-            const timeInSecT1 = Math.floor(Date.now() / 1000);
-            const rewardsT1 = new TokenAmount(new Token(lpToken), payroll.calculateRewardsEarned(
-                new BN(timeInSecT1),
-                miner.data.balance,
-                miner.data.rewardsPerTokenPaid,
-                miner.data.rewardsEarned,
-            ));
-
-            setDailyRewards((rewardsT1.asNumber - rewardsT0.asNumber) / (timeInSecT1 - timeInSecT0) * 86400);
-        }, 2000);
+        setDailyRewards((rewardsT1.asNumber - rewardsT0.asNumber) / (timeInSecT1 - timeInSecT0) * 86400);
     }, [miner]);
 
     return { dailyRewards };

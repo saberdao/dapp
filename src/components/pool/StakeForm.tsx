@@ -9,11 +9,13 @@ import { useMutation } from '@tanstack/react-query';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { toast } from 'react-toastify';
 import TX from '../TX';
+import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 
 export default function StakeForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
     const { stake } = useStake(props.pool.info.lpToken);
-    const { refetch, data: balance } = useUserGetLPTokenBalance(props.pool.info.lpToken.address);
+    const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const [lastStakeHash, setLastStakeHash] = useState('');
 
     const { mutate: execStake, isPending, isSuccess, data: hash } = useMutation({
@@ -31,7 +33,10 @@ export default function StakeForm (props: { pool: PoolData }) {
                     <TX tx={lastStakeHash} />
                 </div>
             ), {
-                onClose: () => refetch(),
+                onClose: () => {
+                    refetch();
+                    refetchLP();
+                },
             });
         }
     }, [lastStakeHash]);

@@ -22,12 +22,10 @@ export default function useUserATAs(mints: (Token | null | undefined)[]) {
                 }, {} as Record<number, PublicKey>),
                 owner: wallet.adapter.publicKey,
             });
-            console.log(userAtasObj);
             const userAtas = mints.filter((x): x is Token => !!x).map((mint, i) => ({
                 mint,
                 ata: userAtasObj.accounts[i].address,
             }));
-            console.log(userAtas);
 
             const result = await Promise.all(
                 userAtas.map(async (acc) => {

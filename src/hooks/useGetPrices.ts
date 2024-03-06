@@ -27,7 +27,6 @@ export default function useGetPrices() {
                 client.getData(),
                 fetch('https://api.coingecko.com/api/v3/simple/price?ids=bilira&vs_currencies=usd'),
             ]);
-            console.log('pythData', pythData);
 
             const tryPrice = (await cgData.json())?.bilira?.usd ?? 0;
 

@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import useProvider from './useProvider';
 
 export default function useQuarry() {
-    const { provider } = useProvider();
+    const { provider, connected } = useProvider();
 
     return useQuery({
-        queryKey: ['quarry'],
+        queryKey: ['quarry', `${connected}`],
         queryFn: async () => {
             const sdk = QuarrySDK.load({
                 provider,

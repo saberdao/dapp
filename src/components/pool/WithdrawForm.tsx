@@ -11,10 +11,12 @@ import TX from '../TX';
 import { useWithdraw } from '../../hooks/user/useWithdraw';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
+import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 
 export default function WithdrawForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
-    const { refetch, data: balance } = useUserGetLPTokenBalance(props.pool.info.lpToken.address);
+    const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
 
@@ -49,7 +51,10 @@ export default function WithdrawForm (props: { pool: PoolData }) {
                     <TX tx={lastStakeHash} />
                 </div>
             ), {
-                onClose: () => refetch(),
+                onClose: () => {
+                    refetch();
+                    refetchLP();
+                },
             });
         }
     }, [lastStakeHash]);

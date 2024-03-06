@@ -11,14 +11,18 @@ import TX from '../TX';
 import { toast } from 'react-toastify';
 import { useDeposit } from '../../hooks/user/useDeposit';
 import { useMutation } from '@tanstack/react-query';
+import useQuarryMiner from '../../hooks/user/useQuarryMiner';
+import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 
 export default function DepositForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
     const [lastStakeHash, setLastStakeHash] = useState('');
-    const { data: ataInfo, refetch } = useUserATAs([
+    const { data: ataInfo } = useUserATAs([
         new Token(props.pool.info.tokens[0]),
         new Token(props.pool.info.tokens[1]),
     ]);
+    const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
 
     const amountTokenA = watch('amountTokenA');
     const amountTokenB = watch('amountTokenB');
@@ -57,7 +61,10 @@ export default function DepositForm (props: { pool: PoolData }) {
                     <TX tx={lastStakeHash} />
                 </div>
             ), {
-                onClose: () => refetch(),
+                onClose: () => {
+                    refetch();
+                    refetchLP();
+                },
             });
         }
     }, [lastStakeHash]);
@@ -101,9 +108,9 @@ export default function DepositForm (props: { pool: PoolData }) {
 
             <div className="mt-3" />
 
-            <Input register={register('noStake')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
+            {/* <Input register={register('noStake')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
 
-            <div className="mt-3" />
+            <div className="mt-3" /> */}
             
             {isPending
                 ? <Button disabled size="full">
