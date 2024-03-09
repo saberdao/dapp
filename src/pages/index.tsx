@@ -145,6 +145,7 @@ const IndexPage: React.FC<PageProps> = () => {
 
     const data = useMemo(() => {
         if (pools.data && price) {
+            console.log(JSON.stringify(pools.data.pools.map(p => [p.info.name,p.metricInfo?.tvlInUsd,p.metricInfo?.volumeInUSD].join(',')),null,2))
             return [
                 header,
                 ...pools.data.pools
@@ -169,8 +170,8 @@ const IndexPage: React.FC<PageProps> = () => {
                             rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
                             data: [
                                 <div key={pool.info.id} className="flex items-center gap-2">
-                                    <img className="w-5 h-5" src={pool.info.tokenIcons[0].logoURI} />
-                                    <img className="-ml-3 w-5 h-5" src={pool.info.tokenIcons[1].logoURI} />
+                                    <img className="w-5 h-5 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
+                                    <img className="-ml-3 w-5 h-5 rounded-full" src={pool.info.tokenIcons[1].logoURI} />
                                     {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
                                 </div>,
                                 wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),

@@ -1,12 +1,17 @@
 import { AssociatedTokenAccount } from '@saberhq/sail';
-import { Token, TokenAmount, getATAAddressesSync } from '@saberhq/token-utils';
+import { RAW_SOL_MINT, Token, TokenAmount, WRAPPED_SOL, getATAAddressesSync } from '@saberhq/token-utils';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
+import useNetwork from '../useNetwork';
 
-export default function useUserATAs(mints: (Token | null | undefined)[]) {
+export default function useUserATAs(
+    mints: (Pick<Token, 'address'> | null | undefined)[],
+    ignoreWrap = false,
+) {
     const { wallet } = useWallet();
     const { connection } = useConnection();
+    const { network } = useNetwork();
 
     return useQuery({
         queryKey: ['userATAs', wallet?.adapter.publicKey, ...mints.map(m => m?.address)],
@@ -33,9 +38,15 @@ export default function useUserATAs(mints: (Token | null | undefined)[]) {
                     let isInitialized = false;
                     try {
                         // @TODO batch and cache this
-                        const balanceResult = await connection.getTokenAccountBalance(acc.ata);
-                        balance = balanceResult.value.amount;
-                        isInitialized = true;
+                        if (!ignoreWrap && (acc.mint.address === RAW_SOL_MINT.toString() || acc.mint.address === WRAPPED_SOL[network].address)) {
+                            const solBalance = await connection.getBalance(wallet.adapter.publicKey!);
+                            balance = solBalance.toString();
+                            isInitialized = true;
+                        } else {
+                            const balanceResult = await connection.getTokenAccountBalance(acc.ata);
+                            balance = balanceResult.value.amount;
+                            isInitialized = true;
+                        }
                     } catch (e) {
                         // do nothing.
                     }

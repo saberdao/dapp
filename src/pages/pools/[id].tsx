@@ -230,7 +230,7 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
                     ['SBR Rewards', <FarmRewards key="f" pool={props.pool} />],
                 ].filter(x => x.length !== 0)} />
 
-                {miner?.data && (isPending
+                {miner?.data?.balance.gt(new BN(0)) && (isPending
                     ? <Button size="full" disabled key="g">Claiming...</Button>
                     : <Button size="full" key="g" onClick={execClaim}>Claim</Button>)}
                 
@@ -276,7 +276,15 @@ const PoolPage = (props: { params: { id: string }}) => {
         return pools?.data?.pools?.find(x => x.info.id === props.params.id);
     }, [props.params.id, pools]);
 
-    if (!pool) {
+    const token0 = useMemo(() => {
+        return pool?.info.underlyingIcons[0] || pool?.info.tokens[0];
+    } , [pool]);
+
+    const token1 = useMemo(() => {
+        return pool?.info.underlyingIcons[1] || pool?.info.tokens[1];
+    } , [pool]);
+
+    if (!pool || !token0 || !token1) {
         return null;
     }
 
@@ -285,16 +293,16 @@ const PoolPage = (props: { params: { id: string }}) => {
         ['SBR emission rate', pool ? <EmissionRate pool={pool} /> : null],
         ['---'],
         [
-            <div key={`${pool.info.tokens[0].address}-deposits`} className="flex items-center gap-1">
-                <img src={pool.info.tokens[0].logoURI} className="w-5 h-5" />
-                <p>{pool.info.tokens[0].symbol}</p>
+            <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
+                <img src={token0.logoURI} className="w-5 h-5" />
+                <p>{token0.symbol}</p>
             </div>,
             `$${toPrecision(pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA, 4)}`,
         ],
         [
-            <div key={`${pool.info.tokens[1].address}-deposits`} className="flex items-center gap-1">
-                <img src={pool.info.tokens[1].logoURI} className="w-5 h-5" />
-                <p>{pool.info.tokens[1].symbol}</p>
+            <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
+                <img src={token1.logoURI} className="w-5 h-5" />
+                <p>{token1.symbol}</p>
             </div>,
             `$${toPrecision(pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB, 4)}`,
         ],
@@ -345,7 +353,7 @@ const PoolPage = (props: { params: { id: string }}) => {
                                             <div className="flex gap-2">
                                                 <img className="w-4 h-4 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
                                                 <img className="-ml-4 w-4 h-4 rounded-full" src={pool.info.tokenIcons[1].logoURI} />
-                                            </div>+
+                                            </div>
                                         </div>
                                         {/* <div className="flex items-center gap-1 justify-end">
                                             {(Math.random() * 10).toFixed(2)}%
@@ -363,8 +371,8 @@ const PoolPage = (props: { params: { id: string }}) => {
                     </div>
 
                     <div className="grid sm:grid-cols-2 mt-5 gap-5 text-sm">
-                        <AboutBlock token={pool.info.tokens[0]} />
-                        <AboutBlock token={pool.info.tokens[1]} />
+                        <AboutBlock token={token0} />
+                        <AboutBlock token={token1} />
                     </div>
 
                     <Block className="mt-5">

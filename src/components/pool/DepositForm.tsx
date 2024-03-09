@@ -17,9 +17,18 @@ import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 export default function DepositForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
     const [lastStakeHash, setLastStakeHash] = useState('');
+
+    const token0 = useMemo(() => {
+        return props.pool.info.underlyingIcons[0] || props.pool.info.tokens[0];
+    } , [props.pool]);
+
+    const token1 = useMemo(() => {
+        return props.pool.info.underlyingIcons[1] || props.pool.info.tokens[1];
+    } , [props.pool]);
+
     const { data: ataInfo } = useUserATAs([
-        new Token(props.pool.info.tokens[0]),
-        new Token(props.pool.info.tokens[1]),
+        new Token(token0),
+        new Token(token1),
     ]);
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
@@ -33,8 +42,8 @@ export default function DepositForm (props: { pool: PoolData }) {
 
     const tokenAmounts = useMemo(() => {
         return [
-            TokenAmount.parse(new Token(props.pool.info.tokens[0]), amountTokenA ? `${amountTokenA}` : '0'),
-            TokenAmount.parse(new Token(props.pool.info.tokens[1]), amountTokenB ? `${amountTokenB}` : '0'),
+            TokenAmount.parse(new Token(token0), amountTokenA ? `${amountTokenA}` : '0'),
+            TokenAmount.parse(new Token(token1), amountTokenB ? `${amountTokenB}` : '0'),
         ];
     }, [amountTokenA, amountTokenB]);
 
@@ -83,7 +92,7 @@ export default function DepositForm (props: { pool: PoolData }) {
             <div className="mt-3" />
 
             <div className="font-bold text-sm flex items-center gap-2 mt-3">
-                <div className="flex-grow">{props.pool.info.tokens[0].symbol}</div>
+                <div className="flex-grow">{token0.symbol}</div>
                 <span className="text-white text-xs font-normal">
                     Balance:{' '}
                     <span
@@ -95,7 +104,7 @@ export default function DepositForm (props: { pool: PoolData }) {
             <Input register={register('amountTokenA')} type={InputType.NUMBER} placeholder="0.00" size="full" />
 
             <div className="font-bold text-sm flex items-center gap-2 mt-3">
-                <div className="flex-grow">{props.pool.info.tokens[1].symbol}</div>
+                <div className="flex-grow">{token1.symbol}</div>
                 <span className="text-white text-xs font-normal">
                     Balance:{' '}
                     <span
