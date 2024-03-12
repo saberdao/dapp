@@ -44,6 +44,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_WRITE }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID}}
-          projectName: vault-dapp
+          projectName: saber-dapp
           directory: public
           branch: ${{ contains(github.ref, 'refs/tags/') && 'main' || format('{0}-{1}', 'preview', github.ref) }}
