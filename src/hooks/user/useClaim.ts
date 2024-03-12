@@ -1,5 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { TokenInfo, getOrCreateATAs } from '@saberhq/token-utils';
+import invariant from 'tiny-invariant';
 import { createVersionedTransaction } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import useQuarryMiner from './useQuarryMiner';
@@ -32,6 +33,8 @@ export default function useClaim(lpToken: TokenInfo) {
             },
             owner: wallet.adapter.publicKey,
         });
+
+        invariant(miner.miner);
 
         const claimTx = await miner.miner.claim();
         const claimIX = claimTx.instructions[claimTx.instructions.length - 1];

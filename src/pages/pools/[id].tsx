@@ -255,7 +255,7 @@ const EmissionRate = (props: { pool: PoolData }) => {
             return 0;
         }
 
-        const annualRate = miner.miner.quarry.quarryData.annualRewardsRate;
+        const annualRate = miner.quarry.quarryData.annualRewardsRate;
         const dailyRate = annualRate.div(new BN(365));
         const rate = dailyRate.div(new BN(10 ** SBR_INFO.decimals));
 

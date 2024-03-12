@@ -1,5 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
+import invariant from 'tiny-invariant';
 import { createVersionedTransaction } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import BigNumber from 'bignumber.js';
@@ -28,6 +29,9 @@ export default function useStake(lpToken: TokenInfo) {
 
         const maxAmount = BigNumber.min(new BigNumber(balance.balance.value.amount), amountInput * 10 ** lpToken.decimals);
         const amount = new TokenAmount(new Token(lpToken), maxAmount.toString());
+
+        invariant(data.miner);
+
         const stakeTX = data.miner.stake(amount);
 
         const signers: Signer[] = [];

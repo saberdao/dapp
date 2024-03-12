@@ -11,12 +11,17 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
     return useQuery({
         queryKey: ['miner', wallet?.adapter.publicKey?.toString(), lpToken.address, `${fetchData}`],
         queryFn: async () => {
-            if (!quarry || !wallet?.adapter.publicKey) {
+            if (!quarry) {
                 return null;
             }
 
             const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
             const quarryW = await rewarderW.getQuarry(new Token(lpToken));
+
+            if (!wallet?.adapter.publicKey) {
+                return { quarry: quarryW };
+            }
+
             const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
 
             let minerData;
@@ -34,6 +39,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 data: fetchData ? minerData : undefined,
             };
         },
-        enabled: !!wallet?.adapter.publicKey && !!lpToken && !!quarry,
+        enabled: !!lpToken && !!quarry,
     });
 }
