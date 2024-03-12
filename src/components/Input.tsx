@@ -40,7 +40,6 @@ export default function Input (props: InputTypes) {
                     'group relative',
                     props.size === 'full' && 'w-full',
                 )}>
-                    <div className="absolute -z-1 inset-0 bg-gradient-to-r from-saber-dark to-saber-light rounded-lg blur-sm opacity-0 group-focus-within:opacity-100"></div>
                     <input
                         {...props.register}
                         type="text"
@@ -63,7 +62,6 @@ export default function Input (props: InputTypes) {
                     props.size === 'full' && 'w-full',
                 )}>
                     <div className={clsx(
-                        'absolute -z-1 inset-0 from-transparent via-transparent to-saber-dark rounded-lg blur-sm opacity-0 group-focus-within:opacity-60',
                         props.align === 'right' ? 'bg-gradient-to-r' : 'bg-gradient-to-l',
                     )} />
                     <input
@@ -107,7 +105,6 @@ export default function Input (props: InputTypes) {
         return (
             <div className={clsx('flex', props.size === 'full' && 'w-full')}>
                 <div className="group relative">
-                    <div className="absolute -z-1 inset-0 bg-gradient-to-r from-saber-dark to-saber-light rounded-lg blur-sm opacity-0 group-focus-within:opacity-100"></div>
                     <select
                         {...props.register}
                         className={clsx(

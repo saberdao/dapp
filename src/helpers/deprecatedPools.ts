@@ -25,6 +25,12 @@ const DEPRECATED_POOL_NAMES = [
     'atLUNA-LUNA',
     'LUNA-renLUNA',
     'xLUNA-LUNA',
+    'xSOL-SOL',
+    'xFTT-FTT',
+    'xETH-ETH',
+    'xBTC-renBTC',
+    'aeFTT-FTT',
+    'xUSD-USDC',
 ];
 
 export const isPoolDeprecated = (poolName: string) => {

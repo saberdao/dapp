@@ -20,6 +20,7 @@ module.exports = {
                 saber: {
                     light: '#6966FB',
                     dark: '#3D42CE',
+                    darker: '#181a52',
                 },
             },
         },

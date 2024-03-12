@@ -34,19 +34,19 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
             </div>
             {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
                 <table className="w-full text-sm text-left text-slate-400">
-                    <thead className="text-xs uppercase bg-gradient-to-tr from-gray-950 to-slate-700 text-slate-200">
+                    <thead className="text-xs uppercase bg-slate-950 text-slate-200">
                         <tr className="">
                             {header.map((header, i) => 
-                                <th className="px-3 py-2" key={i}>
+                                <th className="px-3 py-4" key={i}>
                                     {header}
                                 </th>)}
                         </tr>
                     </thead>
                     <tbody className="">
                         {props.data.slice(1).map((row, i) => (
-                            <tr key={i} className=" bg-gradient-to-b from-gray-800 via-gray-800 to-gray-900 bg-opacity-50">
+                            <tr key={i} className="bg-gradient-to-b from-slate-950 to-slate-900 border-saber-darker border-t border-l border-r">
                                 {row.data.map((item, j) => (
-                                    <td colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1} className="px-3 py-2" key={`${i}-${j}`}>
+                                    <td colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1} className="px-3 py-4" key={`${i}-${j}`}>
                                         {item}
                                     </td>
                                 ))}

@@ -145,7 +145,6 @@ const IndexPage: React.FC<PageProps> = () => {
 
     const data = useMemo(() => {
         if (pools.data && price) {
-            console.log(JSON.stringify(pools.data.pools.map(p => [p.info.name,p.metricInfo?.tvlInUsd,p.metricInfo?.volumeInUSD].join(',')),null,2))
             return [
                 header,
                 ...pools.data.pools
@@ -181,7 +180,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                 <>
                                     {poolsView !== PoolsView.GRID && (
                                         <Link to={`/pools/${pool.info.id}`}>
-                                            <Button className="hidden lg:inline-block" size="small" key="button">View</Button>
+                                            <Button className="hidden lg:inline-block" key="button">View</Button>
                                         </Link>
                                     )}
                                 </>,
