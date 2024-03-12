@@ -13,17 +13,19 @@ import { useDeposit } from '../../hooks/user/useDeposit';
 import { useMutation } from '@tanstack/react-query';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
+import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 
 export default function DepositForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
     const [lastStakeHash, setLastStakeHash] = useState('');
+    const ssTokens = useStableSwapTokens(props.pool);
 
     const token0 = useMemo(() => {
-        return props.pool.info.underlyingIcons[0] || props.pool.info.tokens[0];
+        return ssTokens?.underlyingTokens?.[0] || props.pool.info.tokens[0];
     } , [props.pool]);
 
     const token1 = useMemo(() => {
-        return props.pool.info.underlyingIcons[1] || props.pool.info.tokens[1];
+        return ssTokens?.underlyingTokens?.[1] || props.pool.info.tokens[1];
     } , [props.pool]);
 
     const { data: ataInfo } = useUserATAs([

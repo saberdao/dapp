@@ -277,11 +277,11 @@ const PoolPage = (props: { params: { id: string }}) => {
     }, [props.params.id, pools]);
 
     const token0 = useMemo(() => {
-        return pool?.info.underlyingIcons[0] || pool?.info.tokens[0];
+        return pool?.info.tokens[0];
     } , [pool]);
 
     const token1 = useMemo(() => {
-        return pool?.info.underlyingIcons[1] || pool?.info.tokens[1];
+        return pool?.info.tokens[1];
     } , [pool]);
 
     if (!pool || !token0 || !token1) {
