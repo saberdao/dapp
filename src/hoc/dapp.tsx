@@ -21,7 +21,8 @@ const queryClient = new QueryClient({
             refetchOnReconnect: false,
             refetchOnMount: false,
             gcTime: CACHE_TIME,
-        },  
+            retry: 5,
+        },
     },
 });
 
