@@ -81,7 +81,7 @@ export default function Navbar() {
                     <a href="https://tribeca.so/gov/sbr/" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2">Vote <FaExternalLinkAlt /></Button>
                     </a>
-                    <Button type="secondary">More</Button>
+                    {/* <Button type="secondary">More</Button> */}
                 </div>
                 <div className="hidden lg:block">
                     {publicKey
