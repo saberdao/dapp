@@ -88,6 +88,7 @@ const IndexPage: React.FC<PageProps> = () => {
         filterText: string;
         filterCurrency: CurrencyMarket;
         filterDeprecated: boolean;
+        filterMyPools: boolean;
         poolView: string;
         sortDropdown: SORTS;
         sortDropdownMobile: SORTS;
@@ -136,6 +137,7 @@ const IndexPage: React.FC<PageProps> = () => {
     const filterText = watch('filterText');
     const filterCurrency = watch('filterCurrency');
     const filterDeprecated = watch('filterDeprecated');
+    const filterMyPools = watch('filterMyPools');
     const sortDropdown = watch('sortDropdown');
     const sortDropdownMobile = watch('sortDropdownMobile');
 
@@ -158,6 +160,10 @@ const IndexPage: React.FC<PageProps> = () => {
                         }
 
                         if (!filterDeprecated && isPoolDeprecated(pool.info.name)) {
+                            return false;
+                        }
+
+                        if (filterMyPools && wallet?.adapter.publicKey && (pool.userInfo?.stakedUsdValue ?? 0) === 0) {
                             return false;
                         }
 
@@ -242,6 +248,7 @@ const IndexPage: React.FC<PageProps> = () => {
                             </div>
                         </ActiveText>}
                     <Input type={InputType.TEXT} register={register('filterText')} placeholder="Filter pool..." />
+                    {wallet?.adapter.publicKey && <Input type={InputType.CHECKBOX} register={register('filterMyPools')} label="My deposits" />}
                     <Input type={InputType.CHECKBOX} register={register('filterDeprecated')} label="Deprecated" />
                     <div className="hidden lg:block"><PoolSwitch /></div>
                 </div>
