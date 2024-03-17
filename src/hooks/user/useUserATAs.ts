@@ -1,9 +1,11 @@
 import { AssociatedTokenAccount } from '@saberhq/sail';
 import { RAW_SOL_MINT, Token, TokenAmount, WRAPPED_SOL, getATAAddressesSync } from '@saberhq/token-utils';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
+import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import { useQuery } from '@tanstack/react-query';
 import useNetwork from '../useNetwork';
+import { chunk } from 'lodash';
+import throat from 'throat';
 
 export default function useUserATAs(
     mints: (Pick<Token, 'address'> | null | undefined)[],
@@ -32,34 +34,36 @@ export default function useUserATAs(
                 ata: userAtasObj.accounts[i].address,
             }));
 
-            const result = await Promise.all(
-                userAtas.map(async (acc) => {
-                    let balance = '0';
-                    let isInitialized = false;
+            const chunks = chunk(userAtas, 100);
+            const tokenAmounts = (await Promise.all(chunks.map(throat(10, async (chunk) => {
+                const result = await connection.getMultipleParsedAccounts(
+                    chunk.map((account) => account.ata),
+                );
+                return await Promise.all(result.value.map(async (item, i) => {
                     try {
-                        // @TODO batch and cache this
-                        if (!ignoreWrap && (acc.mint.address === RAW_SOL_MINT.toString() || acc.mint.address === WRAPPED_SOL[network].address)) {
-                            const solBalance = await connection.getBalance(wallet.adapter.publicKey!);
-                            balance = solBalance.toString();
-                            isInitialized = true;
-                        } else {
-                            const balanceResult = await connection.getTokenAccountBalance(acc.ata);
-                            balance = balanceResult.value.amount;
-                            isInitialized = true;
-                        }
+                        return {
+                            key: chunk[i].ata,
+                            balance: new TokenAmount(chunk[i].mint, (item?.data as ParsedAccountData).parsed.info.tokenAmount.amount),
+                            isInitialized: true,
+                        };
                     } catch (e) {
-                        // do nothing.
+                        // Might look a bit strange this is in the error state, but it doesn't cost an extra RPC call
+                        // and don't have to extract this case from the atas array above this way - easier.
+                        if (!ignoreWrap && (chunk[i].mint.address === RAW_SOL_MINT.toString() || chunk[i].mint.address === WRAPPED_SOL[network].address)) {
+                            const solBalance = await connection.getBalance(wallet.adapter.publicKey!);
+                            return {
+                                key: chunk[i].ata,
+                                balance: new TokenAmount(chunk[i].mint, solBalance.toString()),
+                                isInitialized: true,
+                            };
+                        }
+                        return null;
                     }
-
-                    return {
-                        key: acc.ata,
-                        isInitialized,
-                        balance: new TokenAmount(acc.mint, balance),
-                    };
-                }),
-            );
-            return result;
+                }));
+            })))).flat().filter((x): x is { key: PublicKey, balance: TokenAmount, isInitialized: boolean } => !!x);
+            return tokenAmounts;
         },
+        refetchInterval: 5000,
     });
     
 }

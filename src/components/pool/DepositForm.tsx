@@ -28,7 +28,7 @@ export default function DepositForm (props: { pool: PoolData }) {
         return ssTokens?.underlyingTokens?.[1] || props.pool.info.tokens[1];
     } , [props.pool]);
 
-    const { data: ataInfo } = useUserATAs([
+    const { data: ataInfo, refetch: refetchBalances } = useUserATAs([
         new Token(token0),
         new Token(token1),
     ]);
@@ -75,6 +75,7 @@ export default function DepositForm (props: { pool: PoolData }) {
                 onClose: () => {
                     refetch();
                     refetchLP();
+                    refetchBalances();
                 },
             });
         }

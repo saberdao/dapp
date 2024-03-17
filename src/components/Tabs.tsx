@@ -20,6 +20,7 @@ export default function Tabs(props: {
                             tabIdx === tabs.length - 1 ? 'rounded-tr-lg' : '',
                             'group relative min-w-0 flex-1 overflow-hidden py-2 px-2 text-center text-sm font-medium focus:z-10',
                             'bg-gradient-to-t',
+                            tabs.length === 1 && 'cursor-default',
                         )}
                         aria-current={tab.current ? 'page' : undefined}
                     >
