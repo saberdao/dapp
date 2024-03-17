@@ -185,7 +185,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                 `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
                                     {poolsView !== PoolsView.GRID && (
-                                        <Link to={`/pools/${pool.info.id}`}>
+                                        <Link to={`/pools/${pool.info.id}`} className="flex justify-end">
                                             <Button className="hidden lg:inline-block" key="button">View</Button>
                                         </Link>
                                     )}

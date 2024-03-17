@@ -32,7 +32,32 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
                     </ConditionalWrapper>
                 ))}
             </div>
+
             {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
+                <div className="grid gap-3 w-full">
+                    <div className="flex">
+                        {header.map((header, i) => 
+                            <div className="font-bold pr-5 flex-1" key={i}>
+                                {header}
+                            </div>)}
+                    </div>
+
+                    {props.data.slice(1).map((row, i) => (
+                        <div key={i} className="flex hover:bg-saber-dark/20 transition-colors py-3 items-center rounded-lg px-3">
+                            {row.data.map((item, j) => (
+                                <div
+                                    className="flex-1"
+                                    key={`${i}-${j}`}
+                                >
+                                    {item}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>}
+
+            {/* {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
                 <table className="w-full text-sm text-left text-slate-400">
                     <thead className="text-xs uppercase bg-slate-950 text-slate-200">
                         <tr className="">
@@ -44,9 +69,13 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
                     </thead>
                     <tbody className="">
                         {props.data.slice(1).map((row, i) => (
-                            <tr key={i} className="bg-gradient-to-b from-slate-950 to-slate-900 border-saber-darker border-t border-l border-r">
+                            <tr key={i} className="bg-green border-saber-darker border">
                                 {row.data.map((item, j) => (
-                                    <td colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1} className="px-3 py-4" key={`${i}-${j}`}>
+                                    <td
+                                        colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1}
+                                        className="px-3 py-4 my-10"
+                                        key={`${i}-${j}`}
+                                    >
                                         {item}
                                     </td>
                                 ))}
@@ -54,7 +83,7 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
                         ))}
                     </tbody>
                 </table>
-            </div>}
+            </div>} */}
         </>
     );
 }

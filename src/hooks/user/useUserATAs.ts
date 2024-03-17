@@ -57,7 +57,12 @@ export default function useUserATAs(
                                 isInitialized: true,
                             };
                         }
-                        return null;
+                        
+                        return {
+                            key: chunk[i].ata,
+                            balance: new TokenAmount(chunk[i].mint, 0),
+                            isInitialized: false,
+                        };
                     }
                 }));
             })))).flat().filter((x): x is { key: PublicKey, balance: TokenAmount, isInitialized: boolean } => !!x);

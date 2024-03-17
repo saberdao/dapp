@@ -43,5 +43,6 @@ export default function useGetLPTokenAmounts(pools?: readonly PoolInfoRaw[]) {
             return lpTokenAmounts;
         },
         staleTime: 1000 * 60,
+        refetchInterval: 5000,
     });
 }
