@@ -29,5 +29,6 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
             }
         },
         enabled: !!wallet?.adapter.publicKey && !!lpToken,
+        refetchInterval: 5000,
     });
 }

@@ -63,10 +63,6 @@ export default function WithdrawForm (props: { pool: PoolData }) {
         setLastStakeHash(hash);
     }
 
-    if (!balance?.balance.value.uiAmount) {
-        return null;
-    }
-
     return (
         <div className="w-full">
             <H2>Withdraw</H2>
@@ -76,8 +72,8 @@ export default function WithdrawForm (props: { pool: PoolData }) {
                 Balance:{' '}
                 <div
                     className="text-saber-light cursor-pointer inline"
-                    onClick={() => setValue('amount', balance.balance.value.uiAmount!)}
-                >{balance.balance.value.uiAmount}</div>
+                    onClick={() => setValue('amount', balance?.balance.value.uiAmount ?? 0)}
+                >{balance?.balance.value.uiAmount}</div>
             </div>
             
             {isPending

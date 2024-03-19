@@ -4,7 +4,7 @@ import Button from './Button';
 import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'gatsby';
-import { FaExternalLinkAlt } from 'react-icons/fa';
+import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
 import Block from './Block';
 import useUserATAs from '../hooks/user/useUserATAs';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
@@ -13,6 +13,7 @@ import { useMutation } from '@tanstack/react-query';
 import TX from './TX';
 import { toast } from 'react-toastify';
 import useUnwrap from '../hooks/user/useUnwrap';
+import { FaXTwitter } from 'react-icons/fa6';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();
@@ -76,12 +77,18 @@ export default function Navbar() {
                 </div>
                 <div className="flex-grow flex justify-center gap-3">
                     <Link to="/">
-                        <Button type="secondary">Pools</Button>
+                        <Button className="flex items-center gap-2 h-10" type="secondary">Pools</Button>
                     </Link>
                     <a href="https://tribeca.so/gov/sbr/" target="_blank" rel="noreferrer">
-                        <Button type="secondary" className="flex items-center gap-2">Vote <FaExternalLinkAlt /></Button>
+                        <Button type="secondary" className="flex items-center gap-2 h-10">Vote <FaExternalLinkAlt /></Button>
                     </a>
-                    {/* <Button type="secondary">More</Button> */}
+                    
+                    <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><FaXTwitter /></Button>
+                    </a>
+                    <a href="https://discord.com/invite/cmVUgRXS53" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><FaDiscord /></Button>
+                    </a>
                 </div>
                 <div className="hidden lg:block">
                     {publicKey

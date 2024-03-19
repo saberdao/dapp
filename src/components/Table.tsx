@@ -58,8 +58,8 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
             </div>}
 
             {/* {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left text-slate-400">
-                    <thead className="text-xs uppercase bg-slate-950 text-slate-200">
+                <table className="w-full text-sm text-left text-gray-400">
+                    <thead className="text-xs uppercase bg-gray-950 text-gray-200">
                         <tr className="">
                             {header.map((header, i) => 
                                 <th className="px-3 py-4" key={i}>

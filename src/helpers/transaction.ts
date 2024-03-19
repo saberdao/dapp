@@ -3,7 +3,7 @@ import { ComputeBudgetProgram, Connection, PublicKey, TransactionInstruction, Tr
 const getCUsForTx = async (
     connection: Connection,
     txs: TransactionInstruction[],
-    payerKey: PublicKey
+    payerKey: PublicKey,
 ) => {
     const latestBlockhash = await connection.getLatestBlockhash('finalized');
     const messageV0 = new TransactionMessage({

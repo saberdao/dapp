@@ -132,14 +132,12 @@ const FarmRewards = (props: { pool: PoolData }) => {
 const LiquidityForms = (props: { pool: PoolData }) => {
     const deprecated = isPoolDeprecated(props.pool.info.name);
     const [selectedTab, setSelectedTab] = useState(deprecated ? 'Unstake' : 'Deposit');
-    const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
-    const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
 
     const tabs = [
         !deprecated && { name: 'Deposit', current: selectedTab === 'Deposit' },
-        !deprecated && lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
-        lpTokenBalance?.balance && (lpTokenBalance.balance.value.uiAmount ?? 0) > 0 && { name: 'Stake', current: selectedTab === 'Stake' },
-        miner?.data?.balance.gt(new BN(0)) && { name: 'Unstake', current: selectedTab === 'Unstake' },
+        !deprecated && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
+        { name: 'Stake', current: selectedTab === 'Stake' },
+        { name: 'Unstake', current: selectedTab === 'Unstake' },
     ].filter((x): x is { name: string, current: boolean } => !!x);
 
     return (

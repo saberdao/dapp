@@ -47,10 +47,6 @@ export default function StakeForm (props: { pool: PoolData }) {
         setLastStakeHash(hash);
     }
 
-    if (!balance?.balance.value.uiAmount) {
-        return null;
-    }
-
     return (
         <div className="w-full" onClick={() => {
         }}>
@@ -61,8 +57,8 @@ export default function StakeForm (props: { pool: PoolData }) {
                 Balance:{' '}
                 <div
                     className="text-saber-light cursor-pointer inline"
-                    onClick={() => setValue('amount', balance.balance.value.uiAmount!)}
-                >{balance.balance.value.uiAmount}</div>
+                    onClick={() => setValue('amount', balance?.balance.value.uiAmount ?? 0)}
+                >{balance?.balance.value.uiAmount}</div>
             </div>
             
             {isPending

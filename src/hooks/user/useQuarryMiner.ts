@@ -40,5 +40,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             };
         },
         enabled: !!lpToken && !!quarry,
+        refetchInterval: 60000,
     });
 }

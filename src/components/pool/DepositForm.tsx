@@ -14,6 +14,7 @@ import { useMutation } from '@tanstack/react-query';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
+import clsx from 'clsx';
 
 export default function DepositForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
@@ -53,6 +54,14 @@ export default function DepositForm (props: { pool: PoolData }) {
         tokenAmounts,
         pool: props.pool,
     });
+
+    const slippage = useMemo(() => {
+        return deposit.estimatedDepositSlippage?.asNumber ?? 0;
+    }, [deposit]);
+
+    const priceImpact = useMemo(() => {
+        return deposit.priceImpact?.asNumber ?? 0;
+    }, [deposit]);
 
     const { mutate: execDeposit, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['deposit', lastStakeHash],
@@ -132,9 +141,24 @@ export default function DepositForm (props: { pool: PoolData }) {
                     Deposit
                 </Button>}
             
-            <div className="text-right text-gray-400 text-xs mt-2">
-                ${usdValue > 0 ? toPrecision(usdValue, 4) : '—'}
-            </div>
+            {usdValue > 0 && <div className="text-gray-400 text-xs grid grid-cols-2 w-full mt-2 gap-1">
+                <div>Estimated USD value</div>
+                <div className="text-right">
+                    ${toPrecision(usdValue, 4)}
+                </div>
+                <div>LP tokens received</div>
+                <div className="text-right">{deposit.estimatedMint?.mintAmount.asNumber ? toPrecision(deposit.estimatedMint?.mintAmount.asNumber, 4) : ''}</div>
+                <div>Slippage</div>
+                <div className={clsx('text-right', slippage > 0.1 && 'text-red-600 font-bold')}>
+                    {toPrecision((slippage ?? 0) * 100, 4)}%
+                    {slippage < 0 ? ' (bonus!)' : ''}
+                </div>
+                <div>Price impact</div>
+                <div className={clsx('text-right', priceImpact > 0.1 && 'text-red-600 font-bold')}>
+                    {toPrecision(priceImpact * 100, 4)}%
+                    {priceImpact < 0 ? ' (bonus!)' : ''}
+                </div>
+            </div>}
         </div>
     );
 }
