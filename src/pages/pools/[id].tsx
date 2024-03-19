@@ -40,7 +40,7 @@ const InfoPanel = (props: { data: any[][] }) => {
             {props.data.map((item, i) => (
                 item[0] === '---'
                     ? <div key={i} className="col-span-2 text-gray-400">
-                        <hr className="border-slate-700 my-1" />
+                        <hr className="border-slate-800 my-3" />
                     </div>
                     : <React.Fragment key={i}>
                         <div className="text-gray-400">{item[0]}</div>
