@@ -35,7 +35,7 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
 
             {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
                 <div className="grid gap-3 w-full">
-                    <div className="flex">
+                    <div className="flex bg-black py-3 px-5 rounded-lg">
                         {header.map((header, i) => 
                             <div className="font-bold pr-5 flex-1" key={i}>
                                 {header}

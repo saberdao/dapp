@@ -2,10 +2,10 @@ import { ComputeBudgetProgram, Connection, PublicKey, TransactionInstruction, Tr
 
 const getCUsForTx = async (
     connection: Connection,
+    latestBlockhash: Awaited<ReturnType<typeof connection.getLatestBlockhash>>,
     txs: TransactionInstruction[],
     payerKey: PublicKey,
 ) => {
-    const latestBlockhash = await connection.getLatestBlockhash('finalized');
     const messageV0 = new TransactionMessage({
         payerKey,
         recentBlockhash: latestBlockhash.blockhash,
@@ -22,12 +22,12 @@ export const createVersionedTransaction = async (
     txs: TransactionInstruction[],
     payerKey: PublicKey,
 ) => {
-    const CUs = await getCUsForTx(connection, txs, payerKey);
+    const latestBlockhash = await connection.getLatestBlockhash('finalized');
+    const CUs = await getCUsForTx(connection, latestBlockhash, txs, payerKey);
 
     txs.unshift(ComputeBudgetProgram.setComputeUnitLimit({
         units: CUs + 1000, // +1000 for safety and the CU limit ix itself
     }));
-    const latestBlockhash = await connection.getLatestBlockhash('finalized');
     const messageV0 = new TransactionMessage({
         payerKey,
         recentBlockhash: latestBlockhash.blockhash,

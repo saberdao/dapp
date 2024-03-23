@@ -5,6 +5,7 @@ import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapte
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'gatsby';
 import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
+import { MdOutlineQueryStats } from 'react-icons/md';
 import Block from './Block';
 import useUserATAs from '../hooks/user/useUserATAs';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
@@ -75,7 +76,7 @@ export default function Navbar() {
                             : <WalletMultiButton />}
                     </div>
                 </div>
-                <div className="flex-grow flex justify-center gap-3">
+                <div className="flex-grow flex-wrap flex justify-center gap-3">
                     <Link to="/">
                         <Button className="flex items-center gap-2 h-10" type="secondary">Pools</Button>
                     </Link>
@@ -83,6 +84,9 @@ export default function Navbar() {
                         <Button type="secondary" className="flex items-center gap-2 h-10">Vote <FaExternalLinkAlt /></Button>
                     </a>
                     
+                    <a href="https://dashboard.fibonacci.fi/public-dashboards/5d405283b87349c496939557e29048ce" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><MdOutlineQueryStats /></Button>
+                    </a>
                     <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><FaXTwitter /></Button>
                     </a>

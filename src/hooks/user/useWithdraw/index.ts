@@ -122,7 +122,7 @@ export const useWithdraw = ({
         if (!actions.unstake && !actions.withdraw) {
             throw new Error('No actions');
         }
-        if (!wallet.adapter.publicKey || !userLP || !miner?.data) {
+        if (!wallet.adapter.publicKey || !userLP) {
             throw new Error('wallet is null');
         }
         if (!wrappedTokens) {
@@ -140,7 +140,7 @@ export const useWithdraw = ({
             microLamports: 100000,
         }));
 
-        if (actions.unstake) {
+        if (actions.unstake && miner?.data) {
             const maxAmount = BigNumber.min(new BigNumber(miner.data.balance.toString()), withdrawPoolTokenAmount.raw.toString());
             const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
             const stakeTX = miner.miner.withdraw(amount);
