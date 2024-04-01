@@ -4,6 +4,7 @@ import Button from './Button';
 import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'gatsby';
+import { SiGitbook } from 'react-icons/si';
 import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
 import { MdOutlineQueryStats } from 'react-icons/md';
 import Block from './Block';
@@ -83,8 +84,14 @@ export default function Navbar() {
                     <a href="https://tribeca.so/gov/sbr/" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10">Vote <FaExternalLinkAlt /></Button>
                     </a>
+                    <a href="https://vota.fi/" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10">Bribes <FaExternalLinkAlt /></Button>
+                    </a>
                     
-                    <a href="https://dashboard.fibonacci.fi/public-dashboards/5d405283b87349c496939557e29048ce" target="_blank" rel="noreferrer">
+                    <a href="https://docs.saberdao.io/" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><SiGitbook /></Button>
+                    </a>
+                    <a href="https://data.saberdao.io/public-dashboards/8e8314fc11434f129c11d841d46d93ad?orgId=1" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><MdOutlineQueryStats /></Button>
                     </a>
                     <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">

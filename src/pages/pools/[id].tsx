@@ -330,23 +330,23 @@ const PoolPage = (props: { params: { id: string }}) => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="col-span-2">
                     <Block className="">
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2">
                             <div>
                                 <p className="text-gray-400">Total deposits</p>
                                 <p className="text-2xl font-bold text-gray-300">${toPrecision(pool.metrics?.tvl ?? 0, 4)}</p>
                             </div>
-                            <div className="flex flex-col items-end">
+                            <div className="flex flex-col items-start sm:items-end mt-5 sm:mt-0">
                                 <p className="text-gray-400">Staking APY</p>
                                 <div className="flex flex-col justify-center text-lg font-bold text-gray-300">
-                                    <div className="text-right">
+                                    <div className="text-left sm:text-right">
                                         {toPrecision(pool.metrics?.totalApy ?? 0, 4)}%
                                     </div>
                                     <div className="flex gap-1 text-xs font-normal">
-                                        <div className="flex items-center gap-1 justify-end">
+                                        <div className="flex items-center gap-1 justify-start sm:justify-end">
                                             {toPrecision(pool.metrics?.emissionApy ?? 0, 4)}%
                                             <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />+
                                         </div>
-                                        <div className="flex items-center gap-1 justify-end">
+                                        <div className="flex items-center gap-1 justify-start sm:justify-end">
                                             {toPrecision(pool.metrics?.feeApy ?? 0, 4)}%
                                             <div className="flex gap-2">
                                                 <img className="w-4 h-4 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
