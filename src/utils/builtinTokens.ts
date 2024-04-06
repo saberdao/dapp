@@ -6,6 +6,7 @@ export const SBR_INFO = {
     address: SBR_MINT,
     logoURI: 'https://registry.saber.so/token-icons/sbr.svg',
     decimals: 6,
+    chainId: 101,
 };
 
 /**

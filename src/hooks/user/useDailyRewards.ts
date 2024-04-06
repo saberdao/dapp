@@ -3,6 +3,7 @@ import useQuarryMiner from './useQuarryMiner';
 import { createQuarryPayroll } from '../../helpers/quarry';
 import BN from 'bn.js';
 import { useEffect, useState } from 'react';
+import { SBR_INFO } from '../../utils/builtinTokens';
 
 export default function useDailyRewards(lpToken: TokenInfo) {
     const { data: miner } = useQuarryMiner(lpToken, true);
@@ -15,7 +16,7 @@ export default function useDailyRewards(lpToken: TokenInfo) {
 
         const timeInSecT0 = Math.floor(Date.now() / 1000);
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
-        const rewardsT0 = new TokenAmount(new Token(lpToken), payroll.calculateRewardsEarned(
+        const rewardsT0 = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSecT0),
             miner.data.balance,
             miner.data.rewardsPerTokenPaid,
@@ -23,7 +24,7 @@ export default function useDailyRewards(lpToken: TokenInfo) {
         ));
 
         const timeInSecT1 = Math.floor(Date.now() / 1000) + 86400;
-        const rewardsT1 = new TokenAmount(new Token(lpToken), payroll.calculateRewardsEarned(
+        const rewardsT1 = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSecT1),
             miner.data.balance,
             miner.data.rewardsPerTokenPaid,

@@ -66,7 +66,7 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     return (
         <div className="w-full">
             <H2>Withdraw</H2>
-            <p className="text-secondary text-sm">Withdraw USDC-USDT LP tokens to receive the underlying tokens.</p>
+            <p className="text-secondary text-sm">Withdraw LP tokens to receive the underlying tokens.</p>
             <Input align="right" register={register('amount')} type={InputType.NUMBER} placeholder="0.00" size="full" />
             <div className="text-white text-xs text-right my-5">
                 Balance:{' '}

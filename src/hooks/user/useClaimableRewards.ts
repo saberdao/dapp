@@ -3,6 +3,7 @@ import useQuarryMiner from './useQuarryMiner';
 import { createQuarryPayroll } from '../../helpers/quarry';
 import BN from 'bn.js';
 import { useState } from 'react';
+import { SBR_INFO } from '../../utils/builtinTokens';
 
 export default function useClaim(lpToken: TokenInfo) {
     const { data: miner } = useQuarryMiner(lpToken, true);
@@ -18,7 +19,7 @@ export default function useClaim(lpToken: TokenInfo) {
 
         const timeInSec = Math.floor(time / 1000);
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
-        const rewards = new TokenAmount(new Token(lpToken), payroll.calculateRewardsEarned(
+        const rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSec),
             miner.data.balance,
             miner.data.rewardsPerTokenPaid,
