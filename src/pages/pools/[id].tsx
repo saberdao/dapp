@@ -159,7 +159,7 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const { maxSlippagePercent } = useSettings();
-    const { dailyRewards } = useDailyRewards(props.pool.info.lpToken);
+    const { dailyRewards, refetch: refetchRewards } = useDailyRewards(props.pool.info.lpToken);
 
     const stakedUsdValue = useMemo(() => {
         if (!miner?.data) {
@@ -180,6 +180,7 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
     }, [miner]);
 
     const { claim } = useClaim(props.pool.info.lpToken);
+    const { reset }= useClaimableRewards(props.pool.info.lpToken);
     const { mutate: execClaim, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['deposit', lastStakeHash],
         mutationFn: async () => {
@@ -198,7 +199,11 @@ const LiquidityBlock = (props: { pool: PoolData }) => {
                     <TX tx={lastStakeHash} />
                 </div>
             ), {
-                onClose: () => refetch(),
+                onClose: () => {
+                    reset();
+                    refetch();
+                    refetchRewards();
+                },
             });
         }
     }, [lastStakeHash]);

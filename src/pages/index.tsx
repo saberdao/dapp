@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, type HeadFC, type PageProps } from 'gatsby';
+import { type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import { useWallet } from '@solana/wallet-adapter-react';
 import dapp from '../hoc/dapp';
@@ -172,7 +172,7 @@ const IndexPage: React.FC<PageProps> = () => {
                     .sort(sortFunctions[sort || SORTS.DEFAULT])
                     .map((pool) => {
                         return {
-                            rowLink: poolsView !== PoolsView.LIST && `/pools/${pool.info.id}`,
+                            rowLink: `/pools/${pool.info.id}`,
                             data: [
                                 <div key={pool.info.id} className="flex items-center gap-2">
                                     <img className="w-5 h-5 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
@@ -185,9 +185,9 @@ const IndexPage: React.FC<PageProps> = () => {
                                 `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
                                     {poolsView !== PoolsView.GRID && (
-                                        <Link to={`/pools/${pool.info.id}`} className="flex justify-end">
+                                        <div className="flex justify-end">
                                             <Button className="hidden lg:inline-block" key="button">View</Button>
-                                        </Link>
+                                        </div>
                                     )}
                                 </>,
                             ].filter(Boolean),

@@ -51,7 +51,7 @@ export default function StakeForm (props: { pool: PoolData }) {
         <div className="w-full" onClick={() => {
         }}>
             <H2>Stake</H2>
-            <p className="text-secondary text-sm">Stake USDC-USDT LP tokens to receive farm rewards.</p>
+            <p className="text-secondary text-sm">Stake LP tokens to receive farm rewards.</p>
             <Input align="right" register={register('amount')} type={InputType.NUMBER} placeholder="0.00" size="full" />
             <div className="text-white text-xs text-right my-5">
                 Balance:{' '}

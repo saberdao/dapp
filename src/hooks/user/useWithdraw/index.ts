@@ -17,6 +17,7 @@ import useUserGetLPTokenBalance from '../useGetLPTokenBalance';
 import { createVersionedTransaction } from '../../../helpers/transaction';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from '../useQuarryMiner';
+import { getClaimIxs } from '../../../helpers/claim';
 
 export interface IWithdrawal {
     withdrawPoolTokenAmount?: TokenAmount;
@@ -145,6 +146,10 @@ export const useWithdraw = ({
             const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
             const stakeTX = miner.miner.withdraw(amount);
             withdrawIxs.push(...stakeTX.instructions);
+
+            // Also redeem all SBR earned
+            const ixs = await getClaimIxs(saber, miner, wallet);
+            withdrawIxs.push(...ixs);
         }
 
         if (actions.withdraw) {

@@ -45,5 +45,10 @@ export default function useClaim(lpToken: TokenInfo) {
         return reward;
     };
 
-    return { claimableRewards };
+    const reset = () => {
+        setRewardsT0(0);
+        setTimeT0(0);
+    };
+
+    return { claimableRewards, reset };
 }

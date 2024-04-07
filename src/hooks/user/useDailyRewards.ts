@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { SBR_INFO } from '../../utils/builtinTokens';
 
 export default function useDailyRewards(lpToken: TokenInfo) {
-    const { data: miner } = useQuarryMiner(lpToken, true);
+    const { data: miner, refetch } = useQuarryMiner(lpToken, true);
     const [dailyRewards, setDailyRewards] = useState(0);
 
     useEffect(() => {
@@ -34,5 +34,5 @@ export default function useDailyRewards(lpToken: TokenInfo) {
         setDailyRewards((rewardsT1.asNumber - rewardsT0.asNumber) / (timeInSecT1 - timeInSecT0) * 86400);
     }, [miner]);
 
-    return { dailyRewards };
+    return { dailyRewards, refetch };
 }

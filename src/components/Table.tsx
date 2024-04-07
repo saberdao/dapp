@@ -43,16 +43,23 @@ export default function Table (props: { data: { data: any[]; rowLink: string; }[
                     </div>
 
                     {props.data.slice(1).map((row, i) => (
-                        <div key={i} className="flex hover:bg-saber-dark/20 transition-colors py-3 items-center rounded-lg px-3">
-                            {row.data.map((item, j) => (
-                                <div
-                                    className="flex-1"
-                                    key={`${i}-${j}`}
-                                >
-                                    {item}
-                                </div>
-                            ))}
-                        </div>
+                        <ConditionalWrapper
+                            condition={!!row.rowLink}
+                            key={`wrapper-${i}`}
+                            wrapper={(children: any) => <Link to={row.rowLink} key={i}>{children}</Link>}
+                        >
+                            <div className="flex hover:bg-saber-dark/20 transition-colors py-3 items-center rounded-lg px-3">
+                            
+                                {row.data.map((item, j) => (
+                                    <div
+                                        className="flex-1"
+                                        key={`${i}-${j}`}
+                                    >
+                                        {item}
+                                    </div>
+                                ))}
+                            </div>
+                        </ConditionalWrapper>
                     ))}
                 </div>
             </div>}
