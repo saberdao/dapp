@@ -1,7 +1,7 @@
 import { SABER_CODERS, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { Percent } from '@saberhq/token-utils';
 import { getOrCreateATAs, Token, TokenAmount } from '@saberhq/token-utils';
-import { TransactionInstruction, type Signer, ComputeBudgetProgram } from '@solana/web3.js';
+import { TransactionInstruction, type Signer } from '@solana/web3.js';
 import { useMemo } from 'react';
 import invariant from 'tiny-invariant';
 
@@ -137,9 +137,6 @@ export const useWithdraw = ({
         }
 
         const withdrawIxs: TransactionInstruction[] = [];
-        withdrawIxs.push(ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports: 100000,
-        }));
 
         if (actions.unstake && miner?.data) {
             const maxAmount = BigNumber.min(new BigNumber(miner.data.balance.toString()), withdrawPoolTokenAmount.raw.toString());

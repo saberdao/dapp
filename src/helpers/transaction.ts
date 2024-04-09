@@ -1,4 +1,4 @@
-import { ComputeBudgetProgram, Connection, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 
 const getCUsForTx = async (
     connection: Connection,
@@ -25,8 +25,14 @@ export const createVersionedTransaction = async (
     const latestBlockhash = await connection.getLatestBlockhash('finalized');
     const CUs = await getCUsForTx(connection, latestBlockhash, txs, payerKey);
 
+    const priorityFeeLS = parseFloat(localStorage.getItem('priorityFee') ?? '');
+    const priorityFee = (priorityFeeLS || 0) * LAMPORTS_PER_SOL * 1e6;
+
     txs.unshift(ComputeBudgetProgram.setComputeUnitLimit({
         units: CUs + 1000, // +1000 for safety and the CU limit ix itself
+    }));
+    txs.unshift(ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: Math.ceil(priorityFee / (CUs + 1000)), // +1000 for safety and the CU limit ix itself
     }));
     const messageV0 = new TransactionMessage({
         payerKey,

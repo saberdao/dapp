@@ -6,7 +6,7 @@ import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
-import { ComputeBudgetProgram, Signer, TransactionInstruction } from '@solana/web3.js';
+import { Signer, TransactionInstruction } from '@solana/web3.js';
 
 export default function useStake(lpToken: TokenInfo) {
     const { connection } = useConnection();
@@ -22,10 +22,6 @@ export default function useStake(lpToken: TokenInfo) {
         }
 
         const allInstructions: TransactionInstruction[] = [];
-
-        allInstructions.push(ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports: 100000,
-        }));
 
         const maxAmount = BigNumber.min(new BigNumber(balance.balance.value.amount), amountInput * 10 ** lpToken.decimals);
         const amount = new TokenAmount(new Token(lpToken), maxAmount.toString());

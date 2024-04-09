@@ -16,6 +16,7 @@ import TX from './TX';
 import { toast } from 'react-toastify';
 import useUnwrap from '../hooks/user/useUnwrap';
 import { FaXTwitter } from 'react-icons/fa6';
+import SettingsDialog from './SettingsDialog';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();
@@ -71,10 +72,11 @@ export default function Navbar() {
                         Saber
                     </div>
 
-                    <div className="block lg:hidden">
+                    <div className="flex items-center gap-2 lg:hidden">
                         {publicKey
                             ? <WalletDisconnectButton />
                             : <WalletMultiButton />}
+                        <SettingsDialog />
                     </div>
                 </div>
                 <div className="flex-grow flex-wrap flex justify-center gap-3">
@@ -101,10 +103,11 @@ export default function Navbar() {
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><FaDiscord /></Button>
                     </a>
                 </div>
-                <div className="hidden lg:block">
+                <div className="hidden lg:flex items-center gap-2">
                     {publicKey
                         ? <WalletDisconnectButton />
                         : <WalletMultiButton />}
+                    <SettingsDialog />
                 </div>
             </div>
             <WrappedSolBlock />

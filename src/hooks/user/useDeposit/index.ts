@@ -17,7 +17,7 @@ import {
     ZERO,
 } from '@saberhq/token-utils';
 import type { PublicKey } from '@solana/web3.js';
-import { ComputeBudgetProgram, Keypair } from '@solana/web3.js';
+import { Keypair } from '@solana/web3.js';
 import { useCallback, useMemo } from 'react';
 import invariant from 'tiny-invariant';
 import { PoolData } from '../../../types';
@@ -178,10 +178,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
 
-            allInstructions.push(ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports: 100000,
-            }));
-
             // Create an ephemeral account for wrapped SOL
             const ephemeralAccount = Keypair.generate();
             const { init, accountKey, close } = await createEphemeralWrappedSolAccount({
@@ -291,9 +287,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             }
 
             const allInstructions = [];
-            allInstructions.push(ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports: 100000,
-            }));
 
             // create pool token account if it doesn't exist
             const result = await getOrCreateATAs({
