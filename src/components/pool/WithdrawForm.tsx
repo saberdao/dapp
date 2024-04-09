@@ -36,6 +36,10 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     const { mutate: execWithdraw, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['withdraw', lastStakeHash],
         mutationFn: async () => {
+            if (!amount) {
+                return;
+            }
+
             const hash = withdraw?.handleWithdraw();
             return hash;
         },
@@ -80,7 +84,7 @@ export default function WithdrawForm (props: { pool: PoolData }) {
                 ? <Button disabled size="full">
                     Withdrawing...
                 </Button>
-                : <Button size="full" onClick={() => execWithdraw()}>
+                : <Button size="full" onClick={() => execWithdraw()} disabled={!amount}>
                     Withdraw
                 </Button>}
         </div>

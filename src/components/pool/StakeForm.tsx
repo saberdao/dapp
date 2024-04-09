@@ -20,7 +20,13 @@ export default function StakeForm (props: { pool: PoolData }) {
 
     const { mutate: execStake, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['stake', lastStakeHash],
-        mutationFn: stake,
+        mutationFn: async (amount: number) => {
+            if (!amount) {
+                return null;
+            }
+
+            return stake(amount);
+        },
     });
 
     // Do it like this so that when useMutation is called twice, the toast will only show once.
@@ -65,7 +71,7 @@ export default function StakeForm (props: { pool: PoolData }) {
                 ? <Button disabled size="full">
                     Staking...
                 </Button>
-                : <Button size="full" onClick={() => execStake(amount)}>
+                : <Button size="full" onClick={() => execStake(amount)} disabled={!amount}>
                     Stake
                 </Button>}
         </div>

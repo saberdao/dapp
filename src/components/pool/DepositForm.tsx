@@ -66,6 +66,9 @@ export default function DepositForm (props: { pool: PoolData }) {
     const { mutate: execDeposit, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['deposit', lastStakeHash],
         mutationFn: async () => {
+            if (!amountTokenA && !amountTokenB) {
+                return;
+            }
             const hash = await deposit?.handleDeposit(noStake);
             return hash;
         },
@@ -133,11 +136,12 @@ export default function DepositForm (props: { pool: PoolData }) {
 
             <div className="mt-3" /> */}
             
+            
             {isPending
                 ? <Button disabled size="full">
                     Depositing...
                 </Button>
-                : <Button size="full" onClick={() => execDeposit()}>
+                : <Button size="full" onClick={() => execDeposit()} disabled={!amountTokenA && !amountTokenB}>
                     Deposit
                 </Button>}
             

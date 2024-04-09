@@ -41,6 +41,9 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
     const { mutate: execUnstake, isPending, isSuccess, data: hash } = useMutation({
         mutationKey: ['unstake', lastStakeHash],
         mutationFn: async () => {
+            if (!amount) {
+                return;
+            }
             const hash = await withdraw?.handleWithdraw();
             return hash;
         },
@@ -116,7 +119,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 ? <Button disabled size="full">
                     Unstaking...
                 </Button>
-                : <Button size="full" onClick={() => execUnstake()}>
+                : <Button size="full" onClick={() => execUnstake()} disabled={!amount}>
                     Unstake
                 </Button>}
             
