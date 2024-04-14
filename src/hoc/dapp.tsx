@@ -11,6 +11,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
 import 'react-toastify/dist/ReactToastify.css';
+import Footer from '../components/Footer';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -72,6 +73,7 @@ const Dapp = (props: { Component: any; props: any }) => {
                             <div className="max-w-7xl flex flex-col w-full gap-5">
                                 <Navbar />
                                 <props.Component {...props.props} />
+                                <Footer />
                             </div>
                         </div>
                         <ToastContainer theme="dark" />
