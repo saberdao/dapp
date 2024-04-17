@@ -4,7 +4,7 @@ This README will be completed later.
 
 ## Local development
 
-Create a file `.env` in the root directory containing:
+Create a file `.env.development` in the root directory containing:
 
 ```
 GATSBY_RPC_URL=
