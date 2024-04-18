@@ -94,6 +94,13 @@ const DEPRECATED_POOL_NAMES = [
     'xLUNA-LUNA',
     'xSOL-SOL',
     'xUSD-USDC',
+    'aSOL-SOL',
+    'eSOL-SOL',
+    'MAI-USDC',
+    'cSOL-cmSOL',
+    'cUSDC-cUSDT',
+    'prtSOL-SOL',
+    'pSOL-prtSOL',
 ];
 
 export const isPoolDeprecated = (poolName: string) => {
