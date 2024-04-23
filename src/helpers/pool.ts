@@ -4,7 +4,7 @@ export const getPoolName = (name: string) => {
     }
 
     return name;
-}
+};
 
 export const getSymbol = (symbol: string) => {
     if (symbol === 'scnSOL') {
@@ -12,7 +12,7 @@ export const getSymbol = (symbol: string) => {
     }
 
     return symbol;
-}
+};
 
 export const getLogo = (symbol: string, logo?: string) => {
     if (symbol === 'scnSOL') {
@@ -20,4 +20,4 @@ export const getLogo = (symbol: string, logo?: string) => {
     }
 
     return logo;
-}
+};

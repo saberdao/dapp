@@ -6,19 +6,14 @@ import JSBI from 'jsbi';
  * Token with an (optional) underlying token backing it.
  */
 export class WrappedToken {
-    constructor(
-        readonly value: Token,
-        readonly underlying: Token = value,
-    ) { }
+    constructor(readonly value: Token, readonly underlying: Token = value) {}
 
     isWrapped(): boolean {
         return !this.value.equals(this.underlying);
     }
 
     equals(other: WrappedToken): boolean {
-        return (
-            this.value.equals(other.value) && this.underlying.equals(other.underlying)
-        );
+        return this.value.equals(other.value) && this.underlying.equals(other.underlying);
     }
 
     get multiplier(): JSBI {
@@ -33,10 +28,7 @@ export class WrappedToken {
     wrappedAmount(amount: TokenAmount): TokenAmount {
         if (amount.token.equals(this.underlying) && this.isWrapped()) {
             // convert to wrapped
-            return new TokenAmount(
-                this.value,
-                JSBI.multiply(amount.raw, this.multiplier),
-            );
+            return new TokenAmount(this.value, JSBI.multiply(amount.raw, this.multiplier));
         } else if (amount.token.equals(this.value)) {
             return amount;
         }
@@ -51,10 +43,7 @@ export class WrappedToken {
     underlyingAmount(amount: TokenAmount): TokenAmount {
         if (amount.token.equals(this.value) && this.isWrapped()) {
             // convert to underlying
-            return new TokenAmount(
-                this.underlying,
-                JSBI.divide(amount.raw, this.multiplier),
-            );
+            return new TokenAmount(this.underlying, JSBI.divide(amount.raw, this.multiplier));
         } else if (amount.token.equals(this.underlying)) {
             return amount;
         }
