@@ -36,12 +36,7 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 const Dapp = (props: { Component: any; props: any }) => {
     const { network, endpoint, wsEndpoint } = useNetwork();
 
-    const wallets = useMemo(
-        () => [
-            new PhantomWalletAdapter(),
-        ],
-        [network],
-    );
+    const wallets = useMemo(() => [new PhantomWalletAdapter()], [network]);
 
     const [ready, setReady] = useState(false);
 
@@ -54,20 +49,33 @@ const Dapp = (props: { Component: any; props: any }) => {
     }
 
     return (
-        <PersistQueryClientProvider client={queryClient} persistOptions={{
-            persister,
-            maxAge: CACHE_TIME,
-            dehydrateOptions: {
-                shouldDehydrateQuery: query => {
-                    return ['swaps', 'pools', 'poolsData', 'prices', 'reserves', 'lpTokenAmounts', 'tokenList', 'rewardsList'].includes(query.queryKey[0] as string);
+        <PersistQueryClientProvider
+            client={queryClient}
+            persistOptions={{
+                persister,
+                maxAge: CACHE_TIME,
+                dehydrateOptions: {
+                    shouldDehydrateQuery: (query) => {
+                        return [
+                            'swaps',
+                            'pools',
+                            'poolsData',
+                            'prices',
+                            'reserves',
+                            'lpTokenAmounts',
+                            'tokenList',
+                            'rewardsList',
+                        ].includes(query.queryKey[0] as string);
+                    },
                 },
-            },
-        }}>
-            <ConnectionProvider endpoint={endpoint} config={{ wsEndpoint: wsEndpoint }}>
+            }}
+        >
+            <ConnectionProvider endpoint={endpoint ?? ''} config={{ wsEndpoint: wsEndpoint }}>
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>
                         <div className="w-full flex items-center justify-center bg-yellow-500 border-b border-yellow-800 py-1 text-xs">
-                            Solana is currently experiencing congestion issues. It might be necessary to retry your transaction multiple times.
+                            Solana is currently experiencing congestion issues. It might be
+                            necessary to retry your transaction multiple times.
                         </div>
                         <div className="text-white min-h-screen w-full flex justify-center p-5">
                             <div className="max-w-7xl flex flex-col w-full gap-5">
@@ -84,9 +92,9 @@ const Dapp = (props: { Component: any; props: any }) => {
     );
 };
 
-export default function dapp (WrappedComponent: any) {
+export default function dapp(WrappedComponent: any) {
     class DappHOC extends React.Component {
-        render () {
+        render() {
             return <Dapp Component={WrappedComponent} props={this.props} />;
         }
     }
