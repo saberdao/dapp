@@ -6,7 +6,7 @@ export default function Footer() {
         <>
             <div className="w-full flex flex-col lg:flex-row gap-1">
                 <div className="flex-grow flex-wrap flex justify-center gap-3 items-center">
-                    &copy; Saber 2024
+                    &copy; Saber DAO 2024
                 </div>
             </div>
         </>
