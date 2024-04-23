@@ -15,7 +15,7 @@ import { useMutation } from '@tanstack/react-query';
 import TX from './TX';
 import { toast } from 'react-toastify';
 import useUnwrap from '../hooks/user/useUnwrap';
-import { FaXTwitter } from 'react-icons/fa6';
+import { FaMedium, FaXTwitter } from 'react-icons/fa6';
 import SettingsDialog from './SettingsDialog';
 
 const WrappedSolBlock = () => {
@@ -92,6 +92,9 @@ export default function Navbar() {
                     
                     <a href="https://docs.saberdao.io/" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><SiGitbook /></Button>
+                    </a>
+                    <a href="https://blog.saberdao.io/" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><FaMedium /></Button>
                     </a>
                     <a href="https://data.saberdao.io/public-dashboards/8e8314fc11434f129c11d841d46d93ad?orgId=1" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl"><MdOutlineQueryStats /></Button>
