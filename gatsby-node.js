@@ -1,4 +1,5 @@
-const webpack = require('webpack'); 
+const webpack = require('webpack');
+const path = require('path');
 
 exports.onCreateWebpackConfig = ({ actions, getConfig }) => {
     const config = getConfig();
@@ -14,6 +15,9 @@ exports.onCreateWebpackConfig = ({ actions, getConfig }) => {
             }),
         ],
         resolve: {
+            alias: {
+                '@/src': path.resolve(__dirname, 'src'),
+            },
             fallback: {
                 crypto: require.resolve('crypto-browserify'),
                 url: require.resolve('url/'),

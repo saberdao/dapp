@@ -287,12 +287,12 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                     </div>
                 )}
             </Block>
-            {/* {props.pool?.info?.name === 'bSOL-SOL' ||
-                (props.pool?.info?.name === 'mSOL-SOL' && ( */}
-            <Button size="full" onClick={props.handleOpenModel}>
-                Boost your APY up to 70%!
-            </Button>
-            {/* ))} */}
+            {props.pool?.info?.name === 'bSOL-SOL' ||
+                (props.pool?.info?.name === 'mSOL-SOL' && (
+                    <Button size="full" onClick={props.handleOpenModel}>
+                        Boost your APY up to 70%!
+                    </Button>
+                ))}
             <Block noPadding className="mt-4">
                 <LiquidityForms pool={props.pool} />
             </Block>

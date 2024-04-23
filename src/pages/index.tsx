@@ -1,26 +1,24 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useForm } from 'react-hook-form';
+import { useReadLocalStorage } from 'usehooks-ts';
+import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
+
 import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
 import usePoolsInfo from '../hooks/usePoolsInfo';
 import Table from '../components/Table';
 import LoadingText from '../components/LoadingText';
-import Button from '../components/Button';
+import Button from '@/src/components/Button';
 import Input, { InputType } from '../components/Input';
-import { useForm } from 'react-hook-form';
 import ActiveText from '../components/ActiveText';
 import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
-import { useReadLocalStorage } from 'usehooks-ts';
 import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
-import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
-import UniversalPopover, { Ref } from '../components/models/universal-popover';
-import clsx from 'clsx';
-import ModelHeader from '../components/models/model-header';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
