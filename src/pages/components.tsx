@@ -48,7 +48,10 @@ const ComponentsPage: React.FC<PageProps> = () => {
                     <p>Blocks can also have a hover effect</p>
                 </Block>
 
-                <span>Address (with preferred explorer setting): <Address address="Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1" /></span>
+                <span>
+                    Address (with preferred explorer setting):{' '}
+                    <Address address="Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1" />
+                </span>
 
                 <div className="flex flex-col">
                     <p>Normal input</p>
@@ -62,26 +65,33 @@ const ComponentsPage: React.FC<PageProps> = () => {
             </div>
             <Block className="mt-5 flex flex-col gap-5">
                 <p>Table in a block</p>
-                <Table data={[
-                    { rowLink: '', data: [
-                        'Column 1',
-                        'Column 2',
-                        'Column 3',
-                        '',
-                    ] },
-                    { rowLink: '', data: [
-                        'Value 1',
-                        123.4,
-                        'Something',
-                        <Button key="b" size="small">View</Button>,
-                    ] },
-                    { rowLink: '', data: [
-                        'Value 1',
-                        123.4,
-                        'Something',
-                        <Button type="danger" key="b" size="small">Withdraw</Button>,
-                    ] },
-                ]} />
+                <Table
+                    data={[
+                        { rowLink: '', data: ['Column 1', 'Column 2', 'Column 3', ''] },
+                        {
+                            rowLink: '',
+                            data: [
+                                'Value 1',
+                                123.4,
+                                'Something',
+                                <Button key="b" size="small">
+                                    View
+                                </Button>,
+                            ],
+                        },
+                        {
+                            rowLink: '',
+                            data: [
+                                'Value 1',
+                                123.4,
+                                'Something',
+                                <Button type="danger" key="b" size="small">
+                                    Withdraw
+                                </Button>,
+                            ],
+                        },
+                    ]}
+                />
             </Block>
         </div>
     );

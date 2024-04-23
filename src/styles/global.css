@@ -5,13 +5,13 @@
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
+input[type='number'] {
+    -moz-appearance: textfield;
 }
 
 /* Solana wallet adapter style overrides */
@@ -19,12 +19,12 @@ input[type=number] {
 }
 
 .wallet-adapter-button-trigger {
-  background-color: #3D42CE !important;
-  font-weight: normal !important;
-  font-size: 14px !important;
-  height: 32px !important;
+    background-color: #3d42ce !important;
+    font-weight: normal !important;
+    font-size: 14px !important;
+    height: 32px !important;
 }
 
 .wallet-adapter-button-trigger:hover {
-  background-color: #6966FB !important;
+    background-color: #6966fb !important;
 }

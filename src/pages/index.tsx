@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type HeadFC, type PageProps } from 'gatsby';
 import { ImCross } from 'react-icons/im';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -18,6 +18,9 @@ import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
+import UniversalPopover, { Ref } from '../components/models/universal-popover';
+import clsx from 'clsx';
+import ModelHeader from '../components/models/model-header';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -83,7 +86,7 @@ const IndexPage: React.FC<PageProps> = () => {
     const { data: price } = useGetPrices();
     const { wallet } = useWallet();
     const [sort, setSort] = useState(SORTS.DEFAULT);
-    
+
     const { watch, register, resetField } = useForm<{
         filterText: string;
         filterCurrency: CurrencyMarket;
@@ -99,36 +102,69 @@ const IndexPage: React.FC<PageProps> = () => {
     const header = {
         data: [
             'Name',
-            wallet?.adapter.publicKey ? <div key="header-volume" className="flex items-center">
-                <div className="flex-grow">Your deposits</div>
-                {poolsView !== PoolsView.GRID && <div className="hidden lg:block">
-                    {sort !== SORTS.DEFAULT && <FaSort className="cursor-pointer" onClick={() => setSort(SORTS.DEFAULT)} />}
-                    {sort == SORTS.DEFAULT && <FaSortDown />}
-                </div>}
-            </div> : undefined,
+            wallet?.adapter.publicKey ? (
+                <div key="header-volume" className="flex items-center">
+                    <div className="flex-grow">Your deposits</div>
+                    {poolsView !== PoolsView.GRID && (
+                        <div className="hidden lg:block">
+                            {sort !== SORTS.DEFAULT && (
+                                <FaSort
+                                    className="cursor-pointer"
+                                    onClick={() => setSort(SORTS.DEFAULT)}
+                                />
+                            )}
+                            {sort == SORTS.DEFAULT && <FaSortDown />}
+                        </div>
+                    )}
+                </div>
+            ) : undefined,
             <div key="header-volume" className="flex items-center">
                 <div className="flex-grow">TVL</div>
-                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
-                    {sort !== SORTS.TVL_ASC && sort !== SORTS.TVL_DESC && <FaSort onClick={() => setSort(SORTS.TVL_DESC)} />}
-                    {sort == SORTS.TVL_DESC && <FaSortDown onClick={() => setSort(SORTS.TVL_ASC)} />}
-                    {sort == SORTS.TVL_ASC && <FaSortUp onClick={() => setSort(SORTS.TVL_DESC)} />}
-                </div>}
+                {poolsView !== PoolsView.GRID && (
+                    <div className="cursor-pointer hidden lg:block">
+                        {sort !== SORTS.TVL_ASC && sort !== SORTS.TVL_DESC && (
+                            <FaSort onClick={() => setSort(SORTS.TVL_DESC)} />
+                        )}
+                        {sort == SORTS.TVL_DESC && (
+                            <FaSortDown onClick={() => setSort(SORTS.TVL_ASC)} />
+                        )}
+                        {sort == SORTS.TVL_ASC && (
+                            <FaSortUp onClick={() => setSort(SORTS.TVL_DESC)} />
+                        )}
+                    </div>
+                )}
             </div>,
             <div key="header-volume" className="flex items-center">
                 <div className="flex-grow">Volume 24h</div>
-                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
-                    {sort !== SORTS.VOLUME_ASC && sort !== SORTS.VOLUME_DESC && <FaSort onClick={() => setSort(SORTS.VOLUME_DESC)} />}
-                    {sort == SORTS.VOLUME_DESC && <FaSortDown onClick={() => setSort(SORTS.VOLUME_ASC)} />}
-                    {sort == SORTS.VOLUME_ASC && <FaSortUp onClick={() => setSort(SORTS.VOLUME_DESC)} />}
-                </div>}
+                {poolsView !== PoolsView.GRID && (
+                    <div className="cursor-pointer hidden lg:block">
+                        {sort !== SORTS.VOLUME_ASC && sort !== SORTS.VOLUME_DESC && (
+                            <FaSort onClick={() => setSort(SORTS.VOLUME_DESC)} />
+                        )}
+                        {sort == SORTS.VOLUME_DESC && (
+                            <FaSortDown onClick={() => setSort(SORTS.VOLUME_ASC)} />
+                        )}
+                        {sort == SORTS.VOLUME_ASC && (
+                            <FaSortUp onClick={() => setSort(SORTS.VOLUME_DESC)} />
+                        )}
+                    </div>
+                )}
             </div>,
             <div key="header-volume" className="flex items-center">
                 <div className="flex-grow">APY</div>
-                {poolsView !== PoolsView.GRID && <div className="cursor-pointer hidden lg:block">
-                    {sort !== SORTS.APY_ASC && sort !== SORTS.APY_DESC && <FaSort onClick={() => setSort(SORTS.APY_DESC)} />}
-                    {sort == SORTS.APY_DESC && <FaSortDown onClick={() => setSort(SORTS.APY_ASC)} />}
-                    {sort == SORTS.APY_ASC && <FaSortUp onClick={() => setSort(SORTS.APY_DESC)} />}
-                </div>}
+                {poolsView !== PoolsView.GRID && (
+                    <div className="cursor-pointer hidden lg:block">
+                        {sort !== SORTS.APY_ASC && sort !== SORTS.APY_DESC && (
+                            <FaSort onClick={() => setSort(SORTS.APY_DESC)} />
+                        )}
+                        {sort == SORTS.APY_DESC && (
+                            <FaSortDown onClick={() => setSort(SORTS.APY_ASC)} />
+                        )}
+                        {sort == SORTS.APY_ASC && (
+                            <FaSortUp onClick={() => setSort(SORTS.APY_DESC)} />
+                        )}
+                    </div>
+                )}
             </div>,
             ' ',
         ].filter(Boolean),
@@ -151,7 +187,10 @@ const IndexPage: React.FC<PageProps> = () => {
                 header,
                 ...pools.data.pools
                     .filter((pool) => {
-                        if (filterText && !pool.info.name.toLowerCase().includes(filterText.toLowerCase())) {
+                        if (
+                            filterText &&
+                            !pool.info.name.toLowerCase().includes(filterText.toLowerCase())
+                        ) {
                             return false;
                         }
 
@@ -163,7 +202,11 @@ const IndexPage: React.FC<PageProps> = () => {
                             return false;
                         }
 
-                        if (filterMyPools && wallet?.adapter.publicKey && (pool.userInfo?.stakedUsdValue ?? 0) === 0) {
+                        if (
+                            filterMyPools &&
+                            wallet?.adapter.publicKey &&
+                            (pool.userInfo?.stakedUsdValue ?? 0) === 0
+                        ) {
                             return false;
                         }
 
@@ -175,18 +218,36 @@ const IndexPage: React.FC<PageProps> = () => {
                             rowLink: `/pools/${pool.info.id}`,
                             data: [
                                 <div key={pool.info.id} className="flex items-center gap-2">
-                                    <img className="w-5 h-5 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
-                                    <img className="-ml-3 w-5 h-5 rounded-full" src={pool.info.tokenIcons[1].logoURI} />
-                                    {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
+                                    <img
+                                        className="w-5 h-5 rounded-full"
+                                        src={pool.info.tokenIcons[0].logoURI}
+                                    />
+                                    <img
+                                        className="-ml-3 w-5 h-5 rounded-full"
+                                        src={pool.info.tokenIcons[1].logoURI}
+                                    />
+                                    {isPoolDeprecated(pool.info.name) ? (
+                                        <p className="line-through">{pool.info.name}</p>
+                                    ) : (
+                                        pool.info.name
+                                    )}
                                 </div>,
-                                wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),
+                                wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue
+                                    ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}`
+                                    : wallet?.adapter.publicKey
+                                    ? ' '
+                                    : '',
                                 `$${toPrecision(pool.metrics?.tvl ?? 0, 4)}`,
-                                pool.metricInfo?.volumeInUSD ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}` : '$0',
+                                pool.metricInfo?.volumeInUSD
+                                    ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}`
+                                    : '$0',
                                 `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
                                     {poolsView !== PoolsView.GRID && (
                                         <div className="flex justify-end">
-                                            <Button className="hidden lg:inline-block" key="button">View</Button>
+                                            <Button className="hidden lg:inline-block" key="button">
+                                                View
+                                            </Button>
                                         </div>
                                     )}
                                 </>,
@@ -196,65 +257,86 @@ const IndexPage: React.FC<PageProps> = () => {
             ];
         }
 
-        return [
-            header,
-            ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) }),
-        ];
+        return [header, ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) })];
     }, [pools, wallet]);
 
     return (
-        <div>
-            <div className="block lg:flex items-center mb-3">
-                <div className="flex-grow"><H1>Pools</H1></div>
-                <div className="flex flex-wrap justify-end items-center gap-3">
-                    {poolsView === PoolsView.GRID && <Input
-                        type={InputType.DROPDOWN}
-                        register={register('sortDropdown')}
-                        placeholder="Sort by"
-                        values={Object.values(SORTS).map((group) => {
-                            // Return as [key, human readable value]
-                            return [group, sortReadable[group]];
-                        })}
-                    />}
-                    {/* Always show on mobile */}
-                    <div className="block lg:hidden">
-                        <Input
-                            type={InputType.DROPDOWN}
-                            register={register('sortDropdownMobile')}
-                            placeholder="Sort by"
-                            values={Object.values(SORTS).map((group) => {
-                                // Return as [key, human readable value]
-                                return [group, sortReadable[group]];
-                            })}
-                        />
+        <>
+            <div>
+                <div className="block lg:flex items-center mb-3">
+                    <div className="flex-grow">
+                        <H1>Pools</H1>
                     </div>
-                    {!filterCurrency
-                        ? <Input
-                            type={InputType.DROPDOWN}
-                            register={register('filterCurrency')}
-                            placeholder="Currency"
-                            values={Object.values(KNOWN_GROUPS).map((group) => {
-                                // Return as [key, human readable value]
-                                return [group, group];
-                            })}
+                    <div className="flex flex-wrap justify-end items-center gap-3">
+                        {poolsView === PoolsView.GRID && (
+                            <Input
+                                type={InputType.DROPDOWN}
+                                register={register('sortDropdown')}
+                                placeholder="Sort by"
+                                values={Object.values(SORTS).map((group) => {
+                                    // Return as [key, human readable value]
+                                    return [group, sortReadable[group]];
+                                })}
+                            />
+                        )}
+                        {/* Always show on mobile */}
+                        <div className="block lg:hidden">
+                            <Input
+                                type={InputType.DROPDOWN}
+                                register={register('sortDropdownMobile')}
+                                placeholder="Sort by"
+                                values={Object.values(SORTS).map((group) => {
+                                    // Return as [key, human readable value]
+                                    return [group, sortReadable[group]];
+                                })}
+                            />
+                        </div>
+                        {!filterCurrency ? (
+                            <Input
+                                type={InputType.DROPDOWN}
+                                register={register('filterCurrency')}
+                                placeholder="Currency"
+                                values={Object.values(KNOWN_GROUPS).map((group) => {
+                                    // Return as [key, human readable value]
+                                    return [group, group];
+                                })}
+                            />
+                        ) : (
+                            <ActiveText>
+                                <div
+                                    className="cursor-pointer text-slate-200 rounded-lg text-sm py-2 px-3 flex items-center gap-1 group transition-colors"
+                                    onClick={() => resetField('filterCurrency')}
+                                >
+                                    {filterCurrency}
+                                    <ImCross className="group-hover:text-saber-light transition-colors" />
+                                </div>
+                            </ActiveText>
+                        )}
+                        <Input
+                            type={InputType.TEXT}
+                            register={register('filterText')}
+                            placeholder="Filter pool..."
                         />
-                        : <ActiveText>
-                            <div
-                                className="cursor-pointer text-slate-200 rounded-lg text-sm py-2 px-3 flex items-center gap-1 group transition-colors"
-                                onClick={() => resetField('filterCurrency')}
-                            >
-                                {filterCurrency}
-                                <ImCross className="group-hover:text-saber-light transition-colors" />
-                            </div>
-                        </ActiveText>}
-                    <Input type={InputType.TEXT} register={register('filterText')} placeholder="Filter pool..." />
-                    {wallet?.adapter.publicKey && <Input type={InputType.CHECKBOX} register={register('filterMyPools')} label="My deposits" />}
-                    <Input type={InputType.CHECKBOX} register={register('filterDeprecated')} label="Deprecated" />
-                    <div className="hidden lg:block"><PoolSwitch /></div>
+                        {wallet?.adapter.publicKey && (
+                            <Input
+                                type={InputType.CHECKBOX}
+                                register={register('filterMyPools')}
+                                label="My deposits"
+                            />
+                        )}
+                        <Input
+                            type={InputType.CHECKBOX}
+                            register={register('filterDeprecated')}
+                            label="Deprecated"
+                        />
+                        <div className="hidden lg:block">
+                            <PoolSwitch />
+                        </div>
+                    </div>
                 </div>
+                <Table data={data} blockView={poolsView === PoolsView.GRID} />
             </div>
-            <Table data={data} blockView={poolsView === PoolsView.GRID} />
-        </div>
+        </>
     );
 };
 
