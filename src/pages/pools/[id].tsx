@@ -16,6 +16,7 @@ import dapp from '../../hoc/dapp';
 import { toPrecision } from '../../helpers/number';
 import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
+import { getLogo, getPoolName, getSymbol } from '../../helpers/pool';
 
 import useClaim from '../../hooks/user/useClaim';
 import usePoolsInfo from '../../hooks/usePoolsInfo';
@@ -80,7 +81,7 @@ const ExternalLink = (props: { href?: string; icon: IconType }) => {
 const AboutBlock = (props: { token: TokenInfo }) => {
     return (
         <Block className="w-full h-full">
-            <H2>{props.token.symbol}</H2>
+            <H2>{getSymbol(props.token.symbol)}</H2>
             {props.token.extensions?.description ? (
                 <div className="mb-3 text-secondary">{props.token.extensions?.description}</div>
             ) : null}
@@ -358,8 +359,8 @@ const PoolPage = (props: { params: { id: string } }) => {
         ['---'],
         [
             <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
-                <img src={token0.logoURI} className="w-5 h-5" />
-                <p>{token0.symbol}</p>
+                <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
+                <p>{getSymbol(token0.symbol)}</p>
             </div>,
             `$${toPrecision(
                 pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA,
@@ -368,8 +369,8 @@ const PoolPage = (props: { params: { id: string } }) => {
         ],
         [
             <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
-                <img src={token1.logoURI} className="w-5 h-5" />
-                <p>{token1.symbol}</p>
+                <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
+                <p>{getSymbol(token1.symbol)}</p>
             </div>,
             `$${toPrecision(
                 pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
@@ -428,7 +429,7 @@ const PoolPage = (props: { params: { id: string } }) => {
                 </div>
             </UniversalPopover>
             <div>
-                <H1>{pool.info.name}</H1>
+                <H1>{getPoolName(pool.info.name)}</H1>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div className="col-span-2">
                         <Block>
@@ -456,11 +457,17 @@ const PoolPage = (props: { params: { id: string } }) => {
                                                 <div className="flex gap-2">
                                                     <img
                                                         className="w-4 h-4 rounded-full"
-                                                        src={pool.info.tokenIcons[0].logoURI}
+                                                        src={getLogo(
+                                                            pool.info.tokens[0].symbol,
+                                                            pool.info.tokenIcons[0].logoURI,
+                                                        )}
                                                     />
                                                     <img
                                                         className="-ml-4 w-4 h-4 rounded-full"
-                                                        src={pool.info.tokenIcons[1].logoURI}
+                                                        src={getLogo(
+                                                            pool.info.tokens[1].symbol,
+                                                            pool.info.tokenIcons[1].logoURI,
+                                                        )}
                                                     />
                                                 </div>
                                             </div>
