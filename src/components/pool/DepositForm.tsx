@@ -15,6 +15,7 @@ import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 import clsx from 'clsx';
+import { getSymbol } from '../../helpers/pool';
 
 export default function DepositForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amountTokenA: number, amountTokenB: number, noStake: boolean }>();
@@ -107,7 +108,7 @@ export default function DepositForm (props: { pool: PoolData }) {
             <div className="mt-3" />
 
             <div className="font-bold text-sm flex items-center gap-2 mt-3">
-                <div className="flex-grow">{token0.symbol}</div>
+                <div className="flex-grow">{getSymbol(token0.symbol)}</div>
                 <span className="text-white text-xs font-normal">
                     Balance:{' '}
                     <span
@@ -119,7 +120,7 @@ export default function DepositForm (props: { pool: PoolData }) {
             <Input register={register('amountTokenA')} type={InputType.NUMBER} placeholder="0.00" size="full" />
 
             <div className="font-bold text-sm flex items-center gap-2 mt-3">
-                <div className="flex-grow">{token1.symbol}</div>
+                <div className="flex-grow">{getSymbol(token1.symbol)}</div>
                 <span className="text-white text-xs font-normal">
                     Balance:{' '}
                     <span

@@ -19,6 +19,7 @@ import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 import { isPoolFeatured } from '../helpers/featuredPools';
+import { getLogo, getPoolName } from '../helpers/pool';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -180,9 +181,9 @@ const IndexPage: React.FC<PageProps> = () => {
                             rowLink: `/pools/${pool.info.id}`,
                             data: [
                                 <div key={pool.info.id} className="flex items-center gap-2">
-                                    <img className="w-5 h-5 rounded-full" src={pool.info.tokenIcons[0].logoURI} />
-                                    <img className="-ml-3 w-5 h-5 rounded-full" src={pool.info.tokenIcons[1].logoURI} />
-                                    {isPoolDeprecated(pool.info.name) ? <p className="line-through">{pool.info.name}</p> : pool.info.name}
+                                    <img className="w-5 h-5 rounded-full" src={getLogo(pool.info.tokens[0].symbol, pool.info.tokenIcons[0].logoURI)} />
+                                    <img className="-ml-3 w-5 h-5 rounded-full" src={getLogo(pool.info.tokens[1].symbol, pool.info.tokenIcons[1].logoURI)} />
+                                    {isPoolDeprecated(pool.info.name) ? <p className="line-through">{getPoolName(pool.info.name)}</p> : getPoolName(pool.info.name)}
                                 </div>,
                                 wallet?.adapter.publicKey && pool.userInfo?.stakedUsdValue ? `$${toPrecision(pool.userInfo.stakedUsdValue, 4)}` : (wallet?.adapter.publicKey ? ' ' : ''),
                                 `$${toPrecision(pool.metrics?.tvl ?? 0, 4)}`,
