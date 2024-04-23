@@ -67,8 +67,8 @@ export default function Navbar() {
         <>
             <div className="w-full flex flex-col lg:flex-row gap-1">
                 <div className="flex items-center gap-3 font-bold mb-3 lg:mb-0">
-                    <Link to="/">
-                        <div className="flex-grow flex items-center gap-3">
+                    <Link to="/" className="flex-grow">
+                        <div className="flex items-center gap-3">
                             <Saber className="text-saber-light" />
                             Saber
                         </div>
