@@ -18,6 +18,7 @@ import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
+import { isPoolFeatured } from '../helpers/featuredPools';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -163,6 +164,10 @@ const IndexPage: React.FC<PageProps> = () => {
                             return false;
                         }
 
+                        if (!filterDeprecated && !isPoolFeatured(pool.info.name) && !filterText) {
+                            return false;
+                        }
+
                         if (filterMyPools && wallet?.adapter.publicKey && (pool.userInfo?.stakedUsdValue ?? 0) === 0) {
                             return false;
                         }
@@ -249,7 +254,7 @@ const IndexPage: React.FC<PageProps> = () => {
                         </ActiveText>}
                     <Input type={InputType.TEXT} register={register('filterText')} placeholder="Filter pool..." />
                     {wallet?.adapter.publicKey && <Input type={InputType.CHECKBOX} register={register('filterMyPools')} label="My deposits" />}
-                    <Input type={InputType.CHECKBOX} register={register('filterDeprecated')} label="Deprecated" />
+                    <Input type={InputType.CHECKBOX} register={register('filterDeprecated')} label="Show all" />
                     <div className="hidden lg:block"><PoolSwitch /></div>
                 </div>
             </div>

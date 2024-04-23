@@ -66,9 +66,9 @@ const Dapp = (props: { Component: any; props: any }) => {
             <ConnectionProvider endpoint={endpoint} config={{ wsEndpoint: wsEndpoint }}>
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>
-                        <div className="w-full flex items-center justify-center bg-yellow-500 border-b border-yellow-800 py-1 text-xs">
+                        {/* <div className="w-full flex items-center justify-center bg-yellow-500 border-b border-yellow-800 py-1 text-xs">
                             Solana is currently experiencing congestion issues. It might be necessary to retry your transaction multiple times.
-                        </div>
+                        </div> */}
                         <div className="text-white min-h-screen w-full flex justify-center p-5">
                             <div className="max-w-7xl flex flex-col w-full gap-5">
                                 <Navbar />

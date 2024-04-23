@@ -135,8 +135,8 @@ const LiquidityForms = (props: { pool: PoolData }) => {
 
     const tabs = [
         !deprecated && { name: 'Deposit', current: selectedTab === 'Deposit' },
-        !deprecated && { name: 'Withdraw', current: selectedTab === 'Withdraw' },
-        { name: 'Stake', current: selectedTab === 'Stake' },
+        { name: 'Withdraw', current: selectedTab === 'Withdraw' },
+        !deprecated && { name: 'Stake', current: selectedTab === 'Stake' },
         { name: 'Unstake', current: selectedTab === 'Unstake' },
     ].filter((x): x is { name: string, current: boolean } => !!x);
 
