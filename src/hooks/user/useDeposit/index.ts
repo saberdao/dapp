@@ -1,13 +1,9 @@
-import {
-    SABER_CODERS,
-    WrappedTokenActions,
-} from '@saberhq/saber-periphery';
+import { useCallback, useMemo } from 'react';
+import { SABER_CODERS, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { TransactionEnvelope } from '@saberhq/solana-contrib';
 import { IExchangeInfo, StableSwap } from '@saberhq/stableswap-sdk';
-import {
-    calculateEstimatedMintAmount,
-    calculateVirtualPrice,
-} from '@saberhq/stableswap-sdk';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { calculateEstimatedMintAmount, calculateVirtualPrice } from '@saberhq/stableswap-sdk';
 import {
     Fraction,
     getOrCreateATAs,
@@ -18,21 +14,20 @@ import {
 } from '@saberhq/token-utils';
 import type { PublicKey } from '@solana/web3.js';
 import { Keypair } from '@solana/web3.js';
-import { useCallback, useMemo } from 'react';
 import invariant from 'tiny-invariant';
-import { PoolData } from '../../../types';
-import { useStableSwapTokens } from '../../useStableSwapTokens';
-import useSettings from '../../useSettings';
-import { calculateDepositSlippage } from './calculateDepositSlippage';
-import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
-import useProvider from '../../useProvider';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { createVersionedTransaction } from '../../../helpers/transaction';
-import useQuarryMiner from '../useQuarryMiner';
+
+import { PoolData } from '@/src/types';
+import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
+import { calculateDepositSlippage } from '@/src/hooks/user/useDeposit/calculateDepositSlippage';
+import { createEphemeralWrappedSolAccount } from '@/src/utils/wrappedSol';
+import useProvider from '@/src/hooks/useProvider';
+import { createVersionedTransaction } from '@/src/helpers/transaction';
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
+import useSettings from '@/src/hooks/useSettings';
 
 interface IDeposit {
-  tokenAmounts: readonly TokenAmount[];
-  pool: PoolData
+    tokenAmounts: readonly TokenAmount[];
+    pool: PoolData;
 }
 
 export interface IUseDeposit {
@@ -102,13 +97,9 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
         const virtualPrice = calculateVirtualPrice(pool.exchangeInfo);
 
         // estimated mint amount if there were no slippage
-        const expectedMint = virtualPrice
-            ? totalTokens.divide(virtualPrice)
-            : new Fraction(0);
+        const expectedMint = virtualPrice ? totalTokens.divide(virtualPrice) : new Fraction(0);
 
-        return new Percent(1).subtract(
-            estimatedMint.mintAmount.asFraction.divide(expectedMint),
-        );
+        return new Percent(1).subtract(estimatedMint.mintAmount.asFraction.divide(expectedMint));
     }, [estimatedMint, pool.exchangeInfo, tokenAmountsWrapped]);
 
     const estimatedDepositSlippage = useMemo(() => {
@@ -127,19 +118,18 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     const depositDisabledReason = !swap
         ? 'Loading...'
         : !wallet
-            ? 'Connect wallet'
-            : swap.state.isPaused
-                ? 'Pool is paused'
-                : tokenAmounts.find((amount, i) =>
-                    amount.greaterThan(ssTokens?.underlyingTokenAccounts[i]?.balance ?? 0),
-                )
-                    ? 'Insufficient balance'
-                    : tokenAmounts.every((amount) => amount.isZero()) ||
-              tokenAmounts.length === 0
-                        ? 'Enter an amount'
-                        : estimatedDepositSlippage?.greaterThan(maxSlippagePercent)
-                            ? 'Price impact too high'
-                            : undefined;
+        ? 'Connect wallet'
+        : swap.state.isPaused
+        ? 'Pool is paused'
+        : tokenAmounts.find((amount, i) =>
+              amount.greaterThan(ssTokens?.underlyingTokenAccounts[i]?.balance ?? 0),
+          )
+        ? 'Insufficient balance'
+        : tokenAmounts.every((amount) => amount.isZero()) || tokenAmounts.length === 0
+        ? 'Enter an amount'
+        : estimatedDepositSlippage?.greaterThan(maxSlippagePercent)
+        ? 'Price impact too high'
+        : undefined;
 
     const handleSolDeposit = useCallback(
         async (
@@ -187,10 +177,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             });
             allInstructions.push(...init.instructions);
 
-            let minimumPoolTokenAmount = new TokenAmount(
-                exchangeInfo.lpTotalSupply.token,
-                0,
-            );
+            let minimumPoolTokenAmount = new TokenAmount(exchangeInfo.lpTotalSupply.token, 0);
             try {
                 const estimatedMint = calculateEstimatedMintAmount(
                     exchangeInfo,
@@ -209,12 +196,8 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             allInstructions.push(
                 swap.deposit({
                     userAuthority: saber.provider.wallet.publicKey,
-                    sourceA: mints.tokenA.equals(NATIVE_MINT)
-                        ? accountKey
-                        : result.accounts.tokenA,
-                    sourceB: mints.tokenB.equals(NATIVE_MINT)
-                        ? accountKey
-                        : result.accounts.tokenB,
+                    sourceA: mints.tokenA.equals(NATIVE_MINT) ? accountKey : result.accounts.tokenA,
+                    sourceB: mints.tokenB.equals(NATIVE_MINT) ? accountKey : result.accounts.tokenB,
                     poolTokenAccount: result.accounts.lp,
                     tokenAmountA: amountA.toU64(),
                     tokenAmountB: amountB.toU64(),
@@ -242,9 +225,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             //     allInstructions.push(...stakeTX.instructions);
             // }
 
-            const txEnv: TransactionEnvelope = saber.newTx(allInstructions, [
-                ephemeralAccount,
-            ]);
+            const txEnv: TransactionEnvelope = saber.newTx(allInstructions, [ephemeralAccount]);
 
             const vt = await createVersionedTransaction(
                 connection,
@@ -255,7 +236,10 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             vt.transaction.sign(txEnv.signers);
 
             const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-            await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+            await connection.confirmTransaction(
+                { signature: hash, ...vt.latestBlockhash },
+                'processed',
+            );
             return hash;
         },
         [maxSlippagePercent, tokenAmounts, tokenAmountsWrapped],
@@ -274,16 +258,8 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 tokenB: pool.exchangeInfo.reserves[1].amount.token.mintAccount,
             };
 
-            if (
-                mints.tokenA.equals(NATIVE_MINT) ||
-                mints.tokenB.equals(NATIVE_MINT)
-            ) {
-                return await handleSolDeposit(
-                    swap,
-                    pool.exchangeInfo,
-                    mints,
-                    noStake,
-                );
+            if (mints.tokenA.equals(NATIVE_MINT) || mints.tokenB.equals(NATIVE_MINT)) {
+                return await handleSolDeposit(swap, pool.exchangeInfo, mints, noStake);
             }
 
             const allInstructions = [];
@@ -331,10 +307,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 allInstructions.push(result.createAccountInstructions.tokenB);
             }
 
-            let minimumPoolTokenAmount = new TokenAmount(
-                pool.exchangeInfo.lpTotalSupply.token,
-                0,
-            );
+            let minimumPoolTokenAmount = new TokenAmount(pool.exchangeInfo.lpTotalSupply.token, 0);
             try {
                 const estimatedMint = calculateEstimatedMintAmount(
                     pool.exchangeInfo,
@@ -388,7 +361,10 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             );
 
             const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-            await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+            await connection.confirmTransaction(
+                { signature: hash, ...vt.latestBlockhash },
+                'processed',
+            );
             return hash;
         },
         [

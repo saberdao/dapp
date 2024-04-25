@@ -5,7 +5,7 @@ import { Percent, TokenAmount, ZERO } from '@saberhq/token-utils';
 import JSBI from 'jsbi';
 
 import type { WithdrawCalculationResult } from '.';
-import { WrappedToken } from '../../../types/wrappedToken';
+import { WrappedToken } from '@/src/types/wrappedToken';
 
 /**
  * Calculates withdrawOne parameters
@@ -19,16 +19,13 @@ export const calculateWithdrawOne = ({
     virtualPrice,
     maxSlippagePercent,
 }: {
-  exchangeInfo: IExchangeInfo;
-  poolTokenAmount: TokenAmount;
-  withdrawToken: WrappedToken;
-  virtualPrice: Fraction;
-  maxSlippagePercent: Percent;
+    exchangeInfo: IExchangeInfo;
+    poolTokenAmount: TokenAmount;
+    withdrawToken: WrappedToken;
+    virtualPrice: Fraction;
+    maxSlippagePercent: Percent;
 }): WithdrawCalculationResult => {
-    const tokens = exchangeInfo.reserves.map((r) => r.amount.token) as [
-    Token,
-    Token,
-  ];
+    const tokens = exchangeInfo.reserves.map((r) => r.amount.token) as [Token, Token];
     // Withdraw one
     const withdrawOneAmount = calculateEstimatedWithdrawOneAmount({
         exchange: exchangeInfo,
@@ -38,12 +35,9 @@ export const calculateWithdrawOne = ({
 
     const totalFee = withdrawOneAmount
         ? new TokenAmount(
-            withdrawToken.value,
-            JSBI.add(
-                withdrawOneAmount.swapFee.raw,
-                withdrawOneAmount.withdrawFee.raw,
-            ),
-        )
+              withdrawToken.value,
+              JSBI.add(withdrawOneAmount.swapFee.raw, withdrawOneAmount.withdrawFee.raw),
+          )
         : undefined;
 
     const withdrawTokenValue = withdrawToken.value;
@@ -51,35 +45,23 @@ export const calculateWithdrawOne = ({
     const renderedFee = totalFee && !totalFee.isZero() ? totalFee : undefined;
 
     const tokenCalcs =
-    tokens?.map((tok) =>
-        tok.equals(withdrawTokenValue)
-            ? [withdrawOneAmount?.withdrawAmount, renderedFee]
-            : [undefined, undefined],
-    ) ?? [];
+        tokens?.map((tok) =>
+            tok.equals(withdrawTokenValue)
+                ? [withdrawOneAmount?.withdrawAmount, renderedFee]
+                : [undefined, undefined],
+        ) ?? [];
     const estimates = tokenCalcs.map((c) => c[0]) as [
-    TokenAmount | undefined,
-    TokenAmount | undefined,
-  ];
-    const fees = tokenCalcs.map((c) => c[1]) as [
-    TokenAmount | undefined,
-    TokenAmount | undefined,
-  ];
+        TokenAmount | undefined,
+        TokenAmount | undefined,
+    ];
+    const fees = tokenCalcs.map((c) => c[1]) as [TokenAmount | undefined, TokenAmount | undefined];
 
-    const expected = calculateExpectedWithdrawOneAmount(
-        virtualPrice,
-        tokens,
-        poolTokenAmount,
-    );
+    const expected = calculateExpectedWithdrawOneAmount(virtualPrice, tokens, poolTokenAmount);
 
     // minimum amounts to receive from withdraw, considering slippage
     const minimums = (tokens?.map((tok, i) => {
-        return (
-            expected[i]?.reduceBy(maxSlippagePercent) ?? new TokenAmount(tok, ZERO)
-        );
-    }) ?? [undefined, undefined]) as [
-    TokenAmount | undefined,
-    TokenAmount | undefined,
-  ];
+        return expected[i]?.reduceBy(maxSlippagePercent) ?? new TokenAmount(tok, ZERO);
+    }) ?? [undefined, undefined]) as [TokenAmount | undefined, TokenAmount | undefined];
     const slippages = estimates.map((estimate, i) => {
         const estimateRaw = estimate?.raw;
         const expectedRaw = expected[i]?.raw;
@@ -91,9 +73,7 @@ export const calculateWithdrawOne = ({
 
     const feePercents = fees.map((fee, i) => {
         const estimate = estimates[i];
-        return fee && estimate && !estimate.isZero()
-            ? fee.divideBy(estimate)
-            : undefined;
+        return fee && estimate && !estimate.isZero() ? fee.divideBy(estimate) : undefined;
     }) as [Percent | undefined, Percent | undefined];
 
     return {

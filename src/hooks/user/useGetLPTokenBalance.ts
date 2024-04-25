@@ -21,7 +21,10 @@ export default function useUserGetLPTokenBalance(lpToken: string) {
                 owner: wallet.adapter.publicKey,
             });
             try {
-                const balance = await connection.getTokenAccountBalance(userAta.accounts.lptoken.address, 'processed');
+                const balance = await connection.getTokenAccountBalance(
+                    userAta.accounts.lptoken.address,
+                    'processed',
+                );
                 return { balance, userAta: userAta.accounts.lptoken.address };
             } catch (e) {
                 // Account not initialised

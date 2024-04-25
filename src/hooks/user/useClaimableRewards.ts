@@ -1,9 +1,10 @@
-import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
-import useQuarryMiner from './useQuarryMiner';
-import { createQuarryPayroll } from '../../helpers/quarry';
-import BN from 'bn.js';
 import { useState } from 'react';
-import { SBR_INFO } from '../../utils/builtinTokens';
+import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
+import BN from 'bn.js';
+
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
+import { createQuarryPayroll } from '@/src/helpers/quarry';
+import { SBR_INFO } from '@/src/utils/builtinTokens';
 
 export default function useClaim(lpToken: TokenInfo) {
     const { data: miner } = useQuarryMiner(lpToken, true);
@@ -19,12 +20,15 @@ export default function useClaim(lpToken: TokenInfo) {
 
         const timeInSec = Math.floor(time / 1000);
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
-        const rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
-            new BN(timeInSec),
-            miner.data.balance,
-            miner.data.rewardsPerTokenPaid,
-            miner.data.rewardsEarned,
-        ));
+        const rewards = new TokenAmount(
+            new Token(SBR_INFO),
+            payroll.calculateRewardsEarned(
+                new BN(timeInSec),
+                miner.data.balance,
+                miner.data.rewardsPerTokenPaid,
+                miner.data.rewardsEarned,
+            ),
+        );
 
         const reward = rewards.asNumber;
 
@@ -36,8 +40,8 @@ export default function useClaim(lpToken: TokenInfo) {
             const extraMs = time - timeInSec * 1000;
 
             // Calculate reward per millisecond
-            const rewardPerMilliSec = ((reward - rewardsT0) / (timeInSec - timeT0)) / 1000;
-            
+            const rewardPerMilliSec = (reward - rewardsT0) / (timeInSec - timeT0) / 1000;
+
             // Add to reward
             return reward + rewardPerMilliSec * extraMs;
         }

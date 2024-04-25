@@ -27,11 +27,7 @@ export const calculateDepositPriceImpact = (
         return new Percent(0);
     }
 
-    const { mintAmount } = calculateEstimatedMintAmount(
-        exchange,
-        amountA,
-        amountB,
-    );
+    const { mintAmount } = calculateEstimatedMintAmount(exchange, amountA, amountB);
 
     const newLpTotalSupply = exchange.lpTotalSupply.add(
         new TokenAmount(exchange.lpTotalSupply.token, mintAmount.raw),
@@ -64,9 +60,7 @@ export const calculateDepositPriceImpact = (
         return new Percent(0);
     }
 
-    const fraction = lpPrice1
-        .subtract(lpPrice0)
-        .divide(lpPrice0.add(lpPrice1).divide(2));
+    const fraction = lpPrice1.subtract(lpPrice0).divide(lpPrice0.add(lpPrice1).divide(2));
     const percent = new Percent(fraction.numerator, fraction.denominator);
     if (percent.lessThan(0)) {
         return percent.multiply(-1);

@@ -1,5 +1,5 @@
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useState } from 'react';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 /**
  * Formats the network as a string.

@@ -1,10 +1,11 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
-import { createVersionedTransaction } from '../../helpers/transaction';
-import {  TransactionInstruction } from '@solana/web3.js';
-import useUserATAs from './useUserATAs';
-import useNetwork from '../useNetwork';
+import { TransactionInstruction } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
+
+import useUserATAs from '@/src/hooks/user/useUserATAs';
+import useNetwork from '@/src/hooks/useNetwork';
+import { createVersionedTransaction } from '@/src/helpers/transaction';
 
 export default function useUnwrap() {
     const { connection } = useConnection();
@@ -18,14 +19,16 @@ export default function useUnwrap() {
         }
 
         const instructions: TransactionInstruction[] = [];
-        instructions.push(Token.createCloseAccountInstruction(
-            TOKEN_PROGRAM_ID,
-            ata[0].key,
-            wallet.adapter.publicKey,
-            wallet.adapter.publicKey,
-            [],
-        ));
-        
+        instructions.push(
+            Token.createCloseAccountInstruction(
+                TOKEN_PROGRAM_ID,
+                ata[0].key,
+                wallet.adapter.publicKey,
+                wallet.adapter.publicKey,
+                [],
+            ),
+        );
+
         const vt = await createVersionedTransaction(
             connection,
             instructions,
@@ -33,7 +36,10 @@ export default function useUnwrap() {
         );
 
         const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+        await connection.confirmTransaction(
+            { signature: hash, ...vt.latestBlockhash },
+            'processed',
+        );
 
         return hash;
     };

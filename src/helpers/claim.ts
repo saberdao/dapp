@@ -3,7 +3,8 @@ import { SABER_IOU_MINT, SBR_MINT, Saber } from '@saberhq/saber-periphery';
 import { getOrCreateATAs } from '@saberhq/token-utils';
 import { Wallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import useQuarryMiner from '../hooks/user/useQuarryMiner';
+
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 
 export const getClaimIxs = async (
     saber: Saber,
@@ -38,9 +39,5 @@ export const getClaimIxs = async (
         sourceAuthority: wallet.adapter.publicKey,
     });
 
-    return [
-        ...instructions,
-        claimIX,
-        redeemTx,
-    ];
+    return [...instructions, claimIX, redeemTx];
 };

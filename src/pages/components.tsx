@@ -2,15 +2,15 @@ import React from 'react';
 import type { HeadFC, PageProps } from 'gatsby';
 import { FaLongArrowAltRight } from 'react-icons/fa';
 
-import dapp from '../hoc/dapp';
-import H1 from '../components/H1';
-import H2 from '../components/H2';
-import Button from '../components/Button';
-import Block from '../components/Block';
-import Saber from '../svg/saber';
-import Address from '../components/Address';
-import Input, { InputType } from '../components/Input';
-import Table from '../components/Table';
+import dapp from '@/src/hoc/dapp';
+import H1 from '@/src/components/H1';
+import H2 from '@/src/components/H2';
+import Button from '@/src/components/Button';
+import Block from '@/src/components/Block';
+import Saber from '@/src/svg/saber';
+import Address from '@/src/components/Address';
+import Input, { InputType } from '@/src/components/Input';
+import Table from '@/src/components/Table';
 
 const ComponentsPage: React.FC<PageProps> = () => {
     return (

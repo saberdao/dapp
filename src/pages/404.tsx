@@ -1,8 +1,8 @@
 import React from 'react';
 import type { HeadFC, PageProps } from 'gatsby';
 
-import dapp from '../hoc/dapp';
-import H1 from '../components/H1';
+import dapp from '@/src/hoc/dapp';
+import H1 from '@/src/components/H1';
 
 const NotFoundPage: React.FC<PageProps> = () => {
     return (

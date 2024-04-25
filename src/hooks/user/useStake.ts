@@ -1,12 +1,13 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import invariant from 'tiny-invariant';
-import { createVersionedTransaction } from '../../helpers/transaction';
-import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import BigNumber from 'bignumber.js';
-import useQuarryMiner from './useQuarryMiner';
-import useProvider from '../useProvider';
 import { Signer, TransactionInstruction } from '@solana/web3.js';
+
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
+import useProvider from '@/src/hooks/useProvider';
+import { createVersionedTransaction } from '@/src/helpers/transaction';
+import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 
 export default function useStake(lpToken: TokenInfo) {
     const { connection } = useConnection();
@@ -23,7 +24,10 @@ export default function useStake(lpToken: TokenInfo) {
 
         const allInstructions: TransactionInstruction[] = [];
 
-        const maxAmount = BigNumber.min(new BigNumber(balance.balance.value.amount), amountInput * 10 ** lpToken.decimals);
+        const maxAmount = BigNumber.min(
+            new BigNumber(balance.balance.value.amount),
+            amountInput * 10 ** lpToken.decimals,
+        );
         const amount = new TokenAmount(new Token(lpToken), maxAmount.toString());
 
         invariant(data.miner);
@@ -46,14 +50,21 @@ export default function useStake(lpToken: TokenInfo) {
 
         allInstructions.push(...stakeTX.instructions);
         signers.push(...stakeTX.signers);
-        
-        const vt = await createVersionedTransaction(connection, allInstructions, wallet.adapter.publicKey);
+
+        const vt = await createVersionedTransaction(
+            connection,
+            allInstructions,
+            wallet.adapter.publicKey,
+        );
 
         vt.transaction.sign(signers);
 
         console.log(Buffer.from(vt.transaction.serialize()).toString('base64'));
         const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+        await connection.confirmTransaction(
+            { signature: hash, ...vt.latestBlockhash },
+            'processed',
+        );
 
         return hash;
     };

@@ -1,4 +1,4 @@
-import { Explorer } from './types';
+import { Explorer } from '@/src/types';
 
 export const explorers = {
     [Explorer.SOLSCAN]: {

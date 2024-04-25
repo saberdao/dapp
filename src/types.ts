@@ -1,12 +1,18 @@
 import { MineProgram } from '@quarryprotocol/quarry-sdk';
 import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
-import { IExchangeInfo, StableSwapConfig, StableSwapState, SwapTokenInfo } from '@saberhq/stableswap-sdk';
+import {
+    IExchangeInfo,
+    StableSwapConfig,
+    StableSwapState,
+    SwapTokenInfo,
+} from '@saberhq/stableswap-sdk';
 import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
-import { PoolMetricInfo } from './hooks/usePoolsData';
+
+import { PoolMetricInfo } from '@/src/hooks/usePoolsData';
 
 export enum Explorer {
-    SOLSCAN = 'SOLSCAN'
+    SOLSCAN = 'SOLSCAN',
 }
 
 export enum CurrencyMarket {
@@ -24,7 +30,7 @@ export enum CurrencyMarket {
 
 export type OraclePrice = {
     [x in string]: number;
-}
+};
 
 export const POOL_TAGS = {
     'wormhole-v1': 'Contains a Wormhole V1 asset.',
@@ -144,7 +150,7 @@ export interface PoolInfo {
         config: StableSwapConfig;
         state: StableSwapState;
     };
-    
+
     newPoolID?: string;
 
     /**
@@ -195,17 +201,17 @@ type SwapTokenInfoRaw = {
 
 export type StableSwapStateRaw = {
     [K in keyof StableSwapState]: StableSwapState[K] extends PublicKey | u64
-    ? string
-    : StableSwapState[K] extends SwapTokenInfo
-    ? SwapTokenInfoRaw
-    : StableSwapState[K];
+        ? string
+        : StableSwapState[K] extends SwapTokenInfo
+        ? SwapTokenInfoRaw
+        : StableSwapState[K];
 };
 
 export type PoolData = {
     info: PoolInfo;
     exchangeInfo: IExchangeInfo;
     virtualPrice: Fraction | null;
-    pair: Pair<StableSwapPool>
+    pair: Pair<StableSwapPool>;
     usdPrice: {
         tokenA: number;
         tokenB: number;
@@ -216,11 +222,11 @@ export type PoolData = {
         feeApy: number;
         emissionApy: number;
         totalApy: number;
-    }
+    };
     userInfo?: {
         stakedBalance: string;
         stakedUsdValue: number;
-    }
+    };
     quarryData?: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
 };
 
@@ -235,22 +241,22 @@ interface QuarryMeta {
 }
 
 type QuarryMetaWithReplicas = QuarryMeta & {
-  primaryToken: TokenMeta;
-  primaryTokenInfo: TokenInfo | null;
-  mergePool: string;
-  replicaMint: string;
-  primaryQuarries: {
-    rewarder: string;
-    quarry: string;
-    rewardsToken: TokenMeta;
-  }[];
-  replicaQuarries: {
-    rewarder: string;
-    quarry: string;
-    rewardsToken: TokenMeta;
-  }[];
-  isReplica: boolean;
-  slug: string;
+    primaryToken: TokenMeta;
+    primaryTokenInfo: TokenInfo | null;
+    mergePool: string;
+    replicaMint: string;
+    primaryQuarries: {
+        rewarder: string;
+        quarry: string;
+        rewardsToken: TokenMeta;
+    }[];
+    replicaQuarries: {
+        rewarder: string;
+        quarry: string;
+        rewardsToken: TokenMeta;
+    }[];
+    isReplica: boolean;
+    slug: string;
 };
 
 export interface RewarderMeta {

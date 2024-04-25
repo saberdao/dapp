@@ -9,7 +9,7 @@ export enum PoolsView {
     LIST = 'LIST',
 }
 
-export default function PoolSwitch () {
+export default function PoolSwitch() {
     const [poolsView, setPoolsView] = useLocalStorage<PoolsView>('poolsView', PoolsView.LIST);
 
     const toggle = () => {
@@ -25,7 +25,9 @@ export default function PoolSwitch () {
             <div
                 className={clsx(
                     'py-2 px-2',
-                    poolsView === PoolsView.LIST ? 'bg-gradient-to-r from-saber-dark to-saber-light' : 'bg-slate-800',
+                    poolsView === PoolsView.LIST
+                        ? 'bg-gradient-to-r from-saber-dark to-saber-light'
+                        : 'bg-slate-800',
                 )}
             >
                 <FaList />
@@ -33,7 +35,9 @@ export default function PoolSwitch () {
             <div
                 className={clsx(
                     'py-2 px-2',
-                    poolsView === PoolsView.GRID ? 'bg-gradient-to-r from-saber-dark to-saber-light' : 'bg-slate-800',
+                    poolsView === PoolsView.GRID
+                        ? 'bg-gradient-to-r from-saber-dark to-saber-light'
+                        : 'bg-slate-800',
                 )}
             >
                 <BsGridFill />

@@ -9,9 +9,7 @@ import { useEffect, useState } from 'react';
  * @param getter
  * @returns
  */
-export const useClaimableAmounts = (
-    getter: () => number | null,
-): number | null => {
+export const useClaimableAmounts = (getter: () => number | null): number | null => {
     const [amounts, setAmounts] = useState<number | null>(null);
     useEffect(() => {
         let playing = true;

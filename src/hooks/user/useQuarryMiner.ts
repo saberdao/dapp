@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenInfo } from '@saberhq/token-utils';
-import useQuarry from '../useQuarry';
 import { SBR_REWARDER } from '@saberhq/saber-periphery';
+
+import useQuarry from '@/src/hooks/useQuarry';
 
 export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
     const { wallet } = useWallet();

@@ -1,21 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import H2 from '../H2';
-import Input, { InputType } from '../Input';
 import { useForm } from 'react-hook-form';
-import Button from '../Button';
-import { PoolData } from '../../types';
-import useUserATAs from '../../hooks/user/useUserATAs';
 import { Token, TokenAmount } from '@saberhq/token-utils';
-import { toPrecision } from '../../helpers/number';
-import TX from '../TX';
-import { toast } from 'react-toastify';
-import { useDeposit } from '../../hooks/user/useDeposit';
 import { useMutation } from '@tanstack/react-query';
-import useQuarryMiner from '../../hooks/user/useQuarryMiner';
-import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
-import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
+import { toast } from 'react-toastify';
 import clsx from 'clsx';
-import { getSymbol } from '../../helpers/pool';
+
+import { PoolData } from '@/src/types';
+import { toPrecision } from '@/src/helpers/number';
+import Input, { InputType } from '../Input';
+import Button from '@/src/components/Button';
+import H2 from '@/src/components/H2';
+import useUserATAs from '@/src/hooks/user/useUserATAs';
+import TX from '@/src/components/TX';
+import { useDeposit } from '@/src/hooks/user/useDeposit';
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
+import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
+import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
+import { getSymbol } from '@/src/helpers/pool';
 
 export default function DepositForm(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{

@@ -12,17 +12,17 @@ import { FaXTwitter } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 import clsx from 'clsx';
 
-import I18n from '../i18n';
-import Saber from '../svg/saber';
-import Button from './Button';
-import Block from './Block';
-import useUserATAs from '../hooks/user/useUserATAs';
-import useNetwork from '../hooks/useNetwork';
-import useUnwrap from '../hooks/user/useUnwrap';
-import TX from './TX';
-import UniversalPopover, { Ref } from './models/universal-popover';
-import ModelHeader from './models/model-header';
-import SettingModel from './models/setting-model';
+import I18n from '@/src/i18n';
+import Saber from '@/src/svg/saber';
+import Button from '@/src/components/Button';
+import Block from '@/src/components/Block';
+import useUserATAs from '@/src/hooks/user/useUserATAs';
+import useNetwork from '@/src/hooks/useNetwork';
+import useUnwrap from '@/src/hooks/user/useUnwrap';
+import TX from '@/src/components/TX';
+import UniversalPopover, { Ref } from '@/src/components/models/universal-popover';
+import ModelHeader from '@/src/components/models/model-header';
+import SettingModel from '@/src/components/models/setting-model';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();

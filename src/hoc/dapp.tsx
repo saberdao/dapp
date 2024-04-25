@@ -1,17 +1,16 @@
+import 'react-toastify/dist/ReactToastify.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { ToastContainer } from 'react-toastify';
-
-import Navbar from '../components/Navbar';
-import useNetwork from '../hooks/useNetwork';
 import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-import 'react-toastify/dist/ReactToastify.css';
-import Footer from '../components/Footer';
+import Navbar from '@/src/components/Navbar';
+import Footer from '@/src/components/Footer';
+import useNetwork from '@/src/hooks/useNetwork';
 
 const CACHE_TIME = 1000 * 60 * 60;
 

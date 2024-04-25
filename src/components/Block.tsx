@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import clsx from 'clsx';
 
 export default function Block(props: {
     active?: boolean;
-    children: any;
+    children: ReactNode;
     className?: string;
     hover?: boolean;
     noPadding?: boolean;

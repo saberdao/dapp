@@ -6,20 +6,20 @@ import { useForm } from 'react-hook-form';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
-import dapp from '../hoc/dapp';
-import { getLogo, getPoolName } from '../helpers/pool';
-import H1 from '../components/H1';
-import usePoolsInfo from '../hooks/usePoolsInfo';
-import Table from '../components/Table';
-import LoadingText from '../components/LoadingText';
+import dapp from '@/src/hoc/dapp';
+import { getLogo, getPoolName } from '@/src/helpers/pool';
+import H1 from '@/src/components/H1';
+import usePoolsInfo from '@/src/hooks/usePoolsInfo';
+import Table from '@/src/components/Table';
+import LoadingText from '@/src/components/LoadingText';
 import Button from '@/src/components/Button';
-import Input, { InputType } from '../components/Input';
-import ActiveText from '../components/ActiveText';
-import { isPoolDeprecated } from '../helpers/deprecatedPools';
-import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
-import { CurrencyMarket, PoolData } from '../types';
-import { toPrecision } from '../helpers/number';
-import useGetPrices from '../hooks/useGetPrices';
+import Input, { InputType } from '@/src/components/Input';
+import ActiveText from '@/src/components/ActiveText';
+import { isPoolDeprecated } from '@/src/helpers/deprecatedPools';
+import PoolSwitch, { PoolsView } from '@/src/components/PoolSwitch';
+import { CurrencyMarket, PoolData } from '@/src/types';
+import { toPrecision } from '@/src/helpers/number';
+import useGetPrices from '@/src/hooks/useGetPrices';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,

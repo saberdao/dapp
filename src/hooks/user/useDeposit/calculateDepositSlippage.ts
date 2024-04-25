@@ -2,9 +2,9 @@ import type { IExchangeInfo } from '@saberhq/stableswap-sdk';
 import { calculateVirtualPrice } from '@saberhq/stableswap-sdk';
 import { Percent, ZERO } from '@saberhq/token-utils';
 import JSBI from 'jsbi';
-import { calculateLPTokenAmount } from '../../../utils/calculateLPTokenAmount';
 
-// https://github.com/harmony-one/dapp-curve-ui/blob/master/common.js#L224
+import { calculateLPTokenAmount } from '@/src/utils/calculateLPTokenAmount';
+
 export const calculateDepositSlippage = (
     exchange: IExchangeInfo,
     amountA: JSBI,

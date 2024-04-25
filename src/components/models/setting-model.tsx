@@ -1,6 +1,7 @@
 import React from 'react';
-import Button from '../Button';
 import { useLocalStorage } from 'usehooks-ts';
+
+import Button from '@/src/components/Button';
 
 export default function SettingModel() {
     const [priorityFee, setPriorityFee] = useLocalStorage('priorityFee', 0);

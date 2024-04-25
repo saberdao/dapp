@@ -1,9 +1,10 @@
 import { PublicKey } from '@solana/web3.js';
 import { Percent } from '@ubeswap/token-math';
-import { valuesToKeys } from './keys';
 import { StableSwapState } from '@saberhq/stableswap-sdk';
-import { StableSwapStateRaw } from '../types';
 import { u64 } from '@saberhq/token-utils';
+
+import { StableSwapStateRaw } from '@/src/types';
+import { valuesToKeys } from '@/src/helpers/keys';
 
 export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState => {
     const initialAmpFactor = new u64(state.initialAmpFactor, 'hex');
@@ -34,18 +35,15 @@ export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState =>
             ),
             adminTrade: new Percent(
                 state.fees.adminTrade.numerator ?? state.fees.adminTrade.numeratorStr,
-                state.fees.adminTrade.denominator ??
-                state.fees.adminTrade.denominatorStr,
+                state.fees.adminTrade.denominator ?? state.fees.adminTrade.denominatorStr,
             ),
             withdraw: new Percent(
                 state.fees.withdraw.numerator ?? state.fees.withdraw.numeratorStr,
                 state.fees.withdraw.denominator ?? state.fees.withdraw.denominatorStr,
             ),
             adminWithdraw: new Percent(
-                state.fees.adminWithdraw.numerator ??
-                state.fees.adminWithdraw.numeratorStr,
-                state.fees.adminWithdraw.denominator ??
-                state.fees.adminWithdraw.denominatorStr,
+                state.fees.adminWithdraw.numerator ?? state.fees.adminWithdraw.numeratorStr,
+                state.fees.adminWithdraw.denominator ?? state.fees.adminWithdraw.denominatorStr,
             ),
         },
     };

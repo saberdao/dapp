@@ -25,19 +25,17 @@ export const createEphemeralWrappedSolAccount = async ({
     accountKP = Keypair.generate(),
     owner = provider.wallet.publicKey,
 }: {
-  provider: Provider;
-  amount: TokenAmount;
-  accountKP?: Keypair;
-  owner?: PublicKey;
+    provider: Provider;
+    amount: TokenAmount;
+    accountKP?: Keypair;
+    owner?: PublicKey;
 }): Promise<{
-  accountKey: PublicKey;
-  init: TransactionEnvelope;
-  close: TransactionEnvelope;
+    accountKey: PublicKey;
+    init: TransactionEnvelope;
+    close: TransactionEnvelope;
 }> => {
     // Allocate memory for the account
-    const balanceNeeded = await SPLToken.getMinBalanceRentForExemptAccount(
-        provider.connection,
-    );
+    const balanceNeeded = await SPLToken.getMinBalanceRentForExemptAccount(provider.connection);
 
     const solBalance = amount.toU64().toNumber();
 
@@ -68,9 +66,7 @@ export const createEphemeralWrappedSolAccount = async ({
 
     return {
         accountKey: accountKP.publicKey,
-        init: new TransactionEnvelope(provider, initAccountInstructions, [
-            accountKP,
-        ]),
+        init: new TransactionEnvelope(provider, initAccountInstructions, [accountKP]),
         close: new TransactionEnvelope(provider, [
             SPLToken.createCloseAccountInstruction(
                 TOKEN_PROGRAM_ID,
@@ -89,11 +85,11 @@ export const wrapAndSendSOLToATA = async ({
     accountKP = Keypair.generate(),
     owner = provider.wallet.publicKey,
 }: {
-  provider: Provider;
-  amount: TokenAmount;
-  accountKP?: Keypair;
-  owner?: PublicKey;
-  skipATACreation?: boolean;
+    provider: Provider;
+    amount: TokenAmount;
+    accountKP?: Keypair;
+    owner?: PublicKey;
+    skipATACreation?: boolean;
 }): Promise<TransactionEnvelope> => {
     const { init, accountKey, close } = await createEphemeralWrappedSolAccount({
         provider,
@@ -129,12 +125,6 @@ export const closeWrappedAccount = async (
     const wrappedAccount = await getATAAddress({ mint: NATIVE_MINT, owner });
 
     return new TransactionEnvelope(provider, [
-        SPLToken.createCloseAccountInstruction(
-            TOKEN_PROGRAM_ID,
-            wrappedAccount,
-            owner,
-            owner,
-            [],
-        ),
+        SPLToken.createCloseAccountInstruction(TOKEN_PROGRAM_ID, wrappedAccount, owner, owner, []),
     ]);
 };

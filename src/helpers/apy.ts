@@ -1,9 +1,10 @@
 import { Percent } from '@ubeswap/token-math';
-import { PoolData } from '../types';
-import { calculateWithdrawAll } from '../hooks/user/useWithdraw/calculateWithdrawAll';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import BN from 'bn.js';
-import { SBR_INFO } from '../utils/builtinTokens';
+
+import { SBR_INFO } from '@/src/utils/builtinTokens';
+import { PoolData } from '@/src/types';
+import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWithdrawAll';
 
 const aprToApy = (apr: number) => {
     const apy = (1 + apr / 365) ** 365 - 1;
@@ -19,7 +20,7 @@ export const getEmissionApy = (pool: PoolData, sbrPrice: number) => {
     if (!pool.quarryData) {
         return 0;
     }
-    
+
     // Get emissions per day
     const annualRate = pool.quarryData.annualRewardsRate;
     const rate = annualRate.div(new BN(10 ** SBR_INFO.decimals));

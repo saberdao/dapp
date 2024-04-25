@@ -1,29 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import H2 from '../H2';
-import Input, { InputType } from '../Input';
-import { useForm } from 'react-hook-form';
-import Button from '../Button';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
-import { PoolData } from '../../types';
-import TX from '../TX';
-import { useWithdraw } from '../../hooks/user/useWithdraw';
 import { Token, TokenAmount } from '@saberhq/token-utils';
-import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
-import useQuarryMiner from '../../hooks/user/useQuarryMiner';
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
-export default function WithdrawForm (props: { pool: PoolData }) {
+import { PoolData } from '@/src/types';
+import H2 from '@/src/components/H2';
+import Input, { InputType } from '@/src/components/Input';
+import Button from '@/src/components/Button';
+import TX from '@/src/components/TX';
+import { useWithdraw } from '@/src/hooks/user/useWithdraw';
+import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
+import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
+import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
+
+export default function WithdrawForm(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
-    const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
+    const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(
+        props.pool.pair.pool.state.poolTokenMint.toString(),
+    );
     const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
 
     const amount = watch('amount');
 
     const withdraw = useWithdraw({
-        withdrawPoolTokenAmount: TokenAmount.parse(new Token(props.pool.info.lpToken), amount ? `${amount}` : '0'),
+        withdrawPoolTokenAmount: TokenAmount.parse(
+            new Token(props.pool.info.lpToken),
+            amount ? `${amount}` : '0',
+        ),
         withdrawToken: undefined, // Always do a balanced withdraw. We can optionally later swap to one using Jup for better price
         wrappedTokens: tokens?.wrappedTokens,
         pool: props.pool,
@@ -33,7 +39,12 @@ export default function WithdrawForm (props: { pool: PoolData }) {
         },
     });
 
-    const { mutate: execWithdraw, isPending, isSuccess, data: hash } = useMutation({
+    const {
+        mutate: execWithdraw,
+        isPending,
+        isSuccess,
+        data: hash,
+    } = useMutation({
         mutationKey: ['withdraw', lastStakeHash],
         mutationFn: async () => {
             if (!amount) {
@@ -49,17 +60,18 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     // But it still works with multiple stake invocations.
     useEffect(() => {
         if (lastStakeHash) {
-            toast.success((
+            toast.success(
                 <div className="text-sm">
                     <p>Transaction successful! Your transaction hash:</p>
                     <TX tx={lastStakeHash} />
-                </div>
-            ), {
-                onClose: () => {
-                    refetch();
-                    refetchLP();
+                </div>,
+                {
+                    onClose: () => {
+                        refetch();
+                        refetchLP();
+                    },
                 },
-            });
+            );
         }
     }, [lastStakeHash]);
 
@@ -70,23 +82,35 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     return (
         <div className="w-full">
             <H2>Withdraw</H2>
-            <p className="text-secondary text-sm">Withdraw LP tokens to receive the underlying tokens.</p>
-            <Input align="right" register={register('amount')} type={InputType.NUMBER} placeholder="0.00" size="full" />
+            <p className="text-secondary text-sm">
+                Withdraw LP tokens to receive the underlying tokens.
+            </p>
+            <Input
+                align="right"
+                register={register('amount')}
+                type={InputType.NUMBER}
+                placeholder="0.00"
+                size="full"
+            />
             <div className="text-white text-xs text-right my-5">
                 Balance:{' '}
                 <div
                     className="text-saber-light cursor-pointer inline"
                     onClick={() => setValue('amount', balance?.balance.value.uiAmount ?? 0)}
-                >{balance?.balance.value.uiAmount}</div>
+                >
+                    {balance?.balance.value.uiAmount}
+                </div>
             </div>
-            
-            {isPending
-                ? <Button disabled size="full">
+
+            {isPending ? (
+                <Button disabled size="full">
                     Withdrawing...
                 </Button>
-                : <Button size="full" onClick={() => execWithdraw()} disabled={!amount}>
+            ) : (
+                <Button size="full" onClick={() => execWithdraw()} disabled={!amount}>
                     Withdraw
-                </Button>}
+                </Button>
+            )}
         </div>
     );
 }

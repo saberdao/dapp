@@ -1,8 +1,9 @@
 import React from 'react';
-import Block from './Block';
 import clsx from 'clsx';
 import { Link } from 'gatsby';
-import { ConditionalWrapper } from './ConditionalWrapper';
+
+import Block from '@/src/components/Block';
+import { ConditionalWrapper } from '@/src/components/ConditionalWrapper';
 
 export default function Table(props: {
     data: { data: any[]; rowLink: string }[];
@@ -79,34 +80,6 @@ export default function Table(props: {
                     </div>
                 </div>
             )}
-
-            {/* {!props.blockView && <div className="hidden lg:block rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left text-gray-400">
-                    <thead className="text-xs uppercase bg-gray-950 text-gray-200">
-                        <tr className="">
-                            {header.map((header, i) => 
-                                <th className="px-3 py-4" key={i}>
-                                    {header}
-                                </th>)}
-                        </tr>
-                    </thead>
-                    <tbody className="">
-                        {props.data.slice(1).map((row, i) => (
-                            <tr key={i} className="bg-green border-saber-darker border">
-                                {row.data.map((item, j) => (
-                                    <td
-                                        colSpan={j !== row.data.length - 1 ? 1 : props.data?.[0].data.length - row.data.length + 1}
-                                        className="px-3 py-4 my-10"
-                                        key={`${i}-${j}`}
-                                    >
-                                        {item}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>} */}
         </>
     );
 }

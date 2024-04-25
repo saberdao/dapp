@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { chunk } from 'lodash';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { PoolInfoRaw } from '../types';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import throat from 'throat';
+
+import { PoolInfoRaw } from '@/src/types';
 
 export default function useGetLPTokenAmounts(pools?: readonly PoolInfoRaw[]) {
     const { connection } = useConnection();
@@ -22,17 +23,21 @@ export default function useGetLPTokenAmounts(pools?: readonly PoolInfoRaw[]) {
             const chunks = chunk(accounts, 100);
 
             // Ask the RPC to execute this
-            const tokenAmounts = await Promise.all(chunks.map(throat(10, async (chunk) => {
-                const result = await connection.getMultipleParsedAccounts(
-                    chunk.map((account) => new PublicKey(account)),
-                );
-                return result.value.map((item, i) => {
-                    return {
-                        address: chunk[i],
-                        amount: (item?.data as ParsedAccountData).parsed.info.supply,
-                    };
-                });
-            })));
+            const tokenAmounts = await Promise.all(
+                chunks.map(
+                    throat(10, async (chunk) => {
+                        const result = await connection.getMultipleParsedAccounts(
+                            chunk.map((account) => new PublicKey(account)),
+                        );
+                        return result.value.map((item, i) => {
+                            return {
+                                address: chunk[i],
+                                amount: (item?.data as ParsedAccountData).parsed.info.supply,
+                            };
+                        });
+                    }),
+                ),
+            );
 
             // Create object from the result
             const lpTokenAmounts = tokenAmounts.flat().reduce((acc, item) => {

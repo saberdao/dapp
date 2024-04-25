@@ -10,9 +10,9 @@ export const calculateWithdrawAll = ({
     exchangeInfo,
     maxSlippagePercent,
 }: {
-  poolTokenAmount: TokenAmount;
-  exchangeInfo: IExchangeInfo;
-  maxSlippagePercent: Percent;
+    poolTokenAmount: TokenAmount;
+    exchangeInfo: IExchangeInfo;
+    maxSlippagePercent: Percent;
 }): WithdrawCalculationResult => {
     const result = calculateEstimatedWithdrawAmount({
         poolTokenAmount,
@@ -24,10 +24,7 @@ export const calculateWithdrawAll = ({
     // minimum amounts to receive from withdraw, considering slippage
     const minimums = (result.withdrawAmounts.map((amount) =>
         amount.reduceBy(maxSlippagePercent),
-    ) ?? [undefined, undefined]) as [
-    TokenAmount | undefined,
-    TokenAmount | undefined,
-  ];
+    ) ?? [undefined, undefined]) as [TokenAmount | undefined, TokenAmount | undefined];
 
     return {
         estimates: result.withdrawAmounts,

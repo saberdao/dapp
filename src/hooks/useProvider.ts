@@ -1,8 +1,8 @@
+import { useMemo } from 'react';
 import { Saber } from '@saberhq/saber-periphery';
 import { SignerWallet, SolanaProvider } from '@saberhq/solana-contrib';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Keypair } from '@solana/web3.js';
-import { useMemo } from 'react';
 
 export default function useProvider() {
     const wallet = useAnchorWallet();
