@@ -19,7 +19,7 @@ import invariant from 'tiny-invariant';
 import { PoolData } from '@/src/types';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import { calculateDepositSlippage } from '@/src/hooks/user/useDeposit/calculateDepositSlippage';
-import { createEphemeralWrappedSolAccount } from '@/src/utils/wrappedSol';
+import { createEphemeralWrappedSolAccount } from '@/src/utils/wrapped-sol';
 import useProvider from '@/src/hooks/useProvider';
 import { createVersionedTransaction } from '@/src/helpers/transaction';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';

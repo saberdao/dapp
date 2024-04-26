@@ -3,12 +3,12 @@ import type { AssociatedTokenAccount } from '@saberhq/sail';
 import { Token } from '@saberhq/token-utils';
 import * as Sentry from '@sentry/react';
 
-import { WrappedToken } from '@/src/types/wrappedToken';
+import { WrappedToken } from '@/src/types/wrapped-token';
 import useGetTokens from '@/src/hooks/useGetTokens';
 import useNetwork from '@/src/hooks/useNetwork';
 import { PoolData } from '@/src/types';
 import { rawSOLOverride } from '@/src/helpers/rawSOL';
-import { Tags } from '@/src/utils/builtinTokens';
+import { Tags } from '@/src/utils/builtin-tokens';
 import useUserATAs from '@/src/hooks/user/useUserATAs';
 
 interface ExchangeTokens {

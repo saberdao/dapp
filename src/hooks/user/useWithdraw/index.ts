@@ -7,7 +7,7 @@ import invariant from 'tiny-invariant';
 
 import { calculateWithdrawAll } from './calculateWithdrawAll';
 import { calculateWithdrawOne } from './calculateWithdrawOne';
-import { WrappedToken } from '../../../types/wrappedToken';
+import { WrappedToken } from '../../../types/wrapped-token';
 import { PoolData } from '../../../types';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import useProvider from '../../useProvider';
@@ -33,24 +33,24 @@ export interface IWithdrawal {
     pool: PoolData;
 
     actions: {
-        unstake: boolean,
-        withdraw: boolean,
-    }
+        unstake: boolean;
+        withdraw: boolean;
+    };
 }
 
 export interface WithdrawCalculationResult {
-  estimates: readonly [TokenAmount | undefined, TokenAmount | undefined];
-  minimums: readonly [TokenAmount | undefined, TokenAmount | undefined];
-  fees: readonly [TokenAmount | undefined, TokenAmount | undefined];
-  feePercents: readonly [Percent | undefined, Percent | undefined];
-  slippages: readonly [Percent | undefined, Percent | undefined];
+    estimates: readonly [TokenAmount | undefined, TokenAmount | undefined];
+    minimums: readonly [TokenAmount | undefined, TokenAmount | undefined];
+    fees: readonly [TokenAmount | undefined, TokenAmount | undefined];
+    feePercents: readonly [Percent | undefined, Percent | undefined];
+    slippages: readonly [Percent | undefined, Percent | undefined];
 }
 
 export interface IUseWithdraw extends WithdrawCalculationResult {
-  handleWithdraw: () => Promise<string | undefined>;
-  withdrawDisabledReason?: string;
-  poolTokenAmount?: TokenAmount;
-  withdrawToken?: WrappedToken;
+    handleWithdraw: () => Promise<string | undefined>;
+    withdrawDisabledReason?: string;
+    poolTokenAmount?: TokenAmount;
+    withdrawToken?: WrappedToken;
 }
 
 const emptyFees = {
@@ -77,11 +77,7 @@ export const useWithdraw = ({
     const { maxSlippagePercent } = useSettings();
 
     const { estimates, fees, feePercents, slippages, minimums } = useMemo(() => {
-        if (
-            !withdrawPoolTokenAmount ||
-            withdrawPoolTokenAmount.isZero() ||
-            !pool.exchangeInfo
-        ) {
+        if (!withdrawPoolTokenAmount || withdrawPoolTokenAmount.isZero() || !pool.exchangeInfo) {
             return emptyFees;
         }
 
@@ -139,7 +135,10 @@ export const useWithdraw = ({
         const withdrawIxs: TransactionInstruction[] = [];
 
         if (actions.unstake && miner?.data) {
-            const maxAmount = BigNumber.min(new BigNumber(miner.data.balance.toString()), withdrawPoolTokenAmount.raw.toString());
+            const maxAmount = BigNumber.min(
+                new BigNumber(miner.data.balance.toString()),
+                withdrawPoolTokenAmount.raw.toString(),
+            );
             const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
             const stakeTX = miner.miner.withdraw(amount);
             withdrawIxs.push(...stakeTX.instructions);
@@ -167,11 +166,11 @@ export const useWithdraw = ({
                         ),
                         adWithdrawAction: withdrawToken.isWrapped()
                             ? {
-                                action: 'adWithdraw',
-                                underlying: withdrawToken.underlying,
-                                decimals: withdrawToken.value.decimals,
-                                outputToken: withdrawToken.underlying,
-                            }
+                                  action: 'adWithdraw',
+                                  underlying: withdrawToken.underlying,
+                                  decimals: withdrawToken.value.decimals,
+                                  outputToken: withdrawToken.underlying,
+                              }
                             : undefined,
                     })
                     .manualSSWithdrawOne();
@@ -226,27 +225,33 @@ export const useWithdraw = ({
             }
         }
 
-        const vt = await createVersionedTransaction(connection, withdrawIxs, wallet.adapter.publicKey);
+        const vt = await createVersionedTransaction(
+            connection,
+            withdrawIxs,
+            wallet.adapter.publicKey,
+        );
         const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+        await connection.confirmTransaction(
+            { signature: hash, ...vt.latestBlockhash },
+            'processed',
+        );
         return hash;
     };
 
     const withdrawDisabledReason = !pool
         ? 'Loading...'
         : !wallet
-            ? 'Connect wallet'
-            : !pool.info.lpToken || (userLP?.balance.value.uiAmount ?? 0) <= 0
-                ? 'Insufficient balance'
-                : pool.pair.pool.state.isPaused && withdrawToken !== undefined
-                    ? 'Withdraw one is paused'
-                    : withdrawPoolTokenAmount === undefined ||
-              withdrawPoolTokenAmount.isZero()
-                        ? 'Enter an amount'
-                        : slippages[0]?.greaterThan(maxSlippagePercent) ||
-                slippages[1]?.greaterThan(maxSlippagePercent)
-                            ? 'Price impact too high'
-                            : undefined;
+        ? 'Connect wallet'
+        : !pool.info.lpToken || (userLP?.balance.value.uiAmount ?? 0) <= 0
+        ? 'Insufficient balance'
+        : pool.pair.pool.state.isPaused && withdrawToken !== undefined
+        ? 'Withdraw one is paused'
+        : withdrawPoolTokenAmount === undefined || withdrawPoolTokenAmount.isZero()
+        ? 'Enter an amount'
+        : slippages[0]?.greaterThan(maxSlippagePercent) ||
+          slippages[1]?.greaterThan(maxSlippagePercent)
+        ? 'Price impact too high'
+        : undefined;
 
     return {
         handleWithdraw,

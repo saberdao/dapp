@@ -2,8 +2,8 @@ import React from 'react';
 import clsx from 'clsx';
 import { Link } from 'gatsby';
 
-import Block from '@/src/components/Block';
-import { ConditionalWrapper } from '@/src/components/ConditionalWrapper';
+import Block from '@/src/components/common/block';
+import { ConditionalWrapper } from '@/src/components/conditional-wrapper';
 
 export default function Table(props: {
     data: { data: any[]; rowLink: string }[];

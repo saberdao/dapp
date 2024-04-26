@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import BN from 'bn.js';
 
-import { SBR_INFO } from '@/src/utils/builtinTokens';
+import { SBR_INFO } from '@/src/utils/builtin-tokens';
 import { createQuarryPayroll } from '@/src/helpers/quarry';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 

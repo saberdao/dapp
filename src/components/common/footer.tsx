@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Button from '@/src/components/Button';
+import Button from '@/src/layout/button';
 
 export default function Footer() {
     return (

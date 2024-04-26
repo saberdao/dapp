@@ -2,7 +2,7 @@ import { Percent } from '@ubeswap/token-math';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import BN from 'bn.js';
 
-import { SBR_INFO } from '@/src/utils/builtinTokens';
+import { SBR_INFO } from '@/src/utils/builtin-tokens';
 import { PoolData } from '@/src/types';
 import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWithdrawAll';
 

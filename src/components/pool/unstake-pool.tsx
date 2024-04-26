@@ -5,12 +5,12 @@ import { useMutation } from '@tanstack/react-query';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { toast } from 'react-toastify';
 
-import H2 from '@/src/components/H2';
-import Input, { InputType } from '@/src/components/Input';
-import Button from '@/src/components/Button';
+import H2 from '@/src/layout/h2';
+import Input, { InputType } from '@/src/layout/Input';
+import Button from '@/src/layout/button';
 import { PoolData } from '@/src/types';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import { useWithdraw } from '@/src/hooks/user/useWithdraw';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWithdrawAll';
@@ -18,7 +18,7 @@ import useSettings from '@/src/hooks/useSettings';
 import { toPrecision } from '@/src/helpers/number';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 
-export default function UnunstakeForm(props: { pool: PoolData }) {
+export default function UnunstakePool(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { refetch: refetchLP } = useUserGetLPTokenBalance(

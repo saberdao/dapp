@@ -4,7 +4,7 @@ import BN from 'bn.js';
 
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 import { createQuarryPayroll } from '@/src/helpers/quarry';
-import { SBR_INFO } from '@/src/utils/builtinTokens';
+import { SBR_INFO } from '@/src/utils/builtin-tokens';
 
 export default function useClaim(lpToken: TokenInfo) {
     const { data: miner } = useQuarryMiner(lpToken, true);

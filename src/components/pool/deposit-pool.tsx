@@ -7,18 +7,18 @@ import clsx from 'clsx';
 
 import { PoolData } from '@/src/types';
 import { toPrecision } from '@/src/helpers/number';
-import Input, { InputType } from '../Input';
-import Button from '@/src/components/Button';
-import H2 from '@/src/components/H2';
+import Input, { InputType } from '@/src/layout/Input';
+import Button from '@/src/layout/button';
+import H2 from '@/src/layout/h2';
 import useUserATAs from '@/src/hooks/user/useUserATAs';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import { useDeposit } from '@/src/hooks/user/useDeposit';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import { getSymbol } from '@/src/helpers/pool';
 
-export default function DepositForm(props: { pool: PoolData }) {
+export default function DepositPool(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{
         amountTokenA: number;
         amountTokenB: number;

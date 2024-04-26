@@ -5,16 +5,16 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
 import { PoolData } from '@/src/types';
-import H2 from '@/src/components/H2';
-import Input, { InputType } from '@/src/components/Input';
-import Button from '@/src/components/Button';
-import TX from '@/src/components/TX';
+import H2 from '@/src/layout/h2';
+import Input, { InputType } from '@/src/layout/Input';
+import Button from '@/src/layout/button';
+import TX from '@/src/components/tx';
 import { useWithdraw } from '@/src/hooks/user/useWithdraw';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 
-export default function WithdrawForm(props: { pool: PoolData }) {
+export default function WithdrawPool(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(

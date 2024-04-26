@@ -1,8 +1,9 @@
 import React from 'react';
 import { HiExternalLink } from 'react-icons/hi';
 import { useReadLocalStorage } from 'usehooks-ts';
-import { Explorer } from '../types';
-import { explorers } from '../constants';
+
+import { Explorer } from '@/src/types';
+import { explorers } from '@/src/constants';
 
 export default function TX(props: { tx: string }) {
     const preferredExplorer = useReadLocalStorage<Explorer>('preferredExplorer');

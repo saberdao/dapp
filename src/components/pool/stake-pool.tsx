@@ -3,16 +3,16 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 
-import H2 from '@/src/components/H2';
-import Input, { InputType } from '@/src/components/Input';
-import Button from '@/src/components/Button';
+import H2 from '@/src/layout/h2';
+import Input, { InputType } from '@/src/layout/Input';
+import Button from '@/src/layout/button';
 import { PoolData } from '@/src/types';
 import useStake from '@/src/hooks/user/useStake';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 
-export default function StakeForm(props: { pool: PoolData }) {
+export default function StakePool(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
     const { stake } = useStake(props.pool.info.lpToken);
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);

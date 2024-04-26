@@ -2,7 +2,7 @@ import React from 'react';
 import type { HeadFC, PageProps } from 'gatsby';
 
 import dapp from '@/src/hoc/dapp';
-import H1 from '@/src/components/H1';
+import H1 from '@/src/layout/h1';
 
 const NotFoundPage: React.FC<PageProps> = () => {
     return (

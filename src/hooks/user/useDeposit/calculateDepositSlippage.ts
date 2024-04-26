@@ -3,7 +3,7 @@ import { calculateVirtualPrice } from '@saberhq/stableswap-sdk';
 import { Percent, ZERO } from '@saberhq/token-utils';
 import JSBI from 'jsbi';
 
-import { calculateLPTokenAmount } from '@/src/utils/calculateLPTokenAmount';
+import { calculateLPTokenAmount } from '@/src/utils/calculate-lpToken-amount';
 
 export const calculateDepositSlippage = (
     exchange: IExchangeInfo,

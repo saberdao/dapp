@@ -1,12 +1,12 @@
 import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
-import H1 from '@/src/components/H1';
-import { isPoolDeprecated } from '@/src/helpers/deprecatedPools';
+import H1 from '@/src/layout/h1';
+import { isPoolDeprecated } from '@/src/helpers/deprecated-pools';
 
 import { PoolData } from '@/src/types';
-import Tabs from '@/src/components/Tabs';
-import Button from '@/src/components/Button';
-import DepositForm from '@/src/components/pool/DepositForm';
-import WithdrawForm from '@/src/components/pool/WithdrawForm';
+import Tabs from '@/src/components/tabs';
+import Button from '@/src/layout/button';
+import DepositPool from '@/src/components/pool/deposit-pool';
+import WithdrawPool from '@/src/components/pool/withdraw-pool';
 import UpArrow from '@/src/svg/up-arrow';
 import DownArrow from '@/src/svg/down-arrow';
 import clsx from 'clsx';
@@ -49,8 +49,8 @@ const LiquidityForms = (props: { pool: PoolData }) => {
         <>
             <Tabs tabs={tabs} setSelectedTab={setSelectedTab} />
             <div className="p-5">
-                {selectedTab === 'Deposit' && <DepositForm pool={props.pool} />}
-                {selectedTab === 'Withdraw' && <WithdrawForm pool={props.pool} />}
+                {selectedTab === 'Deposit' && <DepositPool pool={props.pool} />}
+                {selectedTab === 'Withdraw' && <WithdrawPool pool={props.pool} />}
             </div>
         </>
     );

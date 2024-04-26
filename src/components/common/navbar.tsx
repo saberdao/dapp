@@ -14,12 +14,12 @@ import clsx from 'clsx';
 
 import I18n from '@/src/i18n';
 import Saber from '@/src/svg/saber';
-import Button from '@/src/components/Button';
-import Block from '@/src/components/Block';
+import Button from '@/src/layout/button';
+import Block from '@/src/components/common/block';
 import useUserATAs from '@/src/hooks/user/useUserATAs';
 import useNetwork from '@/src/hooks/useNetwork';
 import useUnwrap from '@/src/hooks/user/useUnwrap';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import UniversalPopover, { Ref } from '@/src/components/models/universal-popover';
 import ModelHeader from '@/src/components/models/model-header';
 import SettingModel from '@/src/components/models/setting-model';

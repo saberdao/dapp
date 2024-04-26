@@ -14,8 +14,8 @@ import Saber from '@/src/svg/saber';
 import { PoolData } from '@/src/types';
 import dapp from '@/src/hoc/dapp';
 import { toPrecision } from '@/src/helpers/number';
-import { isPoolDeprecated } from '@/src/helpers/deprecatedPools';
-import { SBR_INFO } from '@/src/utils/builtinTokens';
+import { isPoolDeprecated } from '@/src/helpers/deprecated-pools';
+import { SBR_INFO } from '@/src/utils/builtin-tokens';
 import { getLogo, getPoolName, getSymbol } from '@/src/helpers/pool';
 
 import useClaim from '@/src/hooks/user/useClaim';
@@ -27,17 +27,17 @@ import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWith
 import useSettings from '@/src/hooks/useSettings';
 import useDailyRewards from '@/src/hooks/user/useDailyRewards';
 
-import H2 from '@/src/components/H2';
-import H1 from '@/src/components/H1';
-import Block from '@/src/components/Block';
-import Address from '@/src/components/Address';
-import Button from '@/src/components/Button';
-import Tabs from '@/src/components/Tabs';
-import StakeForm from '@/src/components/pool/StakeForm';
-import WithdrawForm from '@/src/components/pool/WithdrawForm';
-import UnstakeForm from '@/src/components/pool/UnstakeForm';
-import DepositForm from '@/src/components/pool/DepositForm';
-import TX from '@/src/components/TX';
+import H2 from '@/src/layout/h2';
+import H1 from '@/src/layout/h1';
+import Block from '@/src/components/common/block';
+import Address from '@/src/components/address';
+import Button from '@/src/layout/button';
+import Tabs from '@/src/components/tabs';
+import StakePool from '@/src/components/pool/stake-pool';
+import WithdrawPool from '@/src/components/pool/withdraw-pool';
+import UnstakePool from '@/src/components/pool/unstake-pool';
+import DepositPool from '@/src/components/pool/deposit-pool';
+import TX from '@/src/components/tx';
 import UniversalPopover, { Ref } from '@/src/components/models/universal-popover';
 import LeverageModel from '@/src/components/models/leverage-model';
 
@@ -160,10 +160,10 @@ const LiquidityForms = (props: { pool: PoolData }) => {
         <>
             <Tabs tabs={tabs} setSelectedTab={setSelectedTab} />
             <div className="p-5">
-                {selectedTab === 'Deposit' && <DepositForm pool={props.pool} />}
-                {selectedTab === 'Withdraw' && <WithdrawForm pool={props.pool} />}
-                {selectedTab === 'Stake' && <StakeForm pool={props.pool} />}
-                {selectedTab === 'Unstake' && <UnstakeForm pool={props.pool} />}
+                {selectedTab === 'Deposit' && <DepositPool pool={props.pool} />}
+                {selectedTab === 'Withdraw' && <WithdrawPool pool={props.pool} />}
+                {selectedTab === 'Stake' && <StakePool pool={props.pool} />}
+                {selectedTab === 'Unstake' && <UnstakePool pool={props.pool} />}
             </div>
         </>
     );

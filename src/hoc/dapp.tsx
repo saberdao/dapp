@@ -8,8 +8,8 @@ import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-import Navbar from '@/src/components/Navbar';
-import Footer from '@/src/components/Footer';
+import Navbar from '@/src/components/common/navbar';
+import Footer from '@/src/components/common/footer';
 import useNetwork from '@/src/hooks/useNetwork';
 
 const CACHE_TIME = 1000 * 60 * 60;
