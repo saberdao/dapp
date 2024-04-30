@@ -10,23 +10,7 @@ import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
 
 import { PoolMetricInfo } from '@/src/hooks/usePoolsData';
-
-export enum Explorer {
-    SOLSCAN = 'SOLSCAN',
-}
-
-export enum CurrencyMarket {
-    USD = 'USD',
-    BTC = 'BTC',
-    LUNA = 'LUNA',
-    FTT = 'FTT',
-    SRM = 'SRM',
-    SOL = 'SOL',
-    SBR = 'SBR',
-    ETH = 'ETH',
-    EUR = 'EUR',
-    TRY = 'TRY',
-}
+import { CurrencyMarket } from '@/src/enums/currency.enum';
 
 export type OraclePrice = {
     [x in string]: number;

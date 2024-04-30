@@ -2,7 +2,7 @@ import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import H1 from '@/src/layout/h1';
 import { isPoolDeprecated } from '@/src/helpers/deprecated-pools';
 
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import Tabs from '@/src/components/tabs';
 import Button from '@/src/layout/button';
 import DepositPool from '@/src/components/pool/deposit-pool';

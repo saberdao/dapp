@@ -1,23 +1,23 @@
 import { SABER_CODERS, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { Percent } from '@saberhq/token-utils';
 import { getOrCreateATAs, Token, TokenAmount } from '@saberhq/token-utils';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { TransactionInstruction, type Signer } from '@solana/web3.js';
 import { useMemo } from 'react';
 import invariant from 'tiny-invariant';
+import { StableSwap } from '@saberhq/stableswap-sdk';
+import BigNumber from 'bignumber.js';
 
+import { getClaimIxs } from '@/src/helpers/claim';
+import { WrappedToken } from '@/src/services/wrapped-token';
+import { PoolData } from '@/src/types/global';
 import { calculateWithdrawAll } from './calculateWithdrawAll';
 import { calculateWithdrawOne } from './calculateWithdrawOne';
-import { WrappedToken } from '../../../types/wrapped-token';
-import { PoolData } from '../../../types';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import useProvider from '../../useProvider';
-import useSettings from '../../useSettings';
-import { StableSwap } from '@saberhq/stableswap-sdk';
+import useProvider from '@/src/hooks/useProvider';
+import useSettings from '@/src/hooks/useSettings';
 import useUserGetLPTokenBalance from '../useGetLPTokenBalance';
-import { createVersionedTransaction } from '../../../helpers/transaction';
-import BigNumber from 'bignumber.js';
+import { createVersionedTransaction } from '@/src/helpers/transaction';
 import useQuarryMiner from '../useQuarryMiner';
-import { getClaimIxs } from '../../../helpers/claim';
 
 export interface IWithdrawal {
     withdrawPoolTokenAmount?: TokenAmount;

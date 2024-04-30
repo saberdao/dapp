@@ -4,7 +4,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import throat from 'throat';
 
-import { PoolInfoRaw } from '@/src/types';
+import { PoolInfoRaw } from '@/src/types/global';
 
 export default function useGetReserves(pools?: readonly PoolInfoRaw[]) {
     const { connection } = useConnection();

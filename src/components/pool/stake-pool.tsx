@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import H2 from '@/src/layout/h2';
 import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import useStake from '@/src/hooks/user/useStake';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 import TX from '@/src/components/tx';

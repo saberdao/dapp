@@ -3,7 +3,7 @@ import { Token, TokenAmount } from '@saberhq/token-utils';
 import BN from 'bn.js';
 
 import { SBR_INFO } from '@/src/utils/builtin-tokens';
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWithdrawAll';
 
 const aprToApy = (apr: number) => {

@@ -3,7 +3,7 @@ import { Percent } from '@ubeswap/token-math';
 import { StableSwapState } from '@saberhq/stableswap-sdk';
 import { u64 } from '@saberhq/token-utils';
 
-import { StableSwapStateRaw } from '@/src/types';
+import { StableSwapStateRaw } from '@/src/types/global';
 import { valuesToKeys } from '@/src/helpers/keys';
 
 export const parseRawSwapState = (state: StableSwapStateRaw): StableSwapState => {

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import clsx from 'clsx';
 
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import { toPrecision } from '@/src/helpers/number';
 import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';

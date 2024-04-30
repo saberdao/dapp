@@ -1,4 +1,4 @@
-import { PoolData } from '../types';
+import { PoolData } from '../types/global';
 
 export const getPoolTVL = (pool: Omit<PoolData, 'metrics'>) => {
     // Get amount token A and B, and their USD prices, and calculate TVL

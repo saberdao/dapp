@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import H2 from '@/src/layout/h2';
 import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';

@@ -7,7 +7,7 @@ import throat from 'throat';
 import { Percent, Token, TokenAmount, getATAAddressSync } from '@saberhq/token-utils';
 import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 
-import { DetailedSwapSummary, PoolData, PoolInfo, PoolInfoRaw } from '@/src/types';
+import { DetailedSwapSummary, PoolData, PoolInfo, PoolInfoRaw } from '@/src/types/global';
 import useGetPrices from '@/src/hooks/useGetPrices';
 import useGetReserves from '@/src/hooks/useGetReserves';
 import useGetLPTokenAmounts from '@/src/hooks/useGetLPTokenAmounts';

@@ -16,7 +16,7 @@ import type { PublicKey } from '@solana/web3.js';
 import { Keypair } from '@solana/web3.js';
 import invariant from 'tiny-invariant';
 
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import { calculateDepositSlippage } from '@/src/hooks/user/useDeposit/calculateDepositSlippage';
 import { createEphemeralWrappedSolAccount } from '@/src/utils/wrapped-sol';

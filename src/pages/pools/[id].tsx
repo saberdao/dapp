@@ -11,7 +11,7 @@ import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 
 import Saber from '@/src/svg/saber';
-import { PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
 import dapp from '@/src/hoc/dapp';
 import { toPrecision } from '@/src/helpers/number';
 import { isPoolDeprecated } from '@/src/helpers/deprecated-pools';

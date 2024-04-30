@@ -2,7 +2,7 @@ import React from 'react';
 import { HiExternalLink } from 'react-icons/hi';
 import { useReadLocalStorage } from 'usehooks-ts';
 
-import { Explorer } from '@/src/types';
+import { Explorer } from '@/src/enums/explorer.enum';
 import { explorers } from '@/src/constants';
 
 export default function Address(props: { address: string }) {

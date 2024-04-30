@@ -1,4 +1,4 @@
-import { Explorer } from '@/src/types';
+import { Explorer } from '@/src/enums/explorer.enum';
 
 export const explorers = {
     [Explorer.SOLSCAN]: {

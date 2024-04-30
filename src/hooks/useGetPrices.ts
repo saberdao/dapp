@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { chunk } from 'lodash';
 
 import useNetwork from '@/src/hooks/useNetwork';
-import { OraclePrice } from '@/src/types';
+import { OraclePrice } from '@/src/types/global';
 import useGetPools from '@/src/hooks/useGetPools';
 
 export default function useGetPrices() {

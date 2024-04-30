@@ -17,7 +17,8 @@ import Input, { InputType } from '@/src/layout/Input';
 import ActiveText from '@/src/components/active-text';
 import { isPoolDeprecated } from '@/src/helpers/deprecated-pools';
 import PoolSwitch, { PoolsView } from '@/src/components/pool-switch';
-import { CurrencyMarket, PoolData } from '@/src/types';
+import { PoolData } from '@/src/types/global';
+import { CurrencyMarket } from '@/src/enums/currency.enum';
 import { toPrecision } from '@/src/helpers/number';
 import useGetPrices from '@/src/hooks/useGetPrices';
 
