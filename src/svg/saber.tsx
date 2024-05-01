@@ -4,8 +4,8 @@ export default function Saber(props: { className?: string }) {
     return (
         <svg
             className={props.className}
-            width="21"
-            height="22"
+            width="25"
+            height="25"
             viewBox="0 0 21 22"
             fill="currentcolor"
             xmlns="http://www.w3.org/2000/svg"

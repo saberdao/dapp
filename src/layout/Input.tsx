@@ -101,11 +101,11 @@ export default function Input(props: InputTypes) {
     if (props.type === InputType.DROPDOWN) {
         return (
             <div className={clsx('flex', props.size === 'full' && 'w-full')}>
-                <div className="group relative">
+                <div className="relative bg-slate-800 cursor-pointer rounded-lg px-3">
                     <select
                         {...props.register}
                         className={clsx(
-                            'bg-slate-800 relative z-1 cursor-pointer text-slate-200 rounded-lg focus:outline-none transition-colors text-sm py-2 px-3',
+                            'bg-slate-800 z-1 relative text-slate-200 focus:outline-none transition-colors text-sm py-2',
                         )}
                     >
                         {props.placeholder && (

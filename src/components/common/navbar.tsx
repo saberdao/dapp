@@ -107,11 +107,10 @@ export default function Navbar() {
             </UniversalPopover>
             <div className="w-full flex flex-col lg:flex-row gap-1">
                 <div className="flex items-center gap-3 font-bold mb-3 lg:mb-0">
-                    <div className="flex-grow flex items-center gap-3">
+                    <div className="flex-grow flex items-center gap-3 text-xl">
                         <Saber className="text-saber-light" />
                         Saber
                     </div>
-
                     <div className="flex items-center gap-2 lg:hidden">
                         {publicKey ? <WalletDisconnectButton /> : <WalletMultiButton />}
                         <Button
