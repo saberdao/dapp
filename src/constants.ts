@@ -7,4 +7,4 @@ export const explorers = {
     },
 };
 
-export const SABER_DATA_REPO = 'https://raw.githubusercontent.com/rockooor/saber-data/main/';
+export const SABER_DATA_REPO = 'https://raw.githubusercontent.com/saberdao/data/main/';
