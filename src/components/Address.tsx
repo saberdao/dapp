@@ -6,18 +6,18 @@ import { Explorer } from '@/src/enums/explorer.enum';
 import { explorers } from '@/src/constants';
 
 export default function Address(props: { address: string }) {
-    const preferredExplorer = useReadLocalStorage<Explorer>('preferredExplorer');
-    const explorerUrl = explorers[preferredExplorer || Explorer.SOLSCAN].address;
+  const preferredExplorer = useReadLocalStorage<Explorer>('preferredExplorer');
+  const explorerUrl = explorers[preferredExplorer || Explorer.SOLSCAN].address;
 
-    return (
-        <a
-            className="font-mono text-saber-light font-bold flex gap-1 items-center"
-            href={`${explorerUrl}${props.address}`}
-            target="_blank"
-            rel="noreferrer"
-        >
-            {props.address.substring(0, 4)}...{props.address.substring(props.address.length - 4)}
-            <HiExternalLink />
-        </a>
-    );
+  return (
+    <a
+      className="font-mono text-saber-light font-bold flex gap-1 items-center"
+      href={`${explorerUrl}${props.address}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {props.address.substring(0, 4)}...{props.address.substring(props.address.length - 4)}
+      <HiExternalLink />
+    </a>
+  );
 }
