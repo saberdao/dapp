@@ -20,6 +20,7 @@ import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
+import { isPoolFeatured } from '../helpers/featuredPools';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -188,7 +189,7 @@ const IndexPage: React.FC<PageProps> = () => {
                     .filter((pool) => {
                         if (
                             filterText &&
-                            !pool.info.name.toLowerCase().includes(filterText.toLowerCase())
+                            !getPoolName(pool.info.name).toLowerCase().includes(filterText.toLowerCase())
                         ) {
                             return false;
                         }
@@ -198,6 +199,10 @@ const IndexPage: React.FC<PageProps> = () => {
                         }
 
                         if (!filterDeprecated && isPoolDeprecated(pool.info.name)) {
+                            return false;
+                        }
+
+                        if (!filterDeprecated && !isPoolFeatured(pool.info.name) && !filterText) {
                             return false;
                         }
 
@@ -334,7 +339,7 @@ const IndexPage: React.FC<PageProps> = () => {
                         <Input
                             type={InputType.CHECKBOX}
                             register={register('filterDeprecated')}
-                            label="Deprecated"
+                            label="Show all"
                         />
                         <div className="hidden lg:block">
                             <PoolSwitch />

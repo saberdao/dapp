@@ -1,9 +1,5 @@
 export const getPoolName = (name: string) => {
-    if (name === 'scnSOL-SOL') {
-        return 'INF-SOL';
-    }
-
-    return name;
+    return name.replace('scnSOL', 'INF');
 };
 
 export const getSymbol = (symbol: string) => {
