@@ -8,7 +8,7 @@ import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
 import { MdOutlineQueryStats } from 'react-icons/md';
 import { useMutation } from '@tanstack/react-query';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
-import { FaXTwitter } from 'react-icons/fa6';
+import { FaMedium, FaXTwitter } from 'react-icons/fa6';
 import { toast } from 'react-toastify';
 import clsx from 'clsx';
 
@@ -145,6 +145,11 @@ export default function Navbar() {
                     <a href="https://docs.saberdao.io/" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
                             <SiGitbook />
+                        </Button>
+                    </a>
+                    <a href="https://blog.saberdao.io/" target="_blank" rel="noreferrer">
+                        <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+                            <FaMedium />
                         </Button>
                     </a>
                     <a
