@@ -21,6 +21,8 @@ import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { isPoolFeatured } from '../helpers/featuredPools';
+import Block from '../components/Block';
+import H2 from '../components/H2';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -272,9 +274,34 @@ const IndexPage: React.FC<PageProps> = () => {
         return [header, ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) })];
     }, [pools, wallet]);
 
+    const stats = useMemo(() => {
+        return {
+            tvl: pools.data?.pools.reduce((acc, pool) => {
+                return acc + (pool.metrics?.tvl ?? 0);
+            }, 0) ?? 0,
+            volume: pools.data?.pools.reduce((acc, pool) => {
+                return acc + (pool.metricInfo?.volumeInUSD ?? 0);
+            }, 0) ?? 0,
+            fee: pools.data?.pools.reduce((acc, pool) => {
+                return acc + (pool.metricInfo?.['24hFeeInUsd'] ?? 0);
+            }, 0) ?? 0,
+        }
+    }, [pools])
+
     return (
         <>
             <div>
+                <div className="mt-3 mb-6">
+                    <H1>Saber global stats</H1>
+                    <div className="grid grid-cols-2 lg:grid-cols-6 bg-saber-dark/20 rounded-lg p-3 gap-1">
+                        <div className="font-bold">TVL</div>
+                        <div>{`$${toPrecision(stats.tvl, 4)}`}</div>
+                        <div className="font-bold">24h volume</div>
+                        <div>{`$${toPrecision(stats.volume, 4)}`}</div>
+                        <div className="font-bold">24h fees</div>
+                        <div>{`$${toPrecision(stats.fee, 4)}`}</div>
+                    </div>
+                </div>
                 <div className="block lg:flex items-center mb-3">
                     <div className="flex-grow">
                         <H1>Pools</H1>
