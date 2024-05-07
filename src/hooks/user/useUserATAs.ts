@@ -41,14 +41,6 @@ export default function useUserATAs(
                 );
                 return await Promise.all(result.value.map(async (item, i) => {
                     try {
-                        return {
-                            key: chunk[i].ata,
-                            balance: new TokenAmount(chunk[i].mint, (item?.data as ParsedAccountData).parsed.info.tokenAmount.amount),
-                            isInitialized: true,
-                        };
-                    } catch (e) {
-                        // Might look a bit strange this is in the error state, but it doesn't cost an extra RPC call
-                        // and don't have to extract this case from the atas array above this way - easier.
                         if (!ignoreWrap && (chunk[i].mint.address === RAW_SOL_MINT.toString() || chunk[i].mint.address === WRAPPED_SOL[network].address)) {
                             const solBalance = await connection.getBalance(wallet.adapter.publicKey!);
                             return {
@@ -57,7 +49,14 @@ export default function useUserATAs(
                                 isInitialized: true,
                             };
                         }
-                        
+
+                        return {
+                            key: chunk[i].ata,
+                            balance: new TokenAmount(chunk[i].mint, (item?.data as ParsedAccountData).parsed.info.tokenAmount.amount),
+                            isInitialized: true,
+                        };
+                    } catch (e) {
+
                         return {
                             key: chunk[i].ata,
                             balance: new TokenAmount(chunk[i].mint, 0),
