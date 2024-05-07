@@ -13,7 +13,7 @@ const getCUsForTx = async (
     }).compileToV0Message();
     const transaction = new VersionedTransaction(messageV0);
     const simulation = await connection.simulateTransaction(transaction);
-    const CUs = simulation.value.unitsConsumed ?? 1.4e6;
+    const CUs = simulation.value.unitsConsumed ? Math.ceil(1.1 * simulation.value.unitsConsumed) : 1.4e6;
     return CUs;
 };
 
@@ -29,10 +29,10 @@ export const createVersionedTransaction = async (
     const priorityFee = (priorityFeeLS || 0) * LAMPORTS_PER_SOL * 1e6;
 
     txs.unshift(ComputeBudgetProgram.setComputeUnitLimit({
-        units: CUs + 1000, // +1000 for safety and the CU limit ix itself
+        units: CUs,
     }));
     txs.unshift(ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: Math.ceil(priorityFee / (CUs + 1000)), // +1000 for safety and the CU limit ix itself
+        microLamports: Math.ceil(priorityFee / (CUs)),
     }));
     const messageV0 = new TransactionMessage({
         payerKey,
