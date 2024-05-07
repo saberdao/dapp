@@ -4,12 +4,14 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { PoolInfoRaw } from '../types';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import throat from 'throat';
+import useNetwork from './useNetwork';
 
 export default function useGetReserves(pools?: readonly PoolInfoRaw[]) {
     const { connection } = useConnection();
+    const { endpoint } = useNetwork();
 
     return useQuery({
-        queryKey: ['reserves', (pools ?? []).length > 0 ? 'y' : 'n'],
+        queryKey: ['reserves', endpoint, (pools ?? []).length > 0 ? 'y' : 'n'],
         queryFn: async () => {
             if (!pools || pools.length === 0) {
                 return null;

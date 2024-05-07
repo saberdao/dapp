@@ -10,12 +10,12 @@ export default function useGetPrices() {
     const { formattedNetwork } = useNetwork();
     const { connection } = useConnection();
     const { data: poolData } = useGetPools(formattedNetwork);
-    const { network } = useNetwork();
+    const { network, endpoint } = useNetwork();
 
     const pools = poolData?.pools;
 
     return useQuery({
-        queryKey: ['prices', (pools ?? []).length > 0 ? 'y' : 'n'],
+        queryKey: ['prices', endpoint, (pools ?? []).length > 0 ? 'y' : 'n'],
         queryFn: async () => {
             if (!pools) {
                 return null;

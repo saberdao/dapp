@@ -13,10 +13,10 @@ export default function useUserATAs(
 ) {
     const { wallet } = useWallet();
     const { connection } = useConnection();
-    const { network } = useNetwork();
+    const { network, endpoint } = useNetwork();
 
     return useQuery({
-        queryKey: ['userATAs', wallet?.adapter.publicKey, ...mints.map(m => m?.address)],
+        queryKey: ['userATAs', endpoint, wallet?.adapter.publicKey, ...mints.map(m => m?.address)],
         queryFn: async (): Promise<AssociatedTokenAccount[]> => {
             if (!wallet?.adapter.publicKey) {
                 return [];

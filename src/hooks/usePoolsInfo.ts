@@ -86,7 +86,7 @@ const getQuarryInfo = async (quarry: QuarrySDK, pools: PoolData[]) => {
 };
 
 export default function () {
-    const { formattedNetwork } = useNetwork();
+    const { formattedNetwork, endpoint } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
     const { data: prices } = useGetPrices();
@@ -99,7 +99,7 @@ export default function () {
     const { wallet } = useWallet();
 
     return useQuery({
-        queryKey: ['registryPoolsInfo', wallet?.adapter.publicKey ? 'connected' : 'disconnected'],
+        queryKey: ['registryPoolsInfo', endpoint, wallet?.adapter.publicKey ? 'connected' : 'disconnected'],
         queryFn: async () => {
             // Only run when we have the dependent info
             // Note these are also in the enabled boolean,
