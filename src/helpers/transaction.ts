@@ -40,5 +40,8 @@ export const createVersionedTransaction = async (
         instructions: txs,
     }).compileToV0Message();
     const transaction = new VersionedTransaction(messageV0);
+
+    console.log(Buffer.from(transaction.serialize()).toString('base64'));
+
     return { transaction, latestBlockhash };
 };

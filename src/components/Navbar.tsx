@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { BaseWalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'gatsby';
+import { ImCross } from 'react-icons/im';
 import { SiGitbook } from 'react-icons/si';
 import { FaCog } from 'react-icons/fa';
 import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
@@ -92,6 +93,12 @@ export default function Navbar() {
         settingRef.current?.open();
     }, []);
 
+    const LABELS = {
+        disconnecting: 'Disconnecting ...',
+        'has-wallet': <div className="flex items-center gap-1">{publicKey?.toString().substring(0, 3)}...{publicKey?.toString().substring(publicKey?.toString().length - 3)} <ImCross /></div>,
+        'no-wallet': 'Disconnect Wallet',
+    } as const;
+
     return (
         <>
             <UniversalPopover ref={settingRef} onClose={handleModelClose}>
@@ -115,7 +122,8 @@ export default function Navbar() {
                     </Link>
 
                     <div className="flex items-center gap-2 lg:hidden">
-                        {publicKey ? <WalletDisconnectButton /> : <WalletMultiButton />}
+                        {/* @ts-ignore */}
+                        {publicKey ? <BaseWalletDisconnectButton labels={LABELS} /> : <WalletMultiButton />}
                         <Button
                             type="secondary"
                             className="flex items-center gap-2 h-10 text-xl"
@@ -177,7 +185,8 @@ export default function Navbar() {
                     </a>
                 </div>
                 <div className="hidden lg:flex items-center gap-2">
-                    {publicKey ? <WalletDisconnectButton /> : <WalletMultiButton />}
+                    {/* @ts-ignore */}
+                    {publicKey ? <BaseWalletDisconnectButton labels={LABELS} /> : <WalletMultiButton />}
                     <Button
                         type="secondary"
                         className="flex items-center gap-2 h-10 text-xl"

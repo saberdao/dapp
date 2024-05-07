@@ -51,7 +51,6 @@ export default function useStake(lpToken: TokenInfo) {
 
         vt.transaction.sign(signers);
 
-        console.log(Buffer.from(vt.transaction.serialize()).toString('base64'));
         const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
         await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
 

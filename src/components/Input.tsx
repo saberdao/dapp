@@ -15,6 +15,7 @@ type InputTypes = { register?: UseFormRegisterReturn; size?: 'full' } &
         {
             type: InputType.TEXT,
             placeholder?: string,
+            defaultValue?: string,
         } |
         {
             type: InputType.NUMBER,
@@ -44,6 +45,7 @@ export default function Input (props: InputTypes) {
                         {...props.register}
                         type="text"
                         placeholder={props.placeholder}
+                        defaultValue={props.defaultValue}
                         className={clsx(
                             'bg-slate-800 z-1 relative text-slate-200 rounded-lg focus:outline-none transition-colors text-sm py-2 px-3 placeholder:italic placeholder:text-slate-400',
                             props.size === 'full' && 'w-full',
