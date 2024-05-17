@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
-import dapp from '../hoc/dapp';
 import { getLogo, getPoolName } from '../helpers/pool';
 import H1 from '../components/H1';
 import usePoolsInfo from '../hooks/usePoolsInfo';
@@ -21,8 +20,6 @@ import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { isPoolFeatured } from '../helpers/featuredPools';
-import Block from '../components/Block';
-import H2 from '../components/H2';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -379,6 +376,6 @@ const IndexPage: React.FC<PageProps> = () => {
     );
 };
 
-export default dapp(IndexPage);
+export default IndexPage;
 
 export const Head: HeadFC = () => <title>Saber | Solana AMM</title>;

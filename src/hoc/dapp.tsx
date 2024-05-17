@@ -12,6 +12,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 
 import 'react-toastify/dist/ReactToastify.css';
 import Footer from '../components/Footer';
+import { PageProps } from 'gatsby';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -33,7 +34,7 @@ const persister = createSyncStoragePersister({
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
-const Dapp = (props: { Component: any; props: any }) => {
+const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; props: any }) => {
     const { network, endpoint, wsEndpoint } = useNetwork();
 
     const wallets = useMemo(
@@ -72,7 +73,7 @@ const Dapp = (props: { Component: any; props: any }) => {
                         <div className="text-white min-h-screen w-full flex justify-center p-5">
                             <div className="max-w-7xl flex flex-col w-full gap-5">
                                 <Navbar />
-                                <props.Component {...props.props} />
+                                {props.children}
                                 <Footer />
                             </div>
                         </div>
@@ -84,12 +85,9 @@ const Dapp = (props: { Component: any; props: any }) => {
     );
 };
 
-export default function dapp (WrappedComponent: any) {
-    class DappHOC extends React.Component {
-        render () {
-            return <Dapp Component={WrappedComponent} props={this.props} />;
-        }
-    }
-
-    return DappHOC;
+export default function dapp<T extends PageProps>(
+    WrappedComponent: React.ReactElement<T>,
+    props: T,
+) {
+    return <Dapp {...props}>{WrappedComponent}</Dapp>;
 }

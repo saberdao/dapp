@@ -2,7 +2,6 @@ import React from 'react';
 import type { HeadFC, PageProps } from 'gatsby';
 import { FaLongArrowAltRight } from 'react-icons/fa';
 
-import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
 import H2 from '../components/H2';
 import Button from '../components/Button';
@@ -97,6 +96,6 @@ const ComponentsPage: React.FC<PageProps> = () => {
     );
 };
 
-export default dapp(ComponentsPage);
+export default ComponentsPage;
 
 export const Head: HeadFC = () => <title>Saber | Solana AMM</title>;

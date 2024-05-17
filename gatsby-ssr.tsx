@@ -1,4 +1,15 @@
-const React = require('react');
+import React from 'react';
+import dapp from './src/hoc/dapp';
+
+export const wrapPageElement = ({
+    element,
+    props,
+}: {
+    element: React.ReactElement;
+    props: Record<string, unknown> & { location: Location };
+}) => {
+    return dapp(element, props);
+};
 
 const HeadComponents = [
     <meta key="meta-1" name="description" content="Saber is an automated market maker for trading stable asset pairs on Solana."/>,
@@ -21,9 +32,17 @@ const HeadComponents = [
         background-attachment: fixed;
         background-image: linear-gradient(to bottom, #030712, #1f2937);
     }`}</style>,
+    <script key="gtag-1" async src="https://www.googletagmanager.com/gtag/js?id=G-VBSQH604MG"></script>,
+    <script key="gtag-2">
+    {`window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-VBSQH604MG');`}
+    </script>,
 ];
 
-exports.onRenderBody = ({
+export const onRenderBody = ({
     setHeadComponents,
 }) => {
     setHeadComponents(HeadComponents);

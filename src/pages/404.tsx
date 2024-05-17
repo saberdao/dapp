@@ -1,7 +1,6 @@
 import React from 'react';
 import type { HeadFC, PageProps } from 'gatsby';
 
-import dapp from '../hoc/dapp';
 import H1 from '../components/H1';
 
 const NotFoundPage: React.FC<PageProps> = () => {
@@ -13,6 +12,6 @@ const NotFoundPage: React.FC<PageProps> = () => {
     );
 };
 
-export default dapp(NotFoundPage);
+export default NotFoundPage;
 
 export const Head: HeadFC = () => <title>Saber | Solana AMM</title>;

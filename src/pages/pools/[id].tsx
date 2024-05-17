@@ -12,7 +12,7 @@ import clsx from 'clsx';
 
 import Saber from '../../svg/saber';
 import { PoolData } from '../../types';
-import dapp from '../../hoc/dapp';
+
 import { toPrecision } from '../../helpers/number';
 import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
@@ -498,6 +498,6 @@ const PoolPage = (props: { params: { id: string } }) => {
     );
 };
 
-export default dapp(PoolPage);
+export default PoolPage;
 
 export const Head: HeadFC = () => <title>Saber Pool | Solana AMM</title>;
