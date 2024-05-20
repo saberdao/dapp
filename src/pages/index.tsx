@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
-import dapp from '@/src/hoc/dapp';
 import { getLogo, getPoolName } from '@/src/helpers/pool';
 import H1 from '@/src/layout/h1';
 import usePoolsInfo from '@/src/hooks/usePoolsInfo';
@@ -350,6 +349,6 @@ const IndexPage: React.FC<PageProps> = () => {
   );
 };
 
-export default dapp(IndexPage);
+export default IndexPage;
 
 export const Head: HeadFC = () => <title>Saber | Solana AMM</title>;
