@@ -61,10 +61,14 @@ const sortFunctions = {
     return (a.metrics?.tvl ?? 0) - (b.metrics?.tvl ?? 0) > 0 ? -1 : 1;
   },
   [SORTS.VOLUME_DESC]: (a: PoolData, b: PoolData) => {
-    return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? -1 : 1;
+    return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0)
+      ? -1
+      : 1;
   },
   [SORTS.VOLUME_ASC]: (a: PoolData, b: PoolData) => {
-    return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? 1 : -1;
+    return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0)
+      ? 1
+      : -1;
   },
   [SORTS.TVL_DESC]: (a: PoolData, b: PoolData) => {
     return (a.metrics?.tvl ?? 0) > (b.metrics?.tvl ?? 0) ? -1 : 1;
@@ -107,7 +111,10 @@ const IndexPage: React.FC<PageProps> = () => {
           {poolsView !== PoolsView.GRID && (
             <div className="hidden lg:block">
               {sort !== SORTS.DEFAULT && (
-                <FaSort className="cursor-pointer" onClick={() => setSort(SORTS.DEFAULT)} />
+                <FaSort
+                  className="cursor-pointer"
+                  onClick={() => setSort(SORTS.DEFAULT)}
+                />
               )}
               {sort == SORTS.DEFAULT && <FaSortDown />}
             </div>
@@ -121,8 +128,12 @@ const IndexPage: React.FC<PageProps> = () => {
             {sort !== SORTS.TVL_ASC && sort !== SORTS.TVL_DESC && (
               <FaSort onClick={() => setSort(SORTS.TVL_DESC)} />
             )}
-            {sort == SORTS.TVL_DESC && <FaSortDown onClick={() => setSort(SORTS.TVL_ASC)} />}
-            {sort == SORTS.TVL_ASC && <FaSortUp onClick={() => setSort(SORTS.TVL_DESC)} />}
+            {sort == SORTS.TVL_DESC && (
+              <FaSortDown onClick={() => setSort(SORTS.TVL_ASC)} />
+            )}
+            {sort == SORTS.TVL_ASC && (
+              <FaSortUp onClick={() => setSort(SORTS.TVL_DESC)} />
+            )}
           </div>
         )}
       </div>,
@@ -133,8 +144,12 @@ const IndexPage: React.FC<PageProps> = () => {
             {sort !== SORTS.VOLUME_ASC && sort !== SORTS.VOLUME_DESC && (
               <FaSort onClick={() => setSort(SORTS.VOLUME_DESC)} />
             )}
-            {sort == SORTS.VOLUME_DESC && <FaSortDown onClick={() => setSort(SORTS.VOLUME_ASC)} />}
-            {sort == SORTS.VOLUME_ASC && <FaSortUp onClick={() => setSort(SORTS.VOLUME_DESC)} />}
+            {sort == SORTS.VOLUME_DESC && (
+              <FaSortDown onClick={() => setSort(SORTS.VOLUME_ASC)} />
+            )}
+            {sort == SORTS.VOLUME_ASC && (
+              <FaSortUp onClick={() => setSort(SORTS.VOLUME_DESC)} />
+            )}
           </div>
         )}
       </div>,
@@ -145,8 +160,12 @@ const IndexPage: React.FC<PageProps> = () => {
             {sort !== SORTS.APY_ASC && sort !== SORTS.APY_DESC && (
               <FaSort onClick={() => setSort(SORTS.APY_DESC)} />
             )}
-            {sort == SORTS.APY_DESC && <FaSortDown onClick={() => setSort(SORTS.APY_ASC)} />}
-            {sort == SORTS.APY_ASC && <FaSortUp onClick={() => setSort(SORTS.APY_DESC)} />}
+            {sort == SORTS.APY_DESC && (
+              <FaSortDown onClick={() => setSort(SORTS.APY_ASC)} />
+            )}
+            {sort == SORTS.APY_ASC && (
+              <FaSortUp onClick={() => setSort(SORTS.APY_DESC)} />
+            )}
           </div>
         )}
       </div>,
@@ -171,7 +190,10 @@ const IndexPage: React.FC<PageProps> = () => {
         header,
         ...pools.data.pools
           .filter((pool) => {
-            if (filterText && !pool.info.name.toLowerCase().includes(filterText.toLowerCase())) {
+            if (
+              filterText &&
+              !pool.info.name.toLowerCase().includes(filterText.toLowerCase())
+            ) {
               return false;
             }
 
@@ -201,14 +223,22 @@ const IndexPage: React.FC<PageProps> = () => {
                 <div key={pool.info.id} className="flex items-center gap-2">
                   <img
                     className="w-5 h-5 rounded-full"
-                    src={getLogo(pool.info.tokens[0].symbol, pool.info.tokenIcons[0].logoURI)}
+                    src={getLogo(
+                      pool.info.tokens[0].symbol,
+                      pool.info.tokenIcons[0].logoURI,
+                    )}
                   />
                   <img
                     className="-ml-3 w-5 h-5 rounded-full"
-                    src={getLogo(pool.info.tokens[1].symbol, pool.info.tokenIcons[1].logoURI)}
+                    src={getLogo(
+                      pool.info.tokens[1].symbol,
+                      pool.info.tokenIcons[1].logoURI,
+                    )}
                   />
                   {isPoolDeprecated(pool.info.name) ? (
-                    <p className="line-through">{getPoolName(pool.info.name)}</p>
+                    <p className="line-through">
+                      {getPoolName(pool.info.name)}
+                    </p>
                   ) : (
                     getPoolName(pool.info.name)
                   )}
@@ -238,7 +268,10 @@ const IndexPage: React.FC<PageProps> = () => {
       ];
     }
 
-    return [header, ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) })];
+    return [
+      header,
+      ...new Array(5).fill({ data: new Array(5).fill(<LoadingText />) }),
+    ];
   }, [pools, wallet]);
 
   const stats = useMemo(() => {

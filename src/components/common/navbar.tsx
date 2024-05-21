@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import {
+  WalletDisconnectButton,
+  WalletMultiButton,
+} from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link } from 'gatsby';
 import { SiGitbook } from 'react-icons/si';
@@ -19,8 +22,10 @@ import Block from '@/src/components/common/block';
 import useUserATAs from '@/src/hooks/user/useUserATAs';
 import useNetwork from '@/src/hooks/useNetwork';
 import useUnwrap from '@/src/hooks/user/useUnwrap';
-import TX from '@/src/components/TX';
-import UniversalPopover, { Ref } from '@/src/components/models/universal-popover';
+import TX from '@/src/components/tx';
+import UniversalPopover, {
+  Ref,
+} from '@/src/components/models/universal-popover';
 import ModelHeader from '@/src/components/models/model-header';
 import SettingModel from '@/src/components/models/setting-model';
 
@@ -101,7 +106,10 @@ export default function Navbar() {
           )}
           onClick={(e) => e.stopPropagation()}
         >
-          <ModelHeader handleClose={handleModelClose} title={I18n.SettingPopupTitle} />
+          <ModelHeader
+            handleClose={handleModelClose}
+            title={I18n.SettingPopupTitle}
+          />
           <SettingModel />
         </div>
       </UniversalPopover>
@@ -128,7 +136,11 @@ export default function Navbar() {
               Pools
             </Button>
           </Link>
-          <a href="https://tribeca.so/gov/sbr/" target="_blank" rel="noreferrer">
+          <a
+            href="https://tribeca.so/gov/sbr/"
+            target="_blank"
+            rel="noreferrer"
+          >
             <Button type="secondary" className="flex items-center gap-2 h-10">
               Vote <FaExternalLinkAlt />
             </Button>
@@ -140,12 +152,18 @@ export default function Navbar() {
           </a>
 
           <a href="https://docs.saberdao.io/" target="_blank" rel="noreferrer">
-            <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+            <Button
+              type="secondary"
+              className="flex items-center gap-2 h-10 text-xl"
+            >
               <SiGitbook />
             </Button>
           </a>
           <a href="https://blog.saberdao.io/" target="_blank" rel="noreferrer">
-            <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+            <Button
+              type="secondary"
+              className="flex items-center gap-2 h-10 text-xl"
+            >
               <FaMedium />
             </Button>
           </a>
@@ -154,17 +172,34 @@ export default function Navbar() {
             target="_blank"
             rel="noreferrer"
           >
-            <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+            <Button
+              type="secondary"
+              className="flex items-center gap-2 h-10 text-xl"
+            >
               <MdOutlineQueryStats />
             </Button>
           </a>
-          <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">
-            <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+          <a
+            href="https://twitter.com/The_Saber_DAO"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button
+              type="secondary"
+              className="flex items-center gap-2 h-10 text-xl"
+            >
               <FaXTwitter />
             </Button>
           </a>
-          <a href="https://discord.com/invite/cmVUgRXS53" target="_blank" rel="noreferrer">
-            <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
+          <a
+            href="https://discord.com/invite/cmVUgRXS53"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button
+              type="secondary"
+              className="flex items-center gap-2 h-10 text-xl"
+            >
               <FaDiscord />
             </Button>
           </a>

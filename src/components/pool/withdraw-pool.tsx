@@ -8,7 +8,7 @@ import { PoolData } from '@/src/types/global';
 import H2 from '@/src/layout/h2';
 import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import { useWithdraw } from '@/src/hooks/user/useWithdraw';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
@@ -82,7 +82,9 @@ export default function WithdrawPool(props: { pool: PoolData }) {
   return (
     <div className="w-full">
       <H2>Withdraw</H2>
-      <p className="text-secondary text-sm">Withdraw LP tokens to receive the underlying tokens.</p>
+      <p className="text-secondary text-sm">
+        Withdraw LP tokens to receive the underlying tokens.
+      </p>
       <Input
         align="right"
         register={register('amount')}
@@ -94,7 +96,9 @@ export default function WithdrawPool(props: { pool: PoolData }) {
         Balance:{' '}
         <div
           className="text-saber-light cursor-pointer inline"
-          onClick={() => setValue('amount', balance?.balance.value.uiAmount ?? 0)}
+          onClick={() =>
+            setValue('amount', balance?.balance.value.uiAmount ?? 0)
+          }
         >
           {balance?.balance.value.uiAmount}
         </div>

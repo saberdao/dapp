@@ -1,6 +1,9 @@
 import 'react-toastify/dist/ReactToastify.css';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { ToastContainer } from 'react-toastify';
@@ -11,7 +14,6 @@ import { PageProps } from 'gatsby';
 
 import Navbar from '@/src/components/common/navbar';
 import Footer from '@/src/components/common/footer';
-
 import useNetwork from '@/src/hooks/useNetwork';
 
 const CACHE_TIME = 1000 * 60 * 60;
@@ -34,7 +36,10 @@ const persister = createSyncStoragePersister({
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
-const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; props: any }) => {
+const Dapp = <T extends PageProps>(props: {
+  children: React.ReactElement<T>;
+  props: any;
+}) => {
   const { network, endpoint, wsEndpoint } = useNetwork();
 
   const wallets = useMemo(() => [new PhantomWalletAdapter()], [network]);
@@ -71,12 +76,15 @@ const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; pro
         },
       }}
     >
-      <ConnectionProvider endpoint={endpoint ?? ''} config={{ wsEndpoint: wsEndpoint }}>
+      <ConnectionProvider
+        endpoint={endpoint ?? ''}
+        config={{ wsEndpoint: wsEndpoint }}
+      >
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <div className="w-full flex items-center justify-center bg-yellow-500 border-b border-yellow-800 py-1 text-xs">
-              Solana is currently experiencing congestion issues. It might be necessary to retry
-              your transaction multiple times.
+              Solana is currently experiencing congestion issues. It might be
+              necessary to retry your transaction multiple times.
             </div>
             <div className="text-white min-h-screen w-full flex justify-center p-5">
               <div className="max-w-7xl flex flex-col w-full gap-5">

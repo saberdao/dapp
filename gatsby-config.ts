@@ -10,7 +10,15 @@ const config: GatsbyConfig = {
     siteUrl: 'https://www.saber.so',
   },
   graphqlTypegen: true,
-  plugins: ['gatsby-plugin-postcss'],
+  plugins: [
+    'gatsby-plugin-postcss',
+    {
+      resolve: 'gatsby-plugin-google-tagmanager',
+      options: {
+        id: 'G-R67GCPSJD7',
+      },
+    },
+  ],
 };
 
 export default config;

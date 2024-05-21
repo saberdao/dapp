@@ -1,7 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { HeadFC } from 'gatsby';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
-import { FaDiscord, FaGithub, FaGlobe, FaMedium, FaTelegram } from 'react-icons/fa';
+import {
+  FaDiscord,
+  FaGithub,
+  FaGlobe,
+  FaMedium,
+  FaTelegram,
+} from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { IconType } from 'react-icons';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -36,8 +48,10 @@ import StakePool from '@/src/components/pool/stake-pool';
 import WithdrawPool from '@/src/components/pool/withdraw-pool';
 import UnstakePool from '@/src/components/pool/unstake-pool';
 import DepositPool from '@/src/components/pool/deposit-pool';
-import TX from '@/src/components/TX';
-import UniversalPopover, { Ref } from '@/src/components/models/universal-popover';
+import TX from '@/src/components/tx';
+import UniversalPopover, {
+  Ref,
+} from '@/src/components/models/universal-popover';
 import LeverageModel from '@/src/components/models/leverage-model';
 
 const InfoPanel = (props: { data: any[][] }) => {
@@ -81,15 +95,23 @@ const AboutBlock = (props: { token: TokenInfo }) => {
     <Block className="w-full h-full">
       <H2>{getSymbol(props.token.symbol)}</H2>
       {props.token.extensions?.description ? (
-        <div className="mb-3 text-secondary">{props.token.extensions?.description}</div>
+        <div className="mb-3 text-secondary">
+          {props.token.extensions?.description}
+        </div>
       ) : null}
       <div className="flex items-center gap-1">
         <ExternalLink href={props.token.extensions?.website} icon={FaGlobe} />
         <ExternalLink href={props.token.extensions?.discord} icon={FaDiscord} />
         <ExternalLink href={props.token.extensions?.github} icon={FaGithub} />
         <ExternalLink href={props.token.extensions?.medium} icon={FaMedium} />
-        <ExternalLink href={props.token.extensions?.twitter} icon={FaXTwitter} />
-        <ExternalLink href={props.token.extensions?.tggroup} icon={FaTelegram} />
+        <ExternalLink
+          href={props.token.extensions?.twitter}
+          icon={FaXTwitter}
+        />
+        <ExternalLink
+          href={props.token.extensions?.tggroup}
+          icon={FaTelegram}
+        />
       </div>
     </Block>
   );
@@ -121,7 +143,10 @@ const FarmCounter = (props: { pool: PoolData }) => {
   }, [started]);
 
   const digits = useMemo(() => {
-    return amounts && Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(amounts ?? 1))));
+    return (
+      amounts &&
+      Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(amounts ?? 1))))
+    );
   }, [amounts]);
 
   if (amounts && digits) {
@@ -146,7 +171,9 @@ const FarmRewards = (props: { pool: PoolData }) => {
 
 const LiquidityForms = (props: { pool: PoolData }) => {
   const deprecated = isPoolDeprecated(props.pool.info.name);
-  const [selectedTab, setSelectedTab] = useState(deprecated ? 'Unstake' : 'Deposit');
+  const [selectedTab, setSelectedTab] = useState(
+    deprecated ? 'Unstake' : 'Deposit',
+  );
 
   const tabs = [
     !deprecated && { name: 'Deposit', current: selectedTab === 'Deposit' },
@@ -168,15 +195,23 @@ const LiquidityForms = (props: { pool: PoolData }) => {
   );
 };
 
-const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void }) => {
+const LiquidityBlock = (props: {
+  pool: PoolData;
+  handleOpenModel?: () => void;
+}) => {
   const { wallet } = useWallet();
   const [lastStakeHash, setLastStakeHash] = useState('');
-  const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+  const { data: miner, refetch } = useQuarryMiner(
+    props.pool.info.lpToken,
+    true,
+  );
   const { data: lpTokenBalance } = useUserGetLPTokenBalance(
     props.pool.pair.pool.state.poolTokenMint.toString(),
   );
   const { maxSlippagePercent } = useSettings();
-  const { dailyRewards, refetch: refetchRewards } = useDailyRewards(props.pool.info.lpToken);
+  const { dailyRewards, refetch: refetchRewards } = useDailyRewards(
+    props.pool.info.lpToken,
+  );
 
   const stakedUsdValue = useMemo(() => {
     if (!miner?.data) {
@@ -184,7 +219,10 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     }
 
     const values = calculateWithdrawAll({
-      poolTokenAmount: new TokenAmount(new Token(props.pool.info.lpToken), miner.data.balance),
+      poolTokenAmount: new TokenAmount(
+        new Token(props.pool.info.lpToken),
+        miner.data.balance,
+      ),
       maxSlippagePercent,
       exchangeInfo: props.pool.exchangeInfo,
     });
@@ -192,7 +230,8 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     const valueA = values.estimates[0] ? values.estimates[0].asNumber : 0;
     const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
 
-    const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
+    const usdValue =
+      valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
     return usdValue;
   }, [miner]);
 
@@ -239,7 +278,9 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     return (
       <Block className="">
         <H2>Your Liquidity</H2>
-        <p className="text-secondary">Connect wallet to view and manage your liquidity.</p>
+        <p className="text-secondary">
+          Connect wallet to view and manage your liquidity.
+        </p>
       </Block>
     );
   }
@@ -252,7 +293,10 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
           data={[
             ['Staked', `$${toPrecision(stakedUsdValue, 4)}`],
             lpTokenBalance && lpTokenBalance.balance.value.uiAmount
-              ? ['LP token balance', `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`]
+              ? [
+                  'LP token balance',
+                  `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`,
+                ]
               : [],
             ['SBR Rewards', <FarmRewards key="f" pool={props.pool} />],
           ].filter((x) => x.length !== 0)}
@@ -350,45 +394,86 @@ const PoolPage = (props: { params: { id: string } }) => {
     ['SBR emission rate', pool ? <EmissionRate pool={pool} /> : null],
     ['---'],
     [
-      <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
+      <div
+        key={`${token0.address}-deposits`}
+        className="flex items-center gap-1"
+      >
         <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
         <p>{getSymbol(token0.symbol)}</p>
       </div>,
-      `$${toPrecision(pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA, 4)}`,
+      `$${toPrecision(
+        pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA,
+        4,
+      )}`,
     ],
     [
-      <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
+      <div
+        key={`${token1.address}-deposits`}
+        className="flex items-center gap-1"
+      >
         <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
         <p>{getSymbol(token1.symbol)}</p>
       </div>,
-      `$${toPrecision(pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB, 4)}`,
+      `$${toPrecision(
+        pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
+        4,
+      )}`,
     ],
     ['---'],
     ['24h volume', `$${toPrecision(pool.metricInfo?.volumeInUSD ?? 0)}`],
     ['24h fees', `$${toPrecision(pool.metricInfo?.['24hFeeInUsd'] ?? 0)}`],
     ['---'],
-    ['Virtual price', `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'}`],
+    [
+      'Virtual price',
+      `${
+        pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'
+      }`,
+    ],
     ['Concentration coefficient', `${pool.pair.pool.exchange.ampFactor}x`],
     ['---'],
     ['Trade fee', `${pool.pair.pool.exchange.fees.trade.asNumber * 100}%`],
-    ['Withdraw fee', `${pool.pair.pool.exchange.fees.withdraw.asNumber * 100}%`],
+    [
+      'Withdraw fee',
+      `${pool.pair.pool.exchange.fees.withdraw.asNumber * 100}%`,
+    ],
   ];
 
   const addressData = [
-    ['Swap account', <Address key={0} address={pool.pair.pool.config.swapAccount.toString()} />],
+    [
+      'Swap account',
+      <Address
+        key={0}
+        address={pool.pair.pool.config.swapAccount.toString()}
+      />,
+    ],
     [
       'Pool token address',
-      <Address key={1} address={pool.pair.pool.state.poolTokenMint.toString()} />,
-    ],
-    ['Token A mint', <Address key={2} address={pool.pair.pool.state.tokenA.mint.toString()} />],
-    ['Token B mint', <Address key={3} address={pool.pair.pool.state.tokenB.mint.toString()} />],
-    [
-      'Token B reserve',
-      <Address key={4} address={pool.pair.pool.state.tokenA.reserve.toString()} />,
+      <Address
+        key={1}
+        address={pool.pair.pool.state.poolTokenMint.toString()}
+      />,
     ],
     [
+      'Token A mint',
+      <Address key={2} address={pool.pair.pool.state.tokenA.mint.toString()} />,
+    ],
+    [
+      'Token B mint',
+      <Address key={3} address={pool.pair.pool.state.tokenB.mint.toString()} />,
+    ],
+    [
       'Token B reserve',
-      <Address key={5} address={pool.pair.pool.state.tokenB.reserve.toString()} />,
+      <Address
+        key={4}
+        address={pool.pair.pool.state.tokenA.reserve.toString()}
+      />,
+    ],
+    [
+      'Token B reserve',
+      <Address
+        key={5}
+        address={pool.pair.pool.state.tokenB.reserve.toString()}
+      />,
     ],
   ];
 

@@ -11,7 +11,7 @@ import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';
 import H2 from '@/src/layout/h2';
 import useUserATAs from '@/src/hooks/user/useUserATAs';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import { useDeposit } from '@/src/hooks/user/useDeposit';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
@@ -48,13 +48,22 @@ export default function DepositPool(props: { pool: PoolData }) {
   const amountTokenB = watch('amountTokenB');
   const noStake = watch('noStake');
   const usdValue = useMemo(() => {
-    return amountTokenA * props.pool.usdPrice.tokenA + amountTokenB * props.pool.usdPrice.tokenB;
+    return (
+      amountTokenA * props.pool.usdPrice.tokenA +
+      amountTokenB * props.pool.usdPrice.tokenB
+    );
   }, [amountTokenA, amountTokenB]);
 
   const tokenAmounts = useMemo(() => {
     return [
-      TokenAmount.parse(new Token(token0), amountTokenA ? `${amountTokenA}` : '0'),
-      TokenAmount.parse(new Token(token1), amountTokenB ? `${amountTokenB}` : '0'),
+      TokenAmount.parse(
+        new Token(token0),
+        amountTokenA ? `${amountTokenA}` : '0',
+      ),
+      TokenAmount.parse(
+        new Token(token1),
+        amountTokenB ? `${amountTokenB}` : '0',
+      ),
     ];
   }, [amountTokenA, amountTokenB]);
 
@@ -114,7 +123,9 @@ export default function DepositPool(props: { pool: PoolData }) {
   return (
     <div className="w-full">
       <H2>Deposit</H2>
-      <p className="text-secondary text-sm">Deposit and stake tokens to earn yield.</p>
+      <p className="text-secondary text-sm">
+        Deposit and stake tokens to earn yield.
+      </p>
 
       <div className="mt-3" />
 
@@ -124,7 +135,9 @@ export default function DepositPool(props: { pool: PoolData }) {
           Balance:{' '}
           <span
             className="text-saber-light cursor-pointer"
-            onClick={() => setValue('amountTokenA', ataInfo?.[0].balance.asNumber ?? 0)}
+            onClick={() =>
+              setValue('amountTokenA', ataInfo?.[0].balance.asNumber ?? 0)
+            }
           >
             {ataInfo?.[0].balance.asNumber ?? 0}
           </span>
@@ -143,7 +156,9 @@ export default function DepositPool(props: { pool: PoolData }) {
           Balance:{' '}
           <span
             className="text-saber-light cursor-pointer"
-            onClick={() => setValue('amountTokenB', ataInfo?.[1].balance.asNumber ?? 0)}
+            onClick={() =>
+              setValue('amountTokenB', ataInfo?.[1].balance.asNumber ?? 0)
+            }
           >
             {ataInfo?.[1].balance.asNumber ?? 0}
           </span>
@@ -167,7 +182,11 @@ export default function DepositPool(props: { pool: PoolData }) {
           Depositing...
         </Button>
       ) : (
-        <Button size="full" onClick={() => execDeposit()} disabled={!amountTokenA && !amountTokenB}>
+        <Button
+          size="full"
+          onClick={() => execDeposit()}
+          disabled={!amountTokenA && !amountTokenB}
+        >
           Deposit
         </Button>
       )}
@@ -183,12 +202,24 @@ export default function DepositPool(props: { pool: PoolData }) {
               : ''}
           </div>
           <div>Slippage</div>
-          <div className={clsx('text-right', slippage > 0.1 && 'text-red-600 font-bold')}>
-            {toPrecision((slippage ?? 0) * 100, 4)}%{slippage < 0 ? ' (bonus!)' : ''}
+          <div
+            className={clsx(
+              'text-right',
+              slippage > 0.1 && 'text-red-600 font-bold',
+            )}
+          >
+            {toPrecision((slippage ?? 0) * 100, 4)}%
+            {slippage < 0 ? ' (bonus!)' : ''}
           </div>
           <div>Price impact</div>
-          <div className={clsx('text-right', priceImpact > 0.1 && 'text-red-600 font-bold')}>
-            {toPrecision(priceImpact * 100, 4)}%{priceImpact < 0 ? ' (bonus!)' : ''}
+          <div
+            className={clsx(
+              'text-right',
+              priceImpact > 0.1 && 'text-red-600 font-bold',
+            )}
+          >
+            {toPrecision(priceImpact * 100, 4)}%
+            {priceImpact < 0 ? ' (bonus!)' : ''}
           </div>
         </div>
       )}

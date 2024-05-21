@@ -10,7 +10,7 @@ import Input, { InputType } from '@/src/layout/Input';
 import Button from '@/src/layout/button';
 import { PoolData } from '@/src/types/global';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import { useWithdraw } from '@/src/hooks/user/useWithdraw';
 import { useStableSwapTokens } from '@/src/hooks/useStableSwapTokens';
 import { calculateWithdrawAll } from '@/src/hooks/user/useWithdraw/calculateWithdrawAll';
@@ -19,8 +19,14 @@ import { toPrecision } from '@/src/helpers/number';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
 
 export default function UnunstakePool(props: { pool: PoolData }) {
-  const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
-  const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+  const { register, watch, setValue } = useForm<{
+    amount: number;
+    noWithdraw: boolean;
+  }>();
+  const { data: miner, refetch } = useQuarryMiner(
+    props.pool.info.lpToken,
+    true,
+  );
   const { refetch: refetchLP } = useUserGetLPTokenBalance(
     props.pool.pair.pool.state.poolTokenMint.toString(),
   );
@@ -77,7 +83,8 @@ export default function UnunstakePool(props: { pool: PoolData }) {
     const valueA = values.estimates[0] ? values.estimates[0].asNumber : 0;
     const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
 
-    const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
+    const usdValue =
+      valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
     return usdValue;
   }, [miner, amount]);
 
@@ -106,7 +113,9 @@ export default function UnunstakePool(props: { pool: PoolData }) {
     }
 
     const balance = BigNumber(miner.data.balance.toString());
-    return balance.div(new BigNumber(10 ** miner.miner.quarry.token.decimals)).toNumber();
+    return balance
+      .div(new BigNumber(10 ** miner.miner.quarry.token.decimals))
+      .toNumber();
   }, [miner]);
 
   if (isSuccess && hash && lastStakeHash !== hash) {

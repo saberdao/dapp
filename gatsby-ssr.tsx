@@ -29,7 +29,7 @@ const HeadComponents = [
   <meta
     key="meta-7"
     property="og:image"
-    content="https://saberdao.io/favicon.ico"
+    content="https://saberdao.io/ogimage.jpg"
   />,
   <meta key="meta-8" property="twitter:card" content="summary_large_image" />,
   <meta key="meta-9" property="twitter:url" content="https://saberdao.io" />,
@@ -42,7 +42,7 @@ const HeadComponents = [
   <meta
     key="meta-12"
     property="twitter:image"
-    content="https://saberdao.io/favicon.ico"
+    content="https://saberdao.io/ogimage.jpg"
   />,
   <link key="head-1" rel="preconnect" href="https://fonts.googleapis.com" />,
   <link
@@ -61,18 +61,6 @@ const HeadComponents = [
         background-attachment: fixed;
         background-image: linear-gradient(to bottom, #030712, #1f2937);
     }`}</style>,
-  <script
-    key="gtag-1"
-    async
-    src="https://www.googletagmanager.com/gtag/js?id=G-VBSQH604MG"
-  ></script>,
-  <script key="gtag-2">
-    {`window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-VBSQH604MG');`}
-  </script>,
 ];
 
 export const onRenderBody = ({ setHeadComponents }) => {

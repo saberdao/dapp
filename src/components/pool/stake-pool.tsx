@@ -9,7 +9,7 @@ import Button from '@/src/layout/button';
 import { PoolData } from '@/src/types/global';
 import useStake from '@/src/hooks/user/useStake';
 import useUserGetLPTokenBalance from '@/src/hooks/user/useGetLPTokenBalance';
-import TX from '@/src/components/TX';
+import TX from '@/src/components/tx';
 import useQuarryMiner from '@/src/hooks/user/useQuarryMiner';
 
 export default function StakePool(props: { pool: PoolData }) {
@@ -65,7 +65,9 @@ export default function StakePool(props: { pool: PoolData }) {
   return (
     <div className="w-full" onClick={() => {}}>
       <H2>Stake</H2>
-      <p className="text-secondary text-sm">Stake LP tokens to receive farm rewards.</p>
+      <p className="text-secondary text-sm">
+        Stake LP tokens to receive farm rewards.
+      </p>
       <Input
         align="right"
         register={register('amount')}
@@ -77,7 +79,9 @@ export default function StakePool(props: { pool: PoolData }) {
         Balance:{' '}
         <div
           className="text-saber-light cursor-pointer inline"
-          onClick={() => setValue('amount', balance?.balance.value.uiAmount ?? 0)}
+          onClick={() =>
+            setValue('amount', balance?.balance.value.uiAmount ?? 0)
+          }
         >
           {balance?.balance.value.uiAmount}
         </div>
@@ -88,7 +92,11 @@ export default function StakePool(props: { pool: PoolData }) {
           Staking...
         </Button>
       ) : (
-        <Button size="full" onClick={() => execStake(amount)} disabled={!amount}>
+        <Button
+          size="full"
+          onClick={() => execStake(amount)}
+          disabled={!amount}
+        >
           Stake
         </Button>
       )}

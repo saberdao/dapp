@@ -7,7 +7,9 @@ const Wallet = () => {
   const wallet = useWallet();
 
   const handleDepsoit = useCallback(() => {
-    const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    const USDC_MINT = new PublicKey(
+      'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    );
 
     const connection = new Connection(
       'https://ingunna-fyrb7w-fast-mainnet.helius-rpc.com/',
