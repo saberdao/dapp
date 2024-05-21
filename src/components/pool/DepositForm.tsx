@@ -38,7 +38,7 @@ export default function DepositForm(props: { pool: PoolData }) {
         new Token(token0),
         new Token(token1),
     ]);
-    console.log(ataInfo)
+
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { refetch: refetchLP } = useUserGetLPTokenBalance(
         props.pool.pair.pool.state.poolTokenMint.toString(),

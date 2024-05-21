@@ -201,7 +201,20 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         return usdValue;
     }, [miner]);
 
-    const { claim } = useClaim(props.pool.info.lpToken);
+    const { claim } = useClaim(props.pool.info.lpToken, (tx: string) => toast.success(
+        <div className="text-sm">
+            <p>Transaction successful! Your transaction hash:</p>
+            <TX tx={tx} />
+        </div>,
+        {
+            onClose: () => {
+                reset();
+                refetch();
+                refetchRewards();
+                setLastStakeHash(tx);
+            },
+        },
+    ));
     const { reset } = useClaimableRewards(props.pool.info.lpToken);
     const {
         mutate: execClaim,
@@ -215,30 +228,6 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
             return hash;
         },
     });
-
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        if (lastStakeHash) {
-            toast.success(
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastStakeHash} />
-                </div>,
-                {
-                    onClose: () => {
-                        reset();
-                        refetch();
-                        refetchRewards();
-                    },
-                },
-            );
-        }
-    }, [lastStakeHash]);
-
-    if (isSuccess && hash && lastStakeHash !== hash) {
-        setLastStakeHash(hash);
-    }
 
     if (!wallet?.adapter.publicKey) {
         return (

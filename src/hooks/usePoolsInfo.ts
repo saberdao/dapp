@@ -22,6 +22,7 @@ import useQuarry from './useQuarry';
 import { getEmissionApy, getFeeApy } from '../helpers/apy';
 import usePoolsData from './usePoolsData';
 import { SBR_ADDRESS } from '@saberhq/saber-periphery';
+import useGetRewarders from './useGetRewarders';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -86,7 +87,7 @@ const getQuarryInfo = async (quarry: QuarrySDK, pools: PoolData[]) => {
 };
 
 export default function () {
-    const { formattedNetwork, endpoint } = useNetwork();
+    const { formattedNetwork, network, endpoint } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
     const { data: prices } = useGetPrices();

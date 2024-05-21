@@ -1,3 +1,4 @@
+import { Wallet } from '@solana/wallet-adapter-react';
 import { ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 
 const getCUsForTx = async (
@@ -14,7 +15,7 @@ const getCUsForTx = async (
     const transaction = new VersionedTransaction(messageV0);
     const simulation = await connection.simulateTransaction(transaction);
     const CUs = simulation.value.unitsConsumed ? Math.ceil(1.1 * simulation.value.unitsConsumed) : 1.4e6;
-    return CUs;
+    return 1.4e6;
 };
 
 export const createVersionedTransaction = async (
@@ -44,4 +45,27 @@ export const createVersionedTransaction = async (
     console.log(Buffer.from(transaction.serialize()).toString('base64'));
 
     return { transaction, latestBlockhash };
+};
+
+export const sendTransaction = async (
+    connection: Connection,
+    txs: TransactionInstruction[],
+    wallet: Wallet,
+    onSuccess: (tx: string) => void,
+) => {
+    if (!wallet.adapter.publicKey) {
+        return;
+    }
+
+    const vt = await createVersionedTransaction(
+        connection,
+        txs,
+        wallet.adapter.publicKey,
+    );
+
+    const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
+    await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+
+    // Add toast
+    onSuccess(hash);
 };
