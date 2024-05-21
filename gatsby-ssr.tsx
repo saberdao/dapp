@@ -32,14 +32,6 @@ const HeadComponents = [
         background-attachment: fixed;
         background-image: linear-gradient(to bottom, #030712, #1f2937);
     }`}</style>,
-    <script key="gtag-1" async src="https://www.googletagmanager.com/gtag/js?id=G-VBSQH604MG"></script>,
-    <script key="gtag-2">
-    {`window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-VBSQH604MG');`}
-    </script>,
 ];
 
 export const onRenderBody = ({
