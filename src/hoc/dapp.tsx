@@ -105,11 +105,5 @@ export default function dapp<T extends PageProps>(
   WrappedComponent: React.ReactElement<T>,
   props: T,
 ) {
-  class DappHOC extends React.Component {
-    render() {
-      return <Dapp {...props}>{WrappedComponent}</Dapp>;
-    }
-  }
-
-  return DappHOC;
+  return <Dapp {...props}>{WrappedComponent}</Dapp>;
 }
