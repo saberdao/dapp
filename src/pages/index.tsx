@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
-import { getLogo, getPoolName } from '../helpers/pool';
+import { getLogo, getPoolId, getPoolName } from '../helpers/pool';
 import H1 from '../components/H1';
 import usePoolsInfo from '../hooks/usePoolsInfo';
 import Table from '../components/Table';
@@ -218,9 +218,9 @@ const IndexPage: React.FC<PageProps> = () => {
                     .sort(sortFunctions[sort || SORTS.DEFAULT])
                     .map((pool) => {
                         return {
-                            rowLink: `/pools/${pool.info.id}`,
+                            rowLink: `/pools/${getPoolId(pool.info.id)}`,
                             data: [
-                                <div key={pool.info.id} className="flex items-center gap-2">
+                                <div key={getPoolId(pool.info.id)} className="flex items-center gap-2">
                                     <img
                                         className="w-5 h-5 rounded-full"
                                         src={getLogo(

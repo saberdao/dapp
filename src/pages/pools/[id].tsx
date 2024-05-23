@@ -16,7 +16,7 @@ import { PoolData } from '../../types';
 import { toPrecision } from '../../helpers/number';
 import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
-import { getLogo, getPoolName, getSymbol } from '../../helpers/pool';
+import { getLogo, getPoolId, getPoolName, getSymbol } from '../../helpers/pool';
 
 import useClaim from '../../hooks/user/useClaim';
 import usePoolsInfo from '../../hooks/usePoolsInfo';
@@ -330,7 +330,7 @@ const PoolPage = (props: { params: { id: string } }) => {
     const leveragedRef = useRef<Ref>();
 
     const pool = useMemo(() => {
-        return pools?.data?.pools?.find((x) => x.info.id === props.params.id);
+        return pools?.data?.pools?.find((x) => getPoolId(x.info.id) === getPoolId(props.params.id));
     }, [props.params.id, pools]);
 
     const token0 = useMemo(() => {
@@ -403,7 +403,7 @@ const PoolPage = (props: { params: { id: string } }) => {
         ['Token A mint', <Address key={2} address={pool.pair.pool.state.tokenA.mint.toString()} />],
         ['Token B mint', <Address key={3} address={pool.pair.pool.state.tokenB.mint.toString()} />],
         [
-            'Token B reserve',
+            'Token A reserve',
             <Address key={4} address={pool.pair.pool.state.tokenA.reserve.toString()} />,
         ],
         [

@@ -17,3 +17,11 @@ export const getLogo = (symbol: string, logo?: string) => {
 
     return logo;
 };
+
+export const getPoolId = (id: string) => {
+    if (id === 'socean') {
+        return 'sanctum';
+    }
+
+    return id;
+};
