@@ -383,7 +383,7 @@ const PoolPage = (props: { params: { id: string } }) => {
         ['---'],
         [
             'Virtual price',
-            `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'}`,
+            `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 7) : '...'}`,
         ],
         ['Concentration coefficient', `${pool.pair.pool.exchange.ampFactor}x`],
         ['---'],
