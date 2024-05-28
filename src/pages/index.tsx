@@ -20,6 +20,7 @@ import { CurrencyMarket, PoolData } from '../types';
 import { toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { isPoolFeatured } from '../helpers/featuredPools';
+import useGetStats from '../hooks/useGetStats';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -83,6 +84,7 @@ const sortFunctions = {
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
     const { data: price } = useGetPrices();
+    const { data: sbrStats } = useGetStats();
     const { wallet } = useWallet();
     const [sort, setSort] = useState(SORTS.DEFAULT);
 
@@ -297,6 +299,12 @@ const IndexPage: React.FC<PageProps> = () => {
                         <div>{`$${toPrecision(stats.volume, 4)}`}</div>
                         <div className="font-bold">24h fees</div>
                         <div>{`$${toPrecision(stats.fee, 4)}`}</div>
+                        <div className="font-bold">Total SBR supply</div>
+                        <div>{`${toPrecision(sbrStats?.totalSupply ?? 0, 4)}`}</div>
+                        <div className="font-bold">SBR circulating</div>
+                        <div>{`${toPrecision(sbrStats?.circulatingSupply ?? 0, 4)}`}</div>
+                        <div className="font-bold">veSBR supply</div>
+                        <div>{`${toPrecision(sbrStats?.vesbr ?? 0, 4)}`}</div>
                     </div>
                 </div>
                 <div className="block lg:flex items-center mb-3">
