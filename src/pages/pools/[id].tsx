@@ -179,10 +179,18 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     );
     const { maxSlippagePercent } = useSettings();
     const { dailyRewards, refetch: refetchRewards } = useDailyRewards(props.pool.info.lpToken);
+    
+    const token0 = useMemo(() => {
+        return props.pool?.info.tokens[0];
+    }, [props.pool]);
 
-    const stakedUsdValue = useMemo(() => {
+    const token1 = useMemo(() => {
+        return props.pool?.info.tokens[1];
+    }, [props.pool]);
+
+    const stakedValue = useMemo(() => {
         if (!miner?.data) {
-            return 0;
+            return { valueA: 0, valueB: 0, usdValue: 0 };
         }
 
         const values = calculateWithdrawAll({
@@ -198,7 +206,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
 
         const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
-        return usdValue;
+        return { valueA, valueB, usdValue };
     }, [miner]);
 
     const { claim } = useClaim(props.pool.info.lpToken);
@@ -255,7 +263,23 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                 <H2>Your Liquidity</H2>
                 <InfoPanel
                     data={[
-                        ['Staked', `$${toPrecision(stakedUsdValue, 4)}`],
+                        [
+                            'Staked', 
+                            <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
+                                <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
+                                <p>{getSymbol(token0.symbol)}</p>
+                                <p>{toPrecision(stakedValue.valueA, 4)}</p>
+                            </div>
+                        ],
+                        [
+                            '',
+                            <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
+                                <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
+                                <p>{getSymbol(token1.symbol)}</p>
+                                <p>{toPrecision(stakedValue.valueB, 4)}</p>
+                            </div>
+                        ],
+                        ['USD value', `$${toPrecision(stakedValue.usdValue, 4)}`],
                         lpTokenBalance && lpTokenBalance.balance.value.uiAmount
                             ? [
                                   'LP token balance',
@@ -362,21 +386,32 @@ const PoolPage = (props: { params: { id: string } }) => {
                 <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
                 <p>{getSymbol(token0.symbol)}</p>
             </div>,
-            `$${toPrecision(
-                pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA,
+            `${toPrecision(
+                pool.exchangeInfo.reserves[0].amount.asNumber,
                 4,
-            )}`,
+            )} (${toPrecision(
+                100 * pool.exchangeInfo.reserves[0].amount.asNumber / (pool.exchangeInfo.reserves[0].amount.asNumber + pool.exchangeInfo.reserves[1].amount.asNumber),
+                4,
+            )}%)`,
         ],
         [
             <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
                 <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
                 <p>{getSymbol(token1.symbol)}</p>
             </div>,
-            `$${toPrecision(
-                pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
+            `${toPrecision(
+                pool.exchangeInfo.reserves[1].amount.asNumber,
                 4,
-            )}`,
+            )} (${toPrecision(
+                100 * pool.exchangeInfo.reserves[1].amount.asNumber / (pool.exchangeInfo.reserves[0].amount.asNumber + pool.exchangeInfo.reserves[1].amount.asNumber),
+                4,
+            )}%)`,
         ],
+        ['Pool USD value', `$${toPrecision(
+            pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA +
+            pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
+            4,
+        )}`],
         ['---'],
         ['24h volume', `$${toPrecision(pool.metricInfo?.volumeInUSD ?? 0)}`],
         ['24h fees', `$${toPrecision(pool.metricInfo?.['24hFeeInUsd'] ?? 0)}`],
