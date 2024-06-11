@@ -6,7 +6,6 @@ const FEATURED_POOL_NAMES = [
     'USDH-USDC',
     'scnSOL-SOL',
     'SOL-zSOL',
-    'MDS-USDC',
     'SOL-vSOL',
 ];
 

@@ -33,7 +33,6 @@ export default function useGetPrices() {
                 // Do nothing (just assume is 0)
             }
 
-
             // We can add more from pyth here later
             const prices: OraclePrice = {
                 'JEFFSQ3s8T3wKsvp4tnRAsUBW7Cqgnf8ukBZC4C8XBm1': pythData.productPrice.get('Crypto.USDC/USD')?.aggregate.price ?? 0, // Saber wrapped USDC

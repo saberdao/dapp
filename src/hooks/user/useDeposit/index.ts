@@ -28,7 +28,6 @@ import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
 import useProvider from '../../useProvider';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { createVersionedTransaction } from '../../../helpers/transaction';
-import useQuarryMiner from '../useQuarryMiner';
 
 interface IDeposit {
   tokenAmounts: readonly TokenAmount[];
@@ -47,7 +46,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
     const { wallet } = useWallet();
     const { saber } = useProvider();
     const { connection } = useConnection();
-    const { data } = useQuarryMiner(pool.info.lpToken);
 
     // tokens may still be in wrapped form
     const ssTokens = useStableSwapTokens(pool);
@@ -171,7 +169,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
-            invariant(data, 'quarry not loaded');
 
             invariant(wallet?.adapter.publicKey);
 
@@ -300,7 +297,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             const [amountA, amountB] = tokenAmountsWrapped;
             invariant(amountA && amountB, 'amounts missing');
             invariant(wallet?.adapter.publicKey, 'wallet not connected');
-            invariant(data, 'quarry not loaded');
 
             const [amountAInput, amountBInput] = tokenAmounts;
             invariant(amountAInput && amountBInput, 'input amounts missing');
@@ -347,6 +343,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             } catch (e) {
                 //
             }
+
 
             invariant(estimatedMint, 'minimumPoolTokenAmount is null');
 
