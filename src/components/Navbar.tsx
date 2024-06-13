@@ -150,7 +150,7 @@ export default function Navbar() {
                         </Button>
                     </a>
 
-                    <a href="https://docs.saberdao.io/" target="_blank" rel="noreferrer">
+                    <a href="https://doc.saberdao.io/" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
                             <SiGitbook />
                         </Button>
