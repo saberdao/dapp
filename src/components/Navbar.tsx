@@ -17,7 +17,7 @@ import I18n from '../i18n';
 import Saber from '../svg/saber';
 import Button from './Button';
 import Block from './Block';
-import useUserATAs from '../hooks/user/useUserATAs';
+import useUserATA from '../hooks/user/useUserATA';
 import useNetwork from '../hooks/useNetwork';
 import useUnwrap from '../hooks/user/useUnwrap';
 import TX from './TX';
@@ -27,7 +27,7 @@ import SettingModel from './models/setting-model';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();
-    const { data: ata, refetch } = useUserATAs([WRAPPED_SOL[network]], true);
+    const { data: ata, refetch } = useUserATA(WRAPPED_SOL[network], true);
     const { unwrap } = useUnwrap();
     const [lastTxHash, setLastTxHash] = useState('');
     const {
@@ -64,9 +64,9 @@ const WrappedSolBlock = () => {
     }
 
     return (
-        (ata?.[0]?.balance.asNumber ?? 0) > 0 && (
+        (ata?.balance.asNumber ?? 0) > 0 && (
             <Block active className="flex gap-1 items-center">
-                You have {ata![0].balance.asNumber} wrapped SOL in your wallet.
+                You have {ata!.balance.asNumber} wrapped SOL in your wallet.
                 {isPending ? (
                     <Button size="small" disabled key="g">
                         Unwrapping...

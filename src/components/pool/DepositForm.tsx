@@ -4,7 +4,7 @@ import Input, { InputType } from '../Input';
 import { useForm } from 'react-hook-form';
 import Button from '../Button';
 import { PoolData } from '../../types';
-import useUserATAs from '../../hooks/user/useUserATAs';
+import useUserATA from '../../hooks/user/useUserATA';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { toPrecision } from '../../helpers/number';
 import TX from '../TX';
@@ -34,11 +34,9 @@ export default function DepositForm(props: { pool: PoolData }) {
         return ssTokens?.underlyingTokens?.[1] || props.pool.info.tokens[1];
     }, [props.pool]);
 
-    const { data: ataInfo, refetch: refetchBalances } = useUserATAs([
-        new Token(token0),
-        new Token(token1),
-    ]);
-    console.log(ataInfo)
+    const { data: ataInfo0, refetch: refetchBalances0 } = useUserATA(new Token(token0));
+    const { data: ataInfo1, refetch: refetchBalances1 } = useUserATA(new Token(token1));
+
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { refetch: refetchLP } = useUserGetLPTokenBalance(
         props.pool.pair.pool.state.poolTokenMint.toString(),
@@ -102,7 +100,8 @@ export default function DepositForm(props: { pool: PoolData }) {
                     onClose: () => {
                         refetch();
                         refetchLP();
-                        refetchBalances();
+                        refetchBalances0();
+                        refetchBalances1();
                     },
                 },
             );
@@ -126,9 +125,9 @@ export default function DepositForm(props: { pool: PoolData }) {
                     Balance:{' '}
                     <span
                         className="text-saber-light cursor-pointer"
-                        onClick={() => setValue('amountTokenA', ataInfo?.[0].balance.asNumber ?? 0)}
+                        onClick={() => setValue('amountTokenA', ataInfo0?.balance.asNumber ?? 0)}
                     >
-                        {ataInfo?.[0].balance.asNumber ?? 0}
+                        {ataInfo0?.balance.asNumber ?? 0}
                     </span>
                 </span>
             </div>
@@ -145,9 +144,9 @@ export default function DepositForm(props: { pool: PoolData }) {
                     Balance:{' '}
                     <span
                         className="text-saber-light cursor-pointer"
-                        onClick={() => setValue('amountTokenB', ataInfo?.[1].balance.asNumber ?? 0)}
+                        onClick={() => setValue('amountTokenB', ataInfo1?.balance.asNumber ?? 0)}
                     >
-                        {ataInfo?.[1].balance.asNumber ?? 0}
+                        {ataInfo1?.balance.asNumber ?? 0}
                     </span>
                 </span>
             </div>
