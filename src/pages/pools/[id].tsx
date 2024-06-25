@@ -13,7 +13,7 @@ import clsx from 'clsx';
 import Saber from '../../svg/saber';
 import { PoolData } from '../../types';
 
-import { toPrecision } from '../../helpers/number';
+import { toAPY, toPrecision } from '../../helpers/number';
 import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
 import { getLogo, getPoolId, getPoolName, getSymbol } from '../../helpers/pool';
@@ -479,16 +479,16 @@ const PoolPage = (props: { params: { id: string } }) => {
                                     <p className="text-gray-400">Staking APY</p>
                                     <div className="flex flex-col justify-center text-lg font-bold text-gray-300">
                                         <div className="text-left sm:text-right">
-                                            {toPrecision(pool.metrics?.totalApy ?? 0, 4)}%
+                                            {toAPY(pool.metrics?.totalApy ?? 0, 4)}%
                                         </div>
                                         <div className="flex gap-1 text-xs font-normal">
                                             <div className="flex items-center gap-1 justify-start sm:justify-end">
-                                                {toPrecision(pool.metrics?.emissionApy ?? 0, 4)}%
+                                                {toAPY(pool.metrics?.emissionApy ?? 0, 4)}%
                                                 <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />
                                                 +
                                             </div>
                                             <div className="flex items-center gap-1 justify-start sm:justify-end">
-                                                {toPrecision(pool.metrics?.feeApy ?? 0, 4)}%
+                                                {toAPY(pool.metrics?.feeApy ?? 0, 4)}%
                                                 <div className="flex gap-2">
                                                     <img
                                                         className="w-4 h-4 rounded-full"

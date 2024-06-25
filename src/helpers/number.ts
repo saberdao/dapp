@@ -15,3 +15,11 @@ export const toPrecision = (x: number, precision = 2) => {
         maximumSignificantDigits: Math.max(1, x > 1e6 ? precision : Math.max(numberOfDigits, precision, 1)),
     }).format(x);
 };
+
+export const toAPY = (x: number, precision = 4) => {
+    if (x < 0.1) {
+        return '< 0.1';
+    }
+
+    return toPrecision(x, precision);
+}

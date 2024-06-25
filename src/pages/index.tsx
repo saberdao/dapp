@@ -17,7 +17,7 @@ import ActiveText from '../components/ActiveText';
 import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { CurrencyMarket, PoolData } from '../types';
-import { toPrecision } from '../helpers/number';
+import { toAPY, toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { isPoolFeatured } from '../helpers/featuredPools';
 import useGetStats from '../hooks/useGetStats';
@@ -254,7 +254,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                 pool.metricInfo?.volumeInUSD
                                     ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}`
                                     : '$0',
-                                `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
+                                `${toAPY(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
                                     {poolsView !== PoolsView.GRID && (
                                         <div className="flex justify-end">
