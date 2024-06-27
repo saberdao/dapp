@@ -16,7 +16,8 @@ export default function Address(props: { address: string }) {
       target="_blank"
       rel="noreferrer"
     >
-      {props.address.substring(0, 4)}...{props.address.substring(props.address.length - 4)}
+      {props.address.substring(0, 4)}...
+      {props.address.substring(props.address.length - 4)}
       <HiExternalLink />
     </a>
   );
