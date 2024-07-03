@@ -64,7 +64,7 @@ const batcher = memoize((connection: Connection, network: WalletAdapterNetwork, 
     resolver: (atas, query) => {
         return atas.find(ata => ata.mint === query?.mint?.address && ata.ignoreWrap === query.ignoreWrap) ?? null;
     },
-    scheduler: windowScheduler(100),
+    scheduler: windowScheduler(500),
   }));
 
 export default function useUserATA(
@@ -74,8 +74,6 @@ export default function useUserATA(
     const { wallet } = useWallet();
     const { connection } = useConnection();
     const { network, endpoint } = useNetwork();
-
-    
 
     return useQuery({
         queryKey: ['userATA', endpoint, wallet?.adapter.publicKey, mint?.address, ignoreWrap],
