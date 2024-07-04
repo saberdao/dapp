@@ -9,7 +9,7 @@ import useNetwork from './useNetwork';
 import { PoolData } from '../types';
 import { rawSOLOverride } from '../helpers/rawSOL';
 import { Tags } from '../utils/builtinTokens';
-import useUserATAs from './user/useUserATAs';
+import useUserATA from './user/useUserATA';
 
 interface ExchangeTokens {
     tokens?: readonly [Token, Token];
@@ -78,16 +78,14 @@ export const useStableSwapTokens = (pool: PoolData): ExchangeTokens | undefined 
             return { underlyingTokens, newUnderlyingTokens, wrappedTokens };
         }, [allTokens, tokens]);
 
-    const { data: tokenAccounts } = useUserATAs(
-        [
-            new Token(pool.info.lpToken),
-            ...(tokens ?? []),
-            ...(result?.newUnderlyingTokens.map(tok => new Token(tok)) ?? []),
-        ].map(rawSOLOverride),
-    );
-    const { data: underlyingTokenAccounts } = useUserATAs(
-        (result?.underlyingTokens?.map(tok => rawSOLOverride(new Token(tok))) ?? []),
-    );
+    const tokenAccounts = [
+        new Token(pool.info.lpToken),
+        ...(tokens ?? []),
+        ...(result?.newUnderlyingTokens.map(tok => new Token(tok)) ?? []),
+    ].map(rawSOLOverride).map((token) => useUserATA(token).data);
+
+    const underlyingTokenAccounts = (result?.underlyingTokens?.map(tok => rawSOLOverride(new Token(tok))) ?? [])
+     .map((token) => useUserATA(token).data);
 
     if (!result) {
         return undefined;

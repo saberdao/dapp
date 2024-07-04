@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa';
 
-import { getLogo, getPoolName } from '../helpers/pool';
+import { getLogo, getPoolId, getPoolName } from '../helpers/pool';
 import H1 from '../components/H1';
 import usePoolsInfo from '../hooks/usePoolsInfo';
 import Table from '../components/Table';
@@ -17,9 +17,10 @@ import ActiveText from '../components/ActiveText';
 import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { CurrencyMarket, PoolData } from '../types';
-import { toPrecision } from '../helpers/number';
+import { toAPY, toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
 import { isPoolFeatured } from '../helpers/featuredPools';
+import useGetStats from '../hooks/useGetStats';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -83,6 +84,7 @@ const sortFunctions = {
 const IndexPage: React.FC<PageProps> = () => {
     const pools = usePoolsInfo();
     const { data: price } = useGetPrices();
+    const { data: sbrStats } = useGetStats();
     const { wallet } = useWallet();
     const [sort, setSort] = useState(SORTS.DEFAULT);
 
@@ -218,9 +220,9 @@ const IndexPage: React.FC<PageProps> = () => {
                     .sort(sortFunctions[sort || SORTS.DEFAULT])
                     .map((pool) => {
                         return {
-                            rowLink: `/pools/${pool.info.id}`,
+                            rowLink: `/pools/${getPoolId(pool.info.id)}`,
                             data: [
-                                <div key={pool.info.id} className="flex items-center gap-2">
+                                <div key={getPoolId(pool.info.id)} className="flex items-center gap-2">
                                     <img
                                         className="w-5 h-5 rounded-full"
                                         src={getLogo(
@@ -252,7 +254,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                 pool.metricInfo?.volumeInUSD
                                     ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}`
                                     : '$0',
-                                `${toPrecision(pool.metrics?.totalApy ?? 0, 4)}%`,
+                                `${toAPY(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
                                     {poolsView !== PoolsView.GRID && (
                                         <div className="flex justify-end">
@@ -297,6 +299,12 @@ const IndexPage: React.FC<PageProps> = () => {
                         <div>{`$${toPrecision(stats.volume, 4)}`}</div>
                         <div className="font-bold">24h fees</div>
                         <div>{`$${toPrecision(stats.fee, 4)}`}</div>
+                        <div className="font-bold">Total SBR supply</div>
+                        <div>{`${toPrecision(sbrStats?.totalSupply ?? 0, 4)}`}</div>
+                        <div className="font-bold">SBR circulating</div>
+                        <div>{`${toPrecision(sbrStats?.circulatingSupply ?? 0, 4)}`}</div>
+                        <div className="font-bold">veSBR supply</div>
+                        <div>{`${toPrecision(sbrStats?.vesbr ?? 0, 4)}`}</div>
                     </div>
                 </div>
                 <div className="block lg:flex items-center mb-3">

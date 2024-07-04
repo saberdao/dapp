@@ -13,10 +13,10 @@ import clsx from 'clsx';
 import Saber from '../../svg/saber';
 import { PoolData } from '../../types';
 
-import { toPrecision } from '../../helpers/number';
+import { toAPY, toPrecision } from '../../helpers/number';
 import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
-import { getLogo, getPoolName, getSymbol } from '../../helpers/pool';
+import { getLogo, getPoolId, getPoolName, getSymbol } from '../../helpers/pool';
 
 import useClaim from '../../hooks/user/useClaim';
 import usePoolsInfo from '../../hooks/usePoolsInfo';
@@ -179,10 +179,18 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     );
     const { maxSlippagePercent } = useSettings();
     const { dailyRewards, refetch: refetchRewards } = useDailyRewards(props.pool.info.lpToken);
+    
+    const token0 = useMemo(() => {
+        return props.pool?.info.tokens[0];
+    }, [props.pool]);
 
-    const stakedUsdValue = useMemo(() => {
+    const token1 = useMemo(() => {
+        return props.pool?.info.tokens[1];
+    }, [props.pool]);
+
+    const stakedValue = useMemo(() => {
         if (!miner?.data) {
-            return 0;
+            return { valueA: 0, valueB: 0, usdValue: 0 };
         }
 
         const values = calculateWithdrawAll({
@@ -198,7 +206,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         const valueB = values.estimates[1] ? values.estimates[1].asNumber : 0;
 
         const usdValue = valueA * props.pool.usdPrice.tokenA + valueB * props.pool.usdPrice.tokenB;
-        return usdValue;
+        return { valueA, valueB, usdValue };
     }, [miner]);
 
     const { claim } = useClaim(props.pool.info.lpToken, (tx: string) => toast.success(
@@ -244,7 +252,23 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                 <H2>Your Liquidity</H2>
                 <InfoPanel
                     data={[
-                        ['Staked', `$${toPrecision(stakedUsdValue, 4)}`],
+                        [
+                            'Staked', 
+                            <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
+                                <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
+                                <p>{getSymbol(token0.symbol)}</p>
+                                <p>{toPrecision(stakedValue.valueA, 4)}</p>
+                            </div>
+                        ],
+                        [
+                            '',
+                            <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
+                                <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
+                                <p>{getSymbol(token1.symbol)}</p>
+                                <p>{toPrecision(stakedValue.valueB, 4)}</p>
+                            </div>
+                        ],
+                        ['USD value', `$${toPrecision(stakedValue.usdValue, 4)}`],
                         lpTokenBalance && lpTokenBalance.balance.value.uiAmount
                             ? [
                                   'LP token balance',
@@ -319,7 +343,7 @@ const PoolPage = (props: { params: { id: string } }) => {
     const leveragedRef = useRef<Ref>();
 
     const pool = useMemo(() => {
-        return pools?.data?.pools?.find((x) => x.info.id === props.params.id);
+        return pools?.data?.pools?.find((x) => getPoolId(x.info.id) === getPoolId(props.params.id));
     }, [props.params.id, pools]);
 
     const token0 = useMemo(() => {
@@ -351,28 +375,39 @@ const PoolPage = (props: { params: { id: string } }) => {
                 <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
                 <p>{getSymbol(token0.symbol)}</p>
             </div>,
-            `$${toPrecision(
-                pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA,
+            `${toPrecision(
+                pool.exchangeInfo.reserves[0].amount.asNumber,
                 4,
-            )}`,
+            )} (${toPrecision(
+                100 * pool.exchangeInfo.reserves[0].amount.asNumber / (pool.exchangeInfo.reserves[0].amount.asNumber + pool.exchangeInfo.reserves[1].amount.asNumber),
+                4,
+            )}%)`,
         ],
         [
             <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
                 <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
                 <p>{getSymbol(token1.symbol)}</p>
             </div>,
-            `$${toPrecision(
-                pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
+            `${toPrecision(
+                pool.exchangeInfo.reserves[1].amount.asNumber,
                 4,
-            )}`,
+            )} (${toPrecision(
+                100 * pool.exchangeInfo.reserves[1].amount.asNumber / (pool.exchangeInfo.reserves[0].amount.asNumber + pool.exchangeInfo.reserves[1].amount.asNumber),
+                4,
+            )}%)`,
         ],
+        ['Pool USD value', `$${toPrecision(
+            pool.exchangeInfo.reserves[0].amount.asNumber * pool.usdPrice.tokenA +
+            pool.exchangeInfo.reserves[1].amount.asNumber * pool.usdPrice.tokenB,
+            4,
+        )}`],
         ['---'],
         ['24h volume', `$${toPrecision(pool.metricInfo?.volumeInUSD ?? 0)}`],
         ['24h fees', `$${toPrecision(pool.metricInfo?.['24hFeeInUsd'] ?? 0)}`],
         ['---'],
         [
             'Virtual price',
-            `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 4) : '...'}`,
+            `${pool.virtualPrice ? toPrecision(pool.virtualPrice.asNumber, 7) : '...'}`,
         ],
         ['Concentration coefficient', `${pool.pair.pool.exchange.ampFactor}x`],
         ['---'],
@@ -392,7 +427,7 @@ const PoolPage = (props: { params: { id: string } }) => {
         ['Token A mint', <Address key={2} address={pool.pair.pool.state.tokenA.mint.toString()} />],
         ['Token B mint', <Address key={3} address={pool.pair.pool.state.tokenB.mint.toString()} />],
         [
-            'Token B reserve',
+            'Token A reserve',
             <Address key={4} address={pool.pair.pool.state.tokenA.reserve.toString()} />,
         ],
         [
@@ -433,16 +468,16 @@ const PoolPage = (props: { params: { id: string } }) => {
                                     <p className="text-gray-400">Staking APY</p>
                                     <div className="flex flex-col justify-center text-lg font-bold text-gray-300">
                                         <div className="text-left sm:text-right">
-                                            {toPrecision(pool.metrics?.totalApy ?? 0, 4)}%
+                                            {toAPY(pool.metrics?.totalApy ?? 0, 4)}%
                                         </div>
                                         <div className="flex gap-1 text-xs font-normal">
                                             <div className="flex items-center gap-1 justify-start sm:justify-end">
-                                                {toPrecision(pool.metrics?.emissionApy ?? 0, 4)}%
+                                                {toAPY(pool.metrics?.emissionApy ?? 0, 4)}%
                                                 <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />
                                                 +
                                             </div>
                                             <div className="flex items-center gap-1 justify-start sm:justify-end">
-                                                {toPrecision(pool.metrics?.feeApy ?? 0, 4)}%
+                                                {toAPY(pool.metrics?.feeApy ?? 0, 4)}%
                                                 <div className="flex gap-2">
                                                     <img
                                                         className="w-4 h-4 rounded-full"

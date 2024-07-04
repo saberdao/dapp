@@ -23,18 +23,15 @@ export default function useGetPrices() {
 
             // Get prices from pyth
             const client = new PythHttpClient(connection, getPythProgramKeyForCluster(network));
-            const [pythData, cgData] = await Promise.all([
-                client.getData(),
-                fetch('https://api.coingecko.com/api/v3/simple/price?ids=bilira&vs_currencies=usd'),
-            ]);
+            const pythData = await client.getData();
 
             let tryPrice = 0;
             try {
+                const cgData = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bilira&vs_currencies=usd')
                 tryPrice = (await cgData.json())?.bilira?.usd ?? 0;
             } catch (e) {
                 // Do nothing (just assume is 0)
             }
-
 
             // We can add more from pyth here later
             const prices: OraclePrice = {
