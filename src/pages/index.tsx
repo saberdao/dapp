@@ -292,13 +292,13 @@ const IndexPage: React.FC<PageProps> = () => {
             <div>
                 <div className="mt-3 mb-6">
                     <H1>Saber global stats</H1>
-                    <div className="grid grid-cols-2 lg:grid-cols-6 bg-saber-dark/20 rounded-lg p-3 gap-1">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 bg-saber-dark/20 rounded-lg p-3 gap-1">
                         <div className="font-bold">TVL</div>
                         <div>{`$${toPrecision(stats.tvl, 4)}`}</div>
-                        <div className="font-bold">24h volume</div>
+                        {/* <div className="font-bold">24h volume</div>
                         <div>{`$${toPrecision(stats.volume, 4)}`}</div>
                         <div className="font-bold">24h fees</div>
-                        <div>{`$${toPrecision(stats.fee, 4)}`}</div>
+                        <div>{`$${toPrecision(stats.fee, 4)}`}</div> */}
                         <div className="font-bold">Total SBR supply</div>
                         <div>{`${toPrecision(sbrStats?.totalSupply ?? 0, 4)}`}</div>
                         <div className="font-bold">SBR circulating</div>

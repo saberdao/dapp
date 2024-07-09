@@ -160,7 +160,7 @@ export default function Navbar() {
                             <FaMedium />
                         </Button>
                     </a>
-                    <a
+                    {/* <a
                         href="https://data.saberdao.io/public-dashboards/8e8314fc11434f129c11d841d46d93ad?orgId=1"
                         target="_blank"
                         rel="noreferrer"
@@ -168,7 +168,7 @@ export default function Navbar() {
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
                             <MdOutlineQueryStats />
                         </Button>
-                    </a>
+                    </a> */}
                     <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
                             <FaXTwitter />
