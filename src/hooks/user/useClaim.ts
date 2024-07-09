@@ -1,23 +1,19 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import invariant from 'tiny-invariant';
-import { createVersionedTransaction, sendTransaction } from '../../helpers/transaction';
+import { sendTransaction } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
 import { getClaimIxs } from '../../helpers/claim';
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import useQuarry from '../useQuarry';
 import useNetwork from '../useNetwork';
-import { createQuarryPayroll } from '@/src/helpers/quarry';
 import BN from 'bn.js';
-import { findMergeMinerAddress, QUARRY_ADDRESSES } from '@quarryprotocol/quarry-sdk';
-import { isPublicKey } from '@saberhq/solana-contrib';
 import { getReplicaRewards } from '@/src/helpers/replicaRewards';
 
 export default function useClaim(lpToken: TokenInfo, onSuccess: (tx: string) => void) {
     const { connection } = useConnection();
-    const { network } = useNetwork();
     const { wallet } = useWallet();
     const { data: balance } = useUserGetLPTokenBalance(lpToken.address);
     const { data: miner } = useQuarryMiner(lpToken);
@@ -72,7 +68,6 @@ export default function useClaim(lpToken: TokenInfo, onSuccess: (tx: string) => 
                     if (reward <= 0) {
                         throw Error('Not enough rewards');
                     }
-                    console.log(reward)
                 } catch (e) {
                     // No rewards
                     return;
