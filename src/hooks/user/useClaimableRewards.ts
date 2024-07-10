@@ -4,20 +4,24 @@ import { createQuarryPayroll } from '../../helpers/quarry';
 import BN from 'bn.js';
 import { useState } from 'react';
 import { SBR_INFO } from '../../utils/builtinTokens';
+import useGetSecondaryPayrolls from './useGetSecondaryPayrolls';
 
 export default function useClaim(lpToken: TokenInfo) {
     const { data: miner } = useQuarryMiner(lpToken, true);
-    const [rewardsT0, setRewardsT0] = useState(0);
+    const { data: secondaryPayrolls } = useGetSecondaryPayrolls(lpToken);
+    const [rewardsT0, setRewardsT0] = useState({ primary: 0, secondary: [] as number[] });
     const [timeT0, setTimeT0] = useState(0);
 
     const claimableRewards = () => {
-        if (!miner?.data) {
+        if (!miner?.data ||! secondaryPayrolls) {
             return null;
         }
 
         const time = Date.now();
 
         const timeInSec = Math.floor(time / 1000);
+
+        // Primary
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
         const rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSec),
@@ -26,27 +30,44 @@ export default function useClaim(lpToken: TokenInfo) {
             miner.data.rewardsEarned,
         ));
 
-        const reward = rewards.asNumber;
+        // Secondary
+        const secondaryRewards = secondaryPayrolls.map((secondaryPayroll) => {
+            return (new TokenAmount(new Token(SBR_INFO), secondaryPayroll.payroll.calculateRewardsEarned(
+                new BN(timeInSec),
+                secondaryPayroll.replicaMinerData.balance,
+                secondaryPayroll.replicaMinerData.rewardsPerTokenPaid,
+                secondaryPayroll.replicaMinerData.rewardsEarned,
+            ))).asNumber;
+        })
 
-        if (!rewardsT0) {
+        const reward = { primary: rewards.asNumber, secondary: secondaryRewards };
+
+        if (!rewardsT0.primary) {
             setRewardsT0(reward);
             setTimeT0(timeInSec);
         } else {
             // Calculate millisecond precision
             const extraMs = time - timeInSec * 1000;
 
-            // Calculate reward per millisecond
-            const rewardPerMilliSec = ((reward - rewardsT0) / (timeInSec - timeT0)) / 1000;
+            // Calculate primary reward per millisecond
+            const rewardPerMilliSec = ((reward.primary - rewardsT0.primary) / (timeInSec - timeT0)) / 1000;
+
+            // Calculate secondary reward per millisecond
+            const secondaryRewardPerMilliSec = secondaryRewards
+                .map((secondaryReward, i) => ((secondaryReward - rewardsT0.secondary[i]) / (timeInSec - timeT0)) / 1000)
             
             // Add to reward
-            return reward + rewardPerMilliSec * extraMs;
+            return {
+                primary: reward.primary + rewardPerMilliSec * extraMs,
+                secondary: secondaryRewards.map((secondaryReward, i) => secondaryReward + secondaryRewardPerMilliSec[i] * extraMs)
+            };
         }
 
         return reward;
     };
 
     const reset = () => {
-        setRewardsT0(0);
+        setRewardsT0({ primary: 0, secondary: [] });
         setTimeT0(0);
     };
 

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import invariant from 'tiny-invariant';
 import type { HeadFC } from 'gatsby';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import { FaDiscord, FaGithub, FaGlobe, FaMedium, FaTelegram } from 'react-icons/fa';
@@ -99,7 +100,8 @@ const AboutBlock = (props: { token: TokenInfo }) => {
 
 const FarmCounter = (props: { pool: PoolData }) => {
     const { claimableRewards } = useClaimableRewards(props.pool.info.lpToken);
-    const [amounts, setAmounts] = useState<number | null>(null);
+    const { data: miner } = useQuarryMiner(props.pool.info.lpToken, true);
+    const [amounts, setAmounts] = useState<{ primary: number, secondary: number[] } | null>(null);
     const [started, setStarted] = useState(false);
 
     useEffect(() => {
@@ -111,7 +113,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
     useEffect(() => {
         let playing = true;
         const doFrame = () => {
-            setAmounts(claimableRewards() ?? 0);
+            setAmounts(claimableRewards() ?? { primary: 0, secondary: [] });
             if (playing) {
                 requestAnimationFrame(doFrame);
             }
@@ -123,11 +125,39 @@ const FarmCounter = (props: { pool: PoolData }) => {
     }, [started]);
 
     const digits = useMemo(() => {
-        return amounts && Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(amounts ?? 1))));
+        if (!amounts) {
+            return undefined;
+        }
+        return {
+            primary: Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(amounts.primary ?? 1)))),
+            secondary: amounts.secondary.map(secondaryAmount => Math.max(0, Math.min(8, 8 - Math.ceil(Math.log10(secondaryAmount ?? 1)))))
+        };
     }, [amounts]);
 
     if (amounts && digits) {
-        return <p>{amounts.toFixed(digits)}</p>;
+        return (
+            <>
+                <div className="flex justify-end">
+                    <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
+                </div>
+                <div className="text-right font-mono">
+                    {amounts.primary.toFixed(digits.primary)}
+                </div>
+                {amounts.secondary.map((secondaryAmount, i) => {
+                    invariant(miner?.replicaInfo);
+                    return (
+                        <React.Fragment key={i}>
+                            <div className="flex justify-end">
+                                {miner.replicaInfo.replicaQuarries[i].rewardsToken.mint.slice(0, 4)}...
+                            </div>
+                            <div className="text-right font-mono">
+                                {secondaryAmount.toFixed(digits.secondary[i])}
+                            </div>
+                        </React.Fragment>
+                    )
+                })}
+            </>
+        );
     }
 
     return 0;
@@ -136,12 +166,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
 const FarmRewards = (props: { pool: PoolData }) => {
     return (
         <div className="grid grid-cols-2 gap-1 w-full">
-            <div className="flex justify-end">
-                <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
-            </div>
-            <div className="text-right font-mono">
-                <FarmCounter pool={props.pool} />
-            </div>
+            <FarmCounter pool={props.pool} />
         </div>
     );
 };
@@ -275,7 +300,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                                   `${toPrecision(lpTokenBalance.balance.value.uiAmount, 4)}`,
                               ]
                             : [],
-                        ['SBR Rewards', <FarmRewards key="f" pool={props.pool} />],
+                        ['Farm Rewards', <FarmRewards key="f" pool={props.pool} />],
                     ].filter((x) => x.length !== 0)}
                 />
 
