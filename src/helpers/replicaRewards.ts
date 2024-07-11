@@ -24,7 +24,7 @@ const findPDASync = (
     return addr;
 };
 
-const findMergePoolAddress = ({
+export const findMergePoolAddress = ({
     programId = QUARRY_ADDRESSES.MergeMine,
     primaryMint,
 }: {

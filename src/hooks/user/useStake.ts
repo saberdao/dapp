@@ -6,7 +6,10 @@ import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
-import { Signer, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js';
+import { SBR_REWARDER } from '@saberhq/saber-periphery';
+import { findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
+import { findMergePoolAddress } from '@/src/helpers/replicaRewards';
 
 export default function useStake(lpToken: TokenInfo) {
     const { connection } = useConnection();
@@ -46,7 +49,32 @@ export default function useStake(lpToken: TokenInfo) {
 
         allInstructions.push(...stakeTX.instructions);
         signers.push(...stakeTX.signers);
-        
+
+        // Add secondary rewards
+        if (data.replicaInfo && data.replicaInfo.replicaQuarries) {
+            await Promise.all(data.replicaInfo.replicaQuarries.map(async (replica) => {
+                invariant(wallet.adapter.publicKey);
+                const mergePoolAddress = findMergePoolAddress({
+                    primaryMint: new PublicKey(lpToken.address),
+                });
+                const mergePool = data.quarry.sdk.mergeMine.loadMP({
+                    mpKey: mergePoolAddress,
+                });
+                const [mmAddress] = await findMergeMinerAddress({
+                    pool: mergePoolAddress,
+                    owner: wallet.adapter.publicKey,
+                })
+
+                const tx = await mergePool.stakeReplicaMiner(
+                    new PublicKey(replica.rewarder),
+                    mmAddress,
+                );
+                allInstructions.push(...tx.instructions);
+                signers.push(...tx.signers);
+                return;
+            }))
+        }
+
         const vt = await createVersionedTransaction(connection, allInstructions, wallet.adapter.publicKey);
 
         vt.transaction.sign(signers);
