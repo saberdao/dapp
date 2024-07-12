@@ -105,15 +105,19 @@ const FarmCounter = (props: { pool: PoolData }) => {
     const [started, setStarted] = useState(false);
 
     useEffect(() => {
-        if (claimableRewards?.()) {
+        if (claimableRewards?.()?.primary) {
             setStarted(true);
         }
     }, [claimableRewards]);
 
     useEffect(() => {
+        if (started === false) {
+            return;
+        }
+
         let playing = true;
         const doFrame = () => {
-            setAmounts(claimableRewards() ?? { primary: 0, secondary: [] });
+            setAmounts(claimableRewards?.() ?? { primary: 0, secondary: [] });
             if (playing) {
                 requestAnimationFrame(doFrame);
             }
@@ -137,13 +141,19 @@ const FarmCounter = (props: { pool: PoolData }) => {
     if (amounts && digits) {
         return (
             <>
-                <div className="flex justify-end">
-                    <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
-                </div>
-                <div className="text-right font-mono">
-                    {amounts.primary.toFixed(digits.primary)}
-                </div>
+                {amounts.primary > 0 ? <>
+                    <div className="flex justify-end">
+                        <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
+                    </div>
+                    <div className="text-right font-mono">
+                        {amounts.primary.toFixed(digits.primary)}
+                    </div>
+                </>
+                : null}
                 {amounts.secondary.map((secondaryAmount, i) => {
+                    if (secondaryAmount === 0) {
+                        return null;
+                    }
                     invariant(miner?.replicaInfo);
                     return (
                         <React.Fragment key={i}>
@@ -160,7 +170,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
         );
     }
 
-    return 0;
+    return null;
 };
 
 const FarmRewards = (props: { pool: PoolData }) => {
@@ -214,14 +224,14 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     }, [props.pool]);
 
     const stakedValue = useMemo(() => {
-        if (!miner?.data) {
+        if (!miner?.data || !miner.stakedBalance) {
             return { valueA: 0, valueB: 0, usdValue: 0 };
         }
 
         const values = calculateWithdrawAll({
             poolTokenAmount: new TokenAmount(
                 new Token(props.pool.info.lpToken),
-                miner.data.balance,
+                miner.stakedBalance,
             ),
             maxSlippagePercent,
             exchangeInfo: props.pool.exchangeInfo,

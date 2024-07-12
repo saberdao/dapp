@@ -17,7 +17,7 @@ const getCUsForTx = async (
 
     // Add 25K + 10% leeway here because the simulation of a stake right after deposit takes some time (>10-20 secs) to update to the correct
     // number of CUs used (and maybe other TXs as well). Just 10% is not enough for very low CU TXs (like quarry stake).
-    const CUs = simulation.value.unitsConsumed ? Math.ceil(1.1 * simulation.value.unitsConsumed + 25000) : 1.4e6;
+    const CUs = simulation.value.unitsConsumed ? Math.ceil(1.1 * simulation.value.unitsConsumed + 75000) : 1.4e6;
     return CUs;
 };
 
@@ -25,9 +25,10 @@ export const createVersionedTransaction = async (
     connection: Connection,
     txs: TransactionInstruction[],
     payerKey: PublicKey,
+    minCU = 0,
 ) => {
     const latestBlockhash = await connection.getLatestBlockhash('finalized');
-    const CUs = await getCUsForTx(connection, latestBlockhash, txs, payerKey);
+    const CUs = Math.max(minCU, await getCUsForTx(connection, latestBlockhash, txs, payerKey));
     console.log(CUs)
 
     const priorityFeeLS = parseFloat(localStorage.getItem('priorityFee') ?? '');

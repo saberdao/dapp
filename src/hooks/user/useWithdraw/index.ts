@@ -1,7 +1,7 @@
-import { SABER_CODERS, WrappedTokenActions } from '@saberhq/saber-periphery';
+import { SABER_CODERS, SABER_IOU_MINT, SBR_MINT, SBR_REWARDER, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { Percent } from '@saberhq/token-utils';
 import { getOrCreateATAs, Token, TokenAmount } from '@saberhq/token-utils';
-import { TransactionInstruction, type Signer } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction, VersionedTransaction, type Signer } from '@solana/web3.js';
 import { useMemo } from 'react';
 import invariant from 'tiny-invariant';
 
@@ -18,6 +18,12 @@ import { createVersionedTransaction } from '../../../helpers/transaction';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from '../useQuarryMiner';
 import { getClaimIxs } from '../../../helpers/claim';
+import { findMergePoolAddress, getReplicaRewards } from '@/src/helpers/replicaRewards';
+import { findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
+import useQuarry from '../../useQuarry';
+import BN from 'bn.js';
+import { showTxSuccessMessage } from '@/src/components/TX';
+import { TransactionEnvelope } from '@saberhq/solana-contrib';
 
 export interface IWithdrawal {
     withdrawPoolTokenAmount?: TokenAmount;
@@ -68,11 +74,12 @@ export const useWithdraw = ({
     pool,
     actions,
 }: IWithdrawal): IUseWithdraw | undefined => {
-    const { wallet } = useWallet();
+    const { wallet, signAllTransactions } = useWallet();
     const { provider, saber } = useProvider();
     const { connection } = useConnection();
     const { data: miner } = useQuarryMiner(pool.info.lpToken, true);
     const { data: userLP } = useUserGetLPTokenBalance(pool.info.lpToken.address);
+    const {data: quarry} = useQuarry()
 
     const { maxSlippagePercent } = useSettings();
 
@@ -139,14 +146,142 @@ export const useWithdraw = ({
         const withdrawIxs: TransactionInstruction[] = [];
 
         if (actions.unstake && miner?.data) {
-            const maxAmount = BigNumber.min(new BigNumber(miner.data.balance.toString()), withdrawPoolTokenAmount.raw.toString());
+            const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalance.toString()), withdrawPoolTokenAmount.raw.toString());
             const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
             const stakeTX = miner.miner.withdraw(amount);
             withdrawIxs.push(...stakeTX.instructions);
 
-            // Also redeem all SBR earned
-            const ixs = await getClaimIxs(saber, miner, wallet);
-            withdrawIxs.push(...ixs);
+            // Has secondary rewards
+            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries) {
+                const claimReplicaTx: TransactionInstruction[] = [];
+                const unstakeReplicaTx: TransactionInstruction[] = [];
+                const mergePoolAddress = findMergePoolAddress({
+                    primaryMint: new PublicKey(pool.info.lpToken.address),
+                });
+                const mergePool = miner.quarry.sdk.mergeMine.loadMP({
+                    mpKey: mergePoolAddress,
+                });
+                const [mmAddress] = await findMergeMinerAddress({
+                    pool: mergePoolAddress,
+                    owner: wallet.adapter.publicKey,
+                })
+
+                await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replica) => {
+                    invariant(wallet.adapter.publicKey);
+                    invariant(miner.mergeMiner);
+                    const ixs = await mergePool.unstakeAllReplica(
+                        new PublicKey(replica.rewarder),
+                        mmAddress,
+                    );
+                    unstakeReplicaTx.push(...ixs.instructions);
+
+                    try {
+                        // Get the amount to claim. If <=0, skip.
+                        const { payroll, replicaMinerData } = await getReplicaRewards(
+                            quarry!.sdk,
+                            pool.info.lpToken,
+                            replica,
+                            wallet.adapter.publicKey
+                        );    
+                        const rewards = new TokenAmount(new Token({
+                            ...replica.rewardsToken,
+                            symbol: 'R',
+                            chainId: 103,
+                            address: replica.rewardsToken.mint,
+                            name: 'Reward token'
+                        }), payroll.calculateRewardsEarned(
+                            new BN(Math.floor(Date.now() / 1000)),
+                            replicaMinerData.balance,
+                            replicaMinerData.rewardsPerTokenPaid,
+                            replicaMinerData.rewardsEarned,
+                        ));
+    
+                        const reward = rewards.asNumber;
+                        if (reward <= 0) {
+                            throw Error('Not enough rewards');
+                        }
+                    } catch (e) {
+                        // No rewards
+                        return;
+                    }
+
+                    const T = await miner.mergeMiner.claimReplicaRewards(new PublicKey(replica.rewarder));
+                    claimReplicaTx.push(...T.instructions);
+                }));
+
+                // Execute these separately because it doesn't fit in 1 TX
+                const vt1 = await createVersionedTransaction(connection, claimReplicaTx, wallet.adapter.publicKey);
+                const hash1 = await wallet.adapter.sendTransaction(vt1.transaction, connection);
+                await connection.confirmTransaction({ signature: hash1, ...vt1.latestBlockhash }, 'processed');
+                showTxSuccessMessage(hash1);
+
+                const vt2 = await createVersionedTransaction(connection, unstakeReplicaTx, wallet.adapter.publicKey);
+                const hash2 = await wallet.adapter.sendTransaction(vt2.transaction, connection);
+                await connection.confirmTransaction({ signature: hash2, ...vt2.latestBlockhash }, 'processed');
+                showTxSuccessMessage(hash2);
+
+                // Claim Saber
+                const claimSaberIxs: TransactionInstruction[] = [];
+                const claimSbr = await mergePool.claimPrimaryRewards(SBR_REWARDER, mmAddress);
+                const withdrawSbr = await mergePool.withdraw({ amount, rewarder: SBR_REWARDER, mergeMiner: mmAddress });
+                // const unstakeSbr = await mergePool.unstakePrimaryMiner(SBR_REWARDER, mmAddress, amount);
+                claimSaberIxs.push(...claimSbr.instructions);
+                // claimSaberIxs.push(...unstakeSbr.instructions);
+                claimSaberIxs.push(...withdrawSbr.instructions);
+                const redeemer = await saber.loadRedeemer({
+                    iouMint: SABER_IOU_MINT,
+                    redemptionMint: new PublicKey(SBR_MINT),
+                });
+                const { accounts, instructions } = await getOrCreateATAs({
+                    provider: saber.provider,
+                    mints: {
+                        iou: redeemer.data.iouMint,
+                        redemption: redeemer.data.redemptionMint,
+                    },
+                    owner: wallet.adapter.publicKey,
+                });
+                const redeemTx = await redeemer.redeemAllTokensFromMintProxyIx({
+                    iouSource: accounts.iou,
+                    redemptionDestination: accounts.redemption,
+                    sourceAuthority: wallet.adapter.publicKey,
+                });
+                claimSaberIxs.push(...instructions);
+                claimSaberIxs.push(redeemTx);
+
+                const vt3 = await createVersionedTransaction(connection, claimSaberIxs, wallet.adapter.publicKey, 250000);
+                const hash3 = await wallet.adapter.sendTransaction(vt3.transaction, connection);
+                await connection.confirmTransaction({ signature: hash3, ...vt3.latestBlockhash }, 'processed');
+                showTxSuccessMessage(hash3);
+
+                // If not unstaking everything, restake replicas
+                // Compare strings because the types are BigNumber and JSBI
+                const replicaDepositTxs: TransactionEnvelope[] = [];
+                if (withdrawPoolTokenAmount.raw.toString() !== miner.stakedBalance.toString()) {
+                    // Need restake replica
+                    replicaDepositTxs.push(
+                        ...(await Promise.all(
+                            miner.replicaInfo.replicaQuarries.map(async (replica) => {
+                                invariant(miner.mergeMiner, 'merge miner');
+                                return await mergePool.stakeReplicaMiner(
+                                    new PublicKey(replica.rewarder),
+                                    mmAddress,
+                                );
+                            }),
+                        )),
+                    );
+                    const vt4 = await createVersionedTransaction(connection, replicaDepositTxs.map(t => t.instructions).flat(), wallet.adapter.publicKey, 250000);
+                    vt4.transaction.sign(replicaDepositTxs.map(t => t.signers).flat())
+                    const hash4 = await wallet.adapter.sendTransaction(vt4.transaction, connection);
+                    await connection.confirmTransaction({ signature: hash4, ...vt4.latestBlockhash }, 'processed');
+                    showTxSuccessMessage(hash4);
+                }
+
+                return hash3;
+            } else {
+                // Also redeem all SBR earned
+                const ixs = await getClaimIxs(saber, miner, wallet);
+                withdrawIxs.push(...ixs);
+            }
         }
 
         if (actions.withdraw) {
@@ -226,10 +361,13 @@ export const useWithdraw = ({
             }
         }
 
-        const vt = await createVersionedTransaction(connection, withdrawIxs, wallet.adapter.publicKey);
-        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-        return hash;
+
+        const vt4 = await createVersionedTransaction(connection, withdrawIxs, wallet.adapter.publicKey);
+        const hash4 = await wallet.adapter.sendTransaction(vt4.transaction, connection);
+        await connection.confirmTransaction({ signature: hash4, ...vt4.latestBlockhash }, 'processed');
+        showTxSuccessMessage(hash4);
+
+        return hash4;
     };
 
     const withdrawDisabledReason = !pool

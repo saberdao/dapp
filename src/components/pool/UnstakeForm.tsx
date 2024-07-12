@@ -70,27 +70,16 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
     // Do it like this so that when useMutation is called twice, the toast will only show once.
     // But it still works with multiple stake invocations.
     useEffect(() => {
-        if (lastStakeHash) {
-            toast.success((
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastStakeHash} />
-                </div>
-            ), {
-                onClose: () => {
-                    refetch();
-                    refetchLP();
-                },
-            });
-        }
+        refetch();
+        refetchLP();
     }, [lastStakeHash]);
 
     const balance = useMemo(() => {
-        if (!miner?.data) {
+        if (!miner?.stakedBalance) {
             return 0;
         }
 
-        const balance = BigNumber(miner.data.balance.toString());
+        const balance = BigNumber(miner.stakedBalance.toString());
         return balance.div(new BigNumber(10 ** miner.miner.quarry.token.decimals)).toNumber();
     }, [miner]);
 
@@ -125,6 +114,9 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
             
             <div className="text-right text-gray-400 text-xs mt-2">
                 ${amount > 0 ? toPrecision(stakedUsdValue, 4) : '—'}
+            </div>
+            <div className="text-right text-gray-400 text-xs mt-2">
+                Unstaking will take 3 or 4 transactions.
             </div>
         </div>
     );

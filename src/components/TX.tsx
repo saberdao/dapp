@@ -3,6 +3,7 @@ import { HiExternalLink } from 'react-icons/hi';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { Explorer } from '../types';
 import { explorers } from '../constants';
+import { toast } from 'react-toastify';
 
 export default function TX (props: { tx: string }) {
     const preferredExplorer = useReadLocalStorage<Explorer>('preferredExplorer');
@@ -20,3 +21,12 @@ export default function TX (props: { tx: string }) {
         </a>
     );
 }
+
+export const showTxSuccessMessage = (hash: string) => {
+    toast.success((
+        <div className="text-sm">
+            <p>Transaction successful! Your transaction hash:</p>
+            <TX tx={hash} />
+        </div>
+    ));
+};

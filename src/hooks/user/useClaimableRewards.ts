@@ -2,7 +2,7 @@ import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import useQuarryMiner from './useQuarryMiner';
 import { createQuarryPayroll } from '../../helpers/quarry';
 import BN from 'bn.js';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SBR_INFO } from '../../utils/builtinTokens';
 import useGetSecondaryPayrolls from './useGetSecondaryPayrolls';
 
@@ -12,8 +12,8 @@ export default function useClaim(lpToken: TokenInfo) {
     const [rewardsT0, setRewardsT0] = useState({ primary: 0, secondary: [] as number[] });
     const [timeT0, setTimeT0] = useState(0);
 
-    const claimableRewards = () => {
-        if (!miner?.data ||! secondaryPayrolls) {
+    const claimableRewards = useMemo(() => () => {
+        if (!miner?.data || !miner.stakedBalance || !secondaryPayrolls) {
             return null;
         }
 
@@ -25,7 +25,7 @@ export default function useClaim(lpToken: TokenInfo) {
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
         const rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSec),
-            miner.data.balance,
+            miner.stakedBalance,
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
@@ -64,7 +64,7 @@ export default function useClaim(lpToken: TokenInfo) {
         }
 
         return reward;
-    };
+    }, [miner?.data, secondaryPayrolls, timeT0]);
 
     const reset = () => {
         setRewardsT0({ primary: 0, secondary: [] });

@@ -13,7 +13,7 @@ import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 
 export default function StakeForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
-    const { stake } = useStake(props.pool.info.lpToken);
+    const { stake } = useStake(props.pool);
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
     const [lastStakeHash, setLastStakeHash] = useState('');
@@ -32,19 +32,8 @@ export default function StakeForm (props: { pool: PoolData }) {
     // Do it like this so that when useMutation is called twice, the toast will only show once.
     // But it still works with multiple stake invocations.
     useEffect(() => {
-        if (lastStakeHash) {
-            toast.success((
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastStakeHash} />
-                </div>
-            ), {
-                onClose: () => {
-                    refetch();
-                    refetchLP();
-                },
-            });
-        }
+        refetch();
+        refetchLP();
     }, [lastStakeHash]);
     
     const amount = watch('amount');

@@ -8,6 +8,7 @@ import useNetwork from '../useNetwork';
 import { PublicKey } from '@solana/web3.js';
 import useGetRewarders from '../useGetRewarders';
 import { MergeMiner, MergePool } from '@quarryprotocol/quarry-sdk';
+import BN from 'bn.js';
 
 export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
     const { wallet } = useWallet();
@@ -52,6 +53,9 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
 
             let mergeMiner: MergeMiner | null = null;
             let mergePool: MergePool | null = null;
+
+            let stakedBalance = new BN(0);
+
             if (replicaInfo) {
                 mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
                 const mmKey = await mergePool.mergeMine.findMergeMinerAddress({
@@ -61,6 +65,10 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 mergeMiner = await quarry.sdk.mergeMine.loadMM({
                     mmKey
                 });
+
+                stakedBalance = mergeMiner.mm.data.primaryBalance;
+            } else {
+                stakedBalance = minerData?.balance ?? new BN(0);
             }
 
             return {
@@ -71,6 +79,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 mergeMiner,
                 replicaInfo,
                 mergePool,
+                stakedBalance,
             };
         },
         enabled: !!lpToken && !!quarry && !!rewarders,

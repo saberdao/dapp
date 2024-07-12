@@ -10,7 +10,7 @@ export default function useDailyRewards(lpToken: TokenInfo) {
     const [dailyRewards, setDailyRewards] = useState(0);
 
     useEffect(() => {
-        if (!miner?.data) {
+        if (!miner?.data || !miner.stakedBalance) {
             return;
         }
 
@@ -18,7 +18,7 @@ export default function useDailyRewards(lpToken: TokenInfo) {
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
         const rewardsT0 = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSecT0),
-            miner.data.balance,
+            miner.stakedBalance,
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
@@ -26,7 +26,7 @@ export default function useDailyRewards(lpToken: TokenInfo) {
         const timeInSecT1 = Math.floor(Date.now() / 1000) + 86400;
         const rewardsT1 = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSecT1),
-            miner.data.balance,
+            miner.stakedBalance,
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
