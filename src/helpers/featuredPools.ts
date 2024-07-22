@@ -1,12 +1,21 @@
 const FEATURED_POOL_NAMES = [
-    'mSOL-SOL',
+    'EUROe-EURC',
+    'MDS-USDC',
+    'scnSOL-JSOL',
+    'mSOL-JSOL',
+    'JSOL-SOL',
+    'USDCet-USDC',
+    'USDTet-USDT',
+    'daoSOL-SOL',
+    'SOL-zSOL',
+    'scnSOL-SOL',
+    'USDH-USDC',
+    'SOL-bSOL',
+    'SOL-vSOL',
+    'stSOL-SOL',
     'UXD-USDC',
     'USDT-USDC',
-    'SOL-bSOL',
-    'USDH-USDC',
-    'scnSOL-SOL',
-    'SOL-zSOL',
-    'SOL-vSOL',
+    'mSOL-SOL'
 ];
 
 export const isPoolFeatured = (poolName: string) => {
