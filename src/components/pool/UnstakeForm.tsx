@@ -116,7 +116,7 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 ${amount > 0 ? toPrecision(stakedUsdValue, 4) : '—'}
             </div>
             <div className="text-right text-gray-400 text-xs mt-2">
-                Unstaking will take 3 or 4 transactions.
+                Unstaking will take between 1 and 4 transactions.
             </div>
         </div>
     );

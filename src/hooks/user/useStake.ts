@@ -17,11 +17,13 @@ export default function useStake(pool: PoolData) {
     const { connection } = useConnection();
     const { wallet } = useWallet();
     const { data: balance } = useUserGetLPTokenBalance(pool.info.lpToken.address);
-    const { data } = useQuarryMiner(pool.info.lpToken);
+    const { data, error, isFetching } = useQuarryMiner(pool.info.lpToken);
 
     const { provider } = useProvider();
 
     const stake = async (amountInput: number) => {
+        console.log('hoi')
+        console.log(data, error, balance, isFetching)
         if (!data || !wallet?.adapter.publicKey || !balance) {
             return;
         }
@@ -35,10 +37,8 @@ export default function useStake(pool: PoolData) {
 
         const signers: Signer[] = [];
 
-        
-
         // This pool has replicas
-        if (data.replicaInfo && data.replicaInfo.replicaQuarries) {
+        if (data.replicaInfo && data.replicaInfo.replicaQuarries && data.replicaInfo.isReplica) {
             invariant(pool.quarryData?.rewarder);
 
             const mergePoolAddress = findMergePoolAddress({

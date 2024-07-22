@@ -152,7 +152,7 @@ export const useWithdraw = ({
             withdrawIxs.push(...stakeTX.instructions);
 
             // Has secondary rewards
-            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries) {
+            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries && miner.replicaInfo.isReplica) {
                 const claimReplicaTx: TransactionInstruction[] = [];
                 const unstakeReplicaTx: TransactionInstruction[] = [];
                 const mergePoolAddress = findMergePoolAddress({
