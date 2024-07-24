@@ -55,6 +55,8 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             let mergePool: MergePool | null = null;
 
             let stakedBalance = minerData?.balance ?? new BN(0);
+            let stakedBalanceMM = new BN(0);
+            const stakedBalanceLegacy = minerData?.balance ?? new BN(0);
 
             if (replicaInfo) {
                 mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
@@ -67,6 +69,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 });
 
                 stakedBalance = stakedBalance.add(mergeMiner.mm.data.primaryBalance);
+                stakedBalanceMM = mergeMiner.mm.data.primaryBalance;
             }
 
             return {
@@ -78,6 +81,8 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 replicaInfo,
                 mergePool,
                 stakedBalance,
+                stakedBalanceLegacy,
+                stakedBalanceMM
             };
         },
         enabled: !!lpToken && !!quarry && !!rewarders,

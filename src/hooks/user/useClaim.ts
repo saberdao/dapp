@@ -31,11 +31,11 @@ export default function useClaim(lpToken: TokenInfo) {
         const ixs = await getClaimIxs(saber, miner, wallet);
         allTxsToExecute.push({
             txs: ixs,
-            description: 'Claim SBR rewards'
+            description: 'Claim rewards'
         });
-
+        
         // Secondary rewards
-        if (miner.mergeMiner && miner.replicaInfo && miner.mergePool) {
+        if (miner.mergeMiner && miner.replicaInfo) {
             await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replicaQuarryInfo) => {
                 invariant(miner.mergeMiner);
                 invariant(miner.mergePool);
@@ -74,12 +74,12 @@ export default function useClaim(lpToken: TokenInfo) {
                 }
 
                 allTxsToExecute.push({
-                    txs: T.instructions,
+                    txs: [...T.instructions],
                     description: 'Claim replica rewards'
                 });
             }));
         }
-
+        
         await executeMultipleTxs(connection, allTxsToExecute, wallet);
     };
 

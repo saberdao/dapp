@@ -70,6 +70,26 @@ export default function useStake(pool: PoolData) {
             }))
         }
 
+        /**
+         * legacy depost for testing
+         * const stakeTX = data.miner.stake(amount);
+
+            if (!(await provider.getAccountInfo(data.miner.minerKey))) {
+                const newMiner = await data.quarry.createMiner();
+                allInstructions.push(...newMiner.tx.instructions);
+                signers.push(...newMiner.tx.signers);
+            }
+    
+            const ataTX = await data.miner.createATAIfNotExists();
+            if (ataTX) {
+                allInstructions.push(...ataTX.instructions);
+                signers.push(...ataTX.signers);
+            }
+    
+            allInstructions.push(...stakeTX.instructions);
+            signers.push(...stakeTX.signers);
+         */
+
         await executeMultipleTxs(connection, [{
             txs: allInstructions,
             description: 'Stake'

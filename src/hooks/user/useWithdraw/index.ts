@@ -1,4 +1,4 @@
-import { SABER_CODERS, SABER_IOU_MINT, SBR_MINT, SBR_REWARDER, WrappedTokenActions } from '@saberhq/saber-periphery';
+import { SABER_CODERS, SABER_IOU_MINT, SBR_MINT, SBR_REWARDER, Saber, WrappedTokenActions } from '@saberhq/saber-periphery';
 import type { Percent } from '@saberhq/token-utils';
 import { getOrCreateATAs, Token, TokenAmount } from '@saberhq/token-utils';
 import { PublicKey, TransactionInstruction, VersionedTransaction, type Signer } from '@solana/web3.js';
@@ -9,7 +9,7 @@ import { calculateWithdrawAll } from './calculateWithdrawAll';
 import { calculateWithdrawOne } from './calculateWithdrawOne';
 import { WrappedToken } from '../../../types/wrappedToken';
 import { PoolData } from '../../../types';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Wallet, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import useProvider from '../../useProvider';
 import useSettings from '../../useSettings';
 import { StableSwap } from '@saberhq/stableswap-sdk';
@@ -22,7 +22,7 @@ import { findMergePoolAddress, getReplicaRewards } from '@/src/helpers/replicaRe
 import { findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
 import useQuarry from '../../useQuarry';
 import BN from 'bn.js';
-import { TransactionEnvelope } from '@saberhq/solana-contrib';
+import { SolanaProvider, TransactionEnvelope } from '@saberhq/solana-contrib';
 
 export interface IWithdrawal {
     withdrawPoolTokenAmount?: TokenAmount;
@@ -66,6 +66,105 @@ const emptyFees = {
     slippages: [undefined, undefined],
 } as const;
 
+const getWithdrawIxs = async (
+    provider: SolanaProvider,
+    saber: Saber,
+    wallet: Wallet,
+    userAta: PublicKey,
+    pool: PoolData,
+    withdrawToken: WrappedToken | undefined,
+    minimums: readonly [TokenAmount | undefined, TokenAmount | undefined],
+    wrappedTokens: WrappedToken[],
+    withdrawPoolTokenAmount: TokenAmount,
+) => {
+    const swap = new StableSwap(pool.info.swap.config, pool.info.swap.state);
+
+    if (minimums[0] === undefined || minimums[1] === undefined) {
+        throw new Error('missing minimums');
+    }
+
+    const withdrawIxs: TransactionInstruction[] = [];
+    if (withdrawToken !== undefined) {
+        const minimum = minimums[0].token.equals(withdrawToken.value)
+            ? minimums[0].toString()
+            : minimums[1].toString();
+
+        const txEnv = await saber.router
+            .createWithdrawOneActionFacade({
+                swap,
+                inputAmount: withdrawPoolTokenAmount,
+                minimumAmountOut: new TokenAmount(
+                    withdrawToken.isWrapped()
+                        ? withdrawToken.value
+                        : withdrawToken.underlying,
+                    minimum,
+                ),
+                adWithdrawAction: withdrawToken.isWrapped()
+                    ? {
+                        action: 'adWithdraw',
+                        underlying: withdrawToken.underlying,
+                        decimals: withdrawToken.value.decimals,
+                        outputToken: withdrawToken.underlying,
+                    }
+                    : undefined,
+            })
+            .manualSSWithdrawOne();
+        invariant(txEnv, 'transaction envelope not found on withdraw one');
+
+        withdrawIxs.push(...txEnv.instructions);
+    } else {
+        const allInstructions = [];
+        const {
+            accounts: { tokenA: userAccountA, tokenB: userAccountB },
+            instructions,
+        } = await getOrCreateATAs({
+            provider,
+            mints: {
+                tokenA: pool.exchangeInfo.reserves[0].amount.token.mintAccount,
+                tokenB: pool.exchangeInfo.reserves[1].amount.token.mintAccount,
+            },
+        });
+
+        allInstructions.push(...instructions);
+
+        const allSigners: Signer[] = [];
+        allInstructions.push(
+            swap.withdraw({
+                userAuthority: wallet.adapter.publicKey!,
+                userAccountA,
+                userAccountB,
+                sourceAccount: userAta,
+                poolTokenAmount: withdrawPoolTokenAmount.toU64(),
+                minimumTokenA: minimums[0].toU64(),
+                minimumTokenB: minimums[1].toU64(),
+            }),
+        );
+
+        await Promise.all(
+            wrappedTokens.map(async (wTok) => {
+                if (wTok.isWrapped()) {
+                    const action = await WrappedTokenActions.loadWithActions(
+                        provider,
+                        SABER_CODERS.AddDecimals.getProgram(provider),
+                        wTok.underlying,
+                        wTok.value.decimals,
+                    );
+                    const unwrapTx = await action.unwrapAll();
+                    allInstructions.push(...unwrapTx.instructions);
+                }
+            }),
+        );
+
+        const txEnv = saber.newTx(allInstructions, allSigners);
+        withdrawIxs.push(...txEnv.instructions);
+    }
+
+    return {
+        txs: withdrawIxs,
+        description: 'Withdraw'
+    }
+}
+
 export const useWithdraw = ({
     withdrawPoolTokenAmount,
     withdrawToken,
@@ -78,7 +177,7 @@ export const useWithdraw = ({
     const { connection } = useConnection();
     const { data: miner } = useQuarryMiner(pool.info.lpToken, true);
     const { data: userLP } = useUserGetLPTokenBalance(pool.info.lpToken.address);
-    const {data: quarry} = useQuarry()
+    const { data: quarry} = useQuarry()
 
     const { maxSlippagePercent } = useSettings();
 
@@ -123,8 +222,6 @@ export const useWithdraw = ({
         return undefined;
     }
 
-    const swap = new StableSwap(pool.info.swap.config, pool.info.swap.state);
-
     const handleWithdraw = async () => {
         if (!actions.unstake && !actions.withdraw) {
             throw new Error('No actions');
@@ -138,22 +235,16 @@ export const useWithdraw = ({
         if (withdrawPoolTokenAmount === undefined) {
             throw new Error('No withdraw percentage');
         }
-        if (minimums[0] === undefined || minimums[1] === undefined) {
-            throw new Error('missing minimums');
-        }
 
         const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
-
-        const unstakeIxs: TransactionInstruction[] = [];
+        let amountUnstakedFromMM = new BN(0);
 
         if (actions.unstake && miner?.data) {
-            const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalance.toString()), withdrawPoolTokenAmount.raw.toString());
-            const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
-            const stakeTX = miner.miner.withdraw(amount);
-            unstakeIxs.push(...stakeTX.instructions);
+            // Merge miner withdraw IXs
+            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries) {
+                const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalanceMM.toString()), withdrawPoolTokenAmount.raw.toString());
+                const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
 
-            // Check between legacy and merge miner
-            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries && miner.replicaInfo.isReplica) {
                 const claimReplicaTx: TransactionInstruction[] = [];
                 const unstakeReplicaTx: TransactionInstruction[] = [];
                 const mergePoolAddress = findMergePoolAddress({
@@ -274,99 +365,46 @@ export const useWithdraw = ({
                         description: 'Redeposit replicas'
                     });
                 }
-            } else {
-                // For legacy
-                const ixs = await getClaimIxs(saber, miner, wallet);
-                unstakeIxs.push(...ixs);
 
-                allTxsToExecute.push({
-                    txs: unstakeIxs,
-                    description: 'Unstake'
-                });
+                amountUnstakedFromMM = new BN(amount.asNumber);
+            } 
+
+            if (miner.stakedBalanceLegacy.gt(new BN(0))) {
+                const maxAmount = BigNumber
+                    .min(new BigNumber(miner.stakedBalanceLegacy.toString()), withdrawPoolTokenAmount.raw.toString())
+                    .minus(amountUnstakedFromMM.toNumber());
+                if (maxAmount.gt(0)) {
+                    const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
+                    const legacyUnstakeTx: TransactionInstruction[] = [];
+
+                    // For legacy
+                    const stakeTX = miner.miner.withdraw(amount);
+                    legacyUnstakeTx.push(...stakeTX.instructions);
+
+                    const ixs = await getClaimIxs(saber, miner, wallet);
+                    legacyUnstakeTx.push(...ixs);
+
+                    allTxsToExecute.push({
+                        txs: legacyUnstakeTx,
+                        description: 'Legacy unstake'
+                    });
+                }
             }
+            
         }
 
         if (actions.withdraw) {
-            const withdrawIxs: TransactionInstruction[] = [];
-            if (withdrawToken !== undefined) {
-                const minimum = minimums[0].token.equals(withdrawToken.value)
-                    ? minimums[0].toString()
-                    : minimums[1].toString();
-
-                const txEnv = await saber.router
-                    .createWithdrawOneActionFacade({
-                        swap,
-                        inputAmount: withdrawPoolTokenAmount,
-                        minimumAmountOut: new TokenAmount(
-                            withdrawToken.isWrapped()
-                                ? withdrawToken.value
-                                : withdrawToken.underlying,
-                            minimum,
-                        ),
-                        adWithdrawAction: withdrawToken.isWrapped()
-                            ? {
-                                action: 'adWithdraw',
-                                underlying: withdrawToken.underlying,
-                                decimals: withdrawToken.value.decimals,
-                                outputToken: withdrawToken.underlying,
-                            }
-                            : undefined,
-                    })
-                    .manualSSWithdrawOne();
-                invariant(txEnv, 'transaction envelope not found on withdraw one');
-
-                withdrawIxs.push(...txEnv.instructions);
-            } else {
-                const allInstructions = [];
-                const {
-                    accounts: { tokenA: userAccountA, tokenB: userAccountB },
-                    instructions,
-                } = await getOrCreateATAs({
-                    provider,
-                    mints: {
-                        tokenA: pool.exchangeInfo.reserves[0].amount.token.mintAccount,
-                        tokenB: pool.exchangeInfo.reserves[1].amount.token.mintAccount,
-                    },
-                });
-
-                allInstructions.push(...instructions);
-
-                const allSigners: Signer[] = [];
-                allInstructions.push(
-                    swap.withdraw({
-                        userAuthority: wallet.adapter.publicKey!,
-                        userAccountA,
-                        userAccountB,
-                        sourceAccount: userLP.userAta,
-                        poolTokenAmount: withdrawPoolTokenAmount.toU64(),
-                        minimumTokenA: minimums[0].toU64(),
-                        minimumTokenB: minimums[1].toU64(),
-                    }),
-                );
-
-                await Promise.all(
-                    wrappedTokens.map(async (wTok) => {
-                        if (wTok.isWrapped()) {
-                            const action = await WrappedTokenActions.loadWithActions(
-                                provider,
-                                SABER_CODERS.AddDecimals.getProgram(provider),
-                                wTok.underlying,
-                                wTok.value.decimals,
-                            );
-                            const unwrapTx = await action.unwrapAll();
-                            allInstructions.push(...unwrapTx.instructions);
-                        }
-                    }),
-                );
-
-                const txEnv = saber.newTx(allInstructions, allSigners);
-                withdrawIxs.push(...txEnv.instructions);
-            }
-
-            allTxsToExecute.push({
-                txs: withdrawIxs,
-                description: 'Withdraw'
-            });
+            allTxsToExecute.push(await getWithdrawIxs(
+                provider,
+                saber,
+                wallet,
+                userLP.userAta,
+                pool,
+                withdrawToken,
+                minimums,
+                wrappedTokens,
+                withdrawPoolTokenAmount
+            ));
         }
 
         await executeMultipleTxs(connection, allTxsToExecute, wallet);

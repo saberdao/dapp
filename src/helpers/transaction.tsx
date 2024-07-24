@@ -73,7 +73,7 @@ export const sendTransaction = async (
     );
 
     const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-    await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
+    await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'finalized');
 
     // Add toast
     onSuccess?.(hash);
@@ -91,7 +91,7 @@ export const executeMultipleTxs = async (
     wallet: Wallet,
 ) => {
     invariant(wallet.adapter.publicKey);
-console.log(txs)
+
     for (let i = 0; i < txs.length; i++) {
         const tx = sendTransaction(connection, txs[i].txs, wallet);
         toast.promise(tx, {

@@ -207,7 +207,6 @@ const LiquidityForms = (props: { pool: PoolData }) => {
 
 const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void }) => {
     const { wallet } = useWallet();
-    const [lastStakeHash, setLastStakeHash] = useState('');
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(
         props.pool.pair.pool.state.poolTokenMint.toString(),
@@ -252,10 +251,10 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         isSuccess,
         data: hash,
     } = useMutation({
-        mutationKey: ['deposit', lastStakeHash],
+        mutationKey: ['deposit'],
         mutationFn: async () => {
-            const hash = await claim();
-            return hash;
+            await claim();
+            reset();
         },
     });
 
@@ -301,7 +300,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                     ].filter((x) => x.length !== 0)}
                 />
 
-                {miner?.data?.balance.gt(new BN(0)) &&
+                {miner?.stakedBalance?.gt(new BN(0)) &&
                     (isPending ? (
                         <Button size="full" disabled key="g">
                             Claiming...
