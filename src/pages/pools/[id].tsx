@@ -6,7 +6,6 @@ import { FaDiscord, FaGithub, FaGlobe, FaMedium, FaTelegram } from 'react-icons/
 import { FaXTwitter } from 'react-icons/fa6';
 import { IconType } from 'react-icons';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { toast } from 'react-toastify';
 import BN from 'bn.js';
 import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
@@ -42,6 +41,7 @@ import TX from '../../components/TX';
 import UniversalPopover, { Ref } from '../../components/models/universal-popover';
 import ModelHeader from '../../components/models/model-header';
 import LeverageModel from '../../components/models/leverage-model';
+import { toast } from 'sonner';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -250,7 +250,13 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
             <TX tx={tx} />
         </div>,
         {
-            onClose: () => {
+            onAutoClose: () => {
+                reset();
+                refetch();
+                refetchRewards();
+                setLastStakeHash(tx);
+            },
+            onDismiss: () => {
                 reset();
                 refetch();
                 refetchRewards();

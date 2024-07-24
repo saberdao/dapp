@@ -15,7 +15,7 @@ const formatNetwork = (network: WalletAdapterNetwork) => {
 };
 
 export default function () {
-    const storedRpc = useReadLocalStorage('rpc');
+    const storedRpc = useReadLocalStorage('rpc') as string ?? undefined;
     const [network] = useState(WalletAdapterNetwork.Mainnet);
 
     // @TODO: Set actual endpoint

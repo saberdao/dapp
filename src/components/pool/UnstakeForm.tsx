@@ -7,8 +7,6 @@ import { PoolData } from '../../types';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 import BigNumber from 'bignumber.js';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import TX from '../TX';
 import { useWithdraw } from '../../hooks/user/useWithdraw';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
@@ -21,7 +19,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number; noWithdraw: boolean }>();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
-    const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
     const { maxSlippagePercent } = useSettings();
 
@@ -39,13 +36,14 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
     });
 
     const { mutate: execUnstake, isPending, isSuccess, data: hash } = useMutation({
-        mutationKey: ['unstake', lastStakeHash],
+        mutationKey: ['unstake'],
         mutationFn: async () => {
             if (!amount) {
                 return;
             }
-            const hash = await withdraw?.handleWithdraw();
-            return hash;
+            await withdraw?.handleWithdraw();
+            refetch();
+            refetchLP();
         },
     });
 
@@ -67,13 +65,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
         return usdValue;
     }, [miner, amount]);
 
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        refetch();
-        refetchLP();
-    }, [lastStakeHash]);
-
     const balance = useMemo(() => {
         if (!miner?.stakedBalance) {
             return 0;
@@ -82,10 +73,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
         const balance = BigNumber(miner.stakedBalance.toString());
         return balance.div(new BigNumber(10 ** miner.miner.quarry.token.decimals)).toNumber();
     }, [miner]);
-
-    if (isSuccess && hash && lastStakeHash !== hash) {
-        setLastStakeHash(hash);
-    }
 
     return (
         <div className="w-full">

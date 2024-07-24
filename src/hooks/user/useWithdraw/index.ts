@@ -14,7 +14,7 @@ import useProvider from '../../useProvider';
 import useSettings from '../../useSettings';
 import { StableSwap } from '@saberhq/stableswap-sdk';
 import useUserGetLPTokenBalance from '../useGetLPTokenBalance';
-import { createVersionedTransaction } from '../../../helpers/transaction';
+import { createVersionedTransaction, executeMultipleTxs } from '../../../helpers/transaction';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from '../useQuarryMiner';
 import { getClaimIxs } from '../../../helpers/claim';
@@ -53,7 +53,7 @@ export interface WithdrawCalculationResult {
 }
 
 export interface IUseWithdraw extends WithdrawCalculationResult {
-  handleWithdraw: () => Promise<string | undefined>;
+  handleWithdraw: () => Promise<void>;
   withdrawDisabledReason?: string;
   poolTokenAmount?: TokenAmount;
   withdrawToken?: WrappedToken;
@@ -143,15 +143,17 @@ export const useWithdraw = ({
             throw new Error('missing minimums');
         }
 
-        const withdrawIxs: TransactionInstruction[] = [];
+        const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
+
+        const unstakeIxs: TransactionInstruction[] = [];
 
         if (actions.unstake && miner?.data) {
             const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalance.toString()), withdrawPoolTokenAmount.raw.toString());
             const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
             const stakeTX = miner.miner.withdraw(amount);
-            withdrawIxs.push(...stakeTX.instructions);
+            unstakeIxs.push(...stakeTX.instructions);
 
-            // Has secondary rewards
+            // Check between legacy and merge miner
             if (miner.replicaInfo && miner.replicaInfo.replicaQuarries && miner.replicaInfo.isReplica) {
                 const claimReplicaTx: TransactionInstruction[] = [];
                 const unstakeReplicaTx: TransactionInstruction[] = [];
@@ -210,15 +212,14 @@ export const useWithdraw = ({
                 }));
 
                 // Execute these separately because it doesn't fit in 1 TX
-                const vt1 = await createVersionedTransaction(connection, claimReplicaTx, wallet.adapter.publicKey);
-                const hash1 = await wallet.adapter.sendTransaction(vt1.transaction, connection);
-                await connection.confirmTransaction({ signature: hash1, ...vt1.latestBlockhash }, 'processed');
-                showTxSuccessMessage(hash1);
-
-                const vt2 = await createVersionedTransaction(connection, unstakeReplicaTx, wallet.adapter.publicKey);
-                const hash2 = await wallet.adapter.sendTransaction(vt2.transaction, connection);
-                await connection.confirmTransaction({ signature: hash2, ...vt2.latestBlockhash }, 'processed');
-                showTxSuccessMessage(hash2);
+                allTxsToExecute.push({
+                    txs: claimReplicaTx,
+                    description: 'Claim replica rewards'
+                });
+                allTxsToExecute.push({
+                    txs: unstakeReplicaTx,
+                    description: 'Unstake replicas'
+                });
 
                 // Claim Saber
                 const claimSaberIxs: TransactionInstruction[] = [];
@@ -248,10 +249,10 @@ export const useWithdraw = ({
                 claimSaberIxs.push(...instructions);
                 claimSaberIxs.push(redeemTx);
 
-                const vt3 = await createVersionedTransaction(connection, claimSaberIxs, wallet.adapter.publicKey, 250000);
-                const hash3 = await wallet.adapter.sendTransaction(vt3.transaction, connection);
-                await connection.confirmTransaction({ signature: hash3, ...vt3.latestBlockhash }, 'processed');
-                showTxSuccessMessage(hash3);
+                allTxsToExecute.push({
+                    txs: claimSaberIxs,
+                    description: 'Claim SBR'
+                });
 
                 // If not unstaking everything, restake replicas
                 // Compare strings because the types are BigNumber and JSBI
@@ -269,22 +270,25 @@ export const useWithdraw = ({
                             }),
                         )),
                     );
-                    const vt4 = await createVersionedTransaction(connection, replicaDepositTxs.map(t => t.instructions).flat(), wallet.adapter.publicKey, 250000);
-                    vt4.transaction.sign(replicaDepositTxs.map(t => t.signers).flat())
-                    const hash4 = await wallet.adapter.sendTransaction(vt4.transaction, connection);
-                    await connection.confirmTransaction({ signature: hash4, ...vt4.latestBlockhash }, 'processed');
-                    showTxSuccessMessage(hash4);
+                    allTxsToExecute.push({
+                        txs: replicaDepositTxs.map(t => t.instructions).flat(),
+                        description: 'Redeposit replicas'
+                    });
                 }
-
-                return hash3;
             } else {
-                // Also redeem all SBR earned
+                // For legacy
                 const ixs = await getClaimIxs(saber, miner, wallet);
-                withdrawIxs.push(...ixs);
+                unstakeIxs.push(...ixs);
+
+                allTxsToExecute.push({
+                    txs: unstakeIxs,
+                    description: 'Unstake'
+                });
             }
         }
 
         if (actions.withdraw) {
+            const withdrawIxs: TransactionInstruction[] = [];
             if (withdrawToken !== undefined) {
                 const minimum = minimums[0].token.equals(withdrawToken.value)
                     ? minimums[0].toString()
@@ -359,15 +363,14 @@ export const useWithdraw = ({
                 const txEnv = saber.newTx(allInstructions, allSigners);
                 withdrawIxs.push(...txEnv.instructions);
             }
+
+            allTxsToExecute.push({
+                txs: withdrawIxs,
+                description: 'Withdraw'
+            });
         }
 
-
-        const vt4 = await createVersionedTransaction(connection, withdrawIxs, wallet.adapter.publicKey);
-        const hash4 = await wallet.adapter.sendTransaction(vt4.transaction, connection);
-        await connection.confirmTransaction({ signature: hash4, ...vt4.latestBlockhash }, 'processed');
-        showTxSuccessMessage(hash4);
-
-        return hash4;
+        await executeMultipleTxs(connection, allTxsToExecute, wallet);
     };
 
     const withdrawDisabledReason = !pool

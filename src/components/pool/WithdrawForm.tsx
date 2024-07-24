@@ -4,7 +4,6 @@ import Input, { InputType } from '../Input';
 import { useForm } from 'react-hook-form';
 import Button from '../Button';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { PoolData } from '../../types';
 import TX from '../TX';
@@ -12,12 +11,12 @@ import { useWithdraw } from '../../hooks/user/useWithdraw';
 import { Token, TokenAmount } from '@saberhq/token-utils';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
+import { toast } from 'sonner';
 
 export default function WithdrawForm (props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{ amount: number }>();
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
-    const [lastStakeHash, setLastStakeHash] = useState('');
     const tokens = useStableSwapTokens(props.pool);
 
     const amount = watch('amount');
@@ -34,38 +33,17 @@ export default function WithdrawForm (props: { pool: PoolData }) {
     });
 
     const { mutate: execWithdraw, isPending, isSuccess, data: hash } = useMutation({
-        mutationKey: ['withdraw', lastStakeHash],
+        mutationKey: ['withdraw'],
         mutationFn: async () => {
             if (!amount) {
                 return;
             }
 
-            const hash = withdraw?.handleWithdraw();
-            return hash;
+            await withdraw?.handleWithdraw();
+            refetch();
+            refetchLP();
         },
     });
-
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        if (lastStakeHash) {
-            toast.success((
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastStakeHash} />
-                </div>
-            ), {
-                onClose: () => {
-                    refetch();
-                    refetchLP();
-                },
-            });
-        }
-    }, [lastStakeHash]);
-
-    if (isSuccess && hash && lastStakeHash !== hash) {
-        setLastStakeHash(hash);
-    }
 
     return (
         <div className="w-full">

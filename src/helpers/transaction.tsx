@@ -1,5 +1,9 @@
+import React from 'react';
 import { Wallet } from '@solana/wallet-adapter-react';
+import invariant from 'tiny-invariant';
 import { ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import TX from '../components/TX';
+import { toast } from 'sonner';
 
 const getCUsForTx = async (
     connection: Connection,
@@ -56,10 +60,10 @@ export const sendTransaction = async (
     connection: Connection,
     txs: TransactionInstruction[],
     wallet: Wallet,
-    onSuccess: (tx: string) => void,
+    onSuccess?: (tx: string) => void,
 ) => {
     if (!wallet.adapter.publicKey) {
-        return;
+        return 'No wallet connected';
     }
 
     const vt = await createVersionedTransaction(
@@ -72,5 +76,31 @@ export const sendTransaction = async (
     await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
 
     // Add toast
-    onSuccess(hash);
+    onSuccess?.(hash);
+
+    if (hash) {
+        return hash;
+    }
+    
+    return 'Transaction failed';
+};
+
+export const executeMultipleTxs = async (
+    connection: Connection,
+    txs: { txs: TransactionInstruction[], description: string }[],
+    wallet: Wallet,
+) => {
+    invariant(wallet.adapter.publicKey);
+console.log(txs)
+    for (let i = 0; i < txs.length; i++) {
+        const tx = sendTransaction(connection, txs[i].txs, wallet);
+        toast.promise(tx, {
+            loading: `(${i + 1} / ${txs.length}) ${txs[i].description}`,
+            success: (data) => <div className="text-sm">
+                <p>Transaction successful! Your transaction hash:</p>
+                <TX tx={data} />
+            </div>
+        })
+        await tx;
+    }
 };

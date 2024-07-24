@@ -56,6 +56,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
 
             let stakedBalance = new BN(0);
 
+            // @TODO: HANDLE legacy and merge miner
             if (replicaInfo && replicaInfo.isReplica) {
                 mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
                 const mmKey = await mergePool.mergeMine.findMergeMinerAddress({

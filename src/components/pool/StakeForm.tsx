@@ -7,7 +7,6 @@ import { PoolData } from '../../types';
 import useStake from '../../hooks/user/useStake';
 import { useMutation } from '@tanstack/react-query';
 import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
-import { toast } from 'react-toastify';
 import TX from '../TX';
 import useQuarryMiner from '../../hooks/user/useQuarryMiner';
 

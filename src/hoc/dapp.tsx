@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { ToastContainer } from 'react-toastify';
+import invariant from 'tiny-invariant';
 
 import Navbar from '../components/Navbar';
 import useNetwork from '../hooks/useNetwork';
@@ -10,9 +10,9 @@ import { QueryClient } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 
-import 'react-toastify/dist/ReactToastify.css';
 import Footer from '../components/Footer';
 import { PageProps } from 'gatsby';
+import { Toaster } from 'sonner';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -54,6 +54,8 @@ const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; pro
         return null;
     }
 
+    invariant(endpoint);
+
     return (
         <PersistQueryClientProvider client={queryClient} persistOptions={{
             persister,
@@ -77,7 +79,7 @@ const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; pro
                                 <Footer />
                             </div>
                         </div>
-                        <ToastContainer theme="dark" />
+                        <Toaster theme="dark" position="bottom-right" richColors={true} />
                     </WalletModalProvider>
                 </WalletProvider>
             </ConnectionProvider>

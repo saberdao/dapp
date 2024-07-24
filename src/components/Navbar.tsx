@@ -10,7 +10,6 @@ import { MdOutlineQueryStats } from 'react-icons/md';
 import { useMutation } from '@tanstack/react-query';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
 import { FaMedium, FaXTwitter } from 'react-icons/fa6';
-import { toast } from 'react-toastify';
 import clsx from 'clsx';
 
 import I18n from '../i18n';
@@ -24,6 +23,7 @@ import TX from './TX';
 import UniversalPopover, { Ref } from './models/universal-popover';
 import ModelHeader from './models/model-header';
 import SettingModel from './models/setting-model';
+import { toast } from 'sonner';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();
@@ -53,7 +53,8 @@ const WrappedSolBlock = () => {
                     <TX tx={lastTxHash} />
                 </div>,
                 {
-                    onClose: () => refetch(),
+                    onAutoClose: () => refetch(),
+                    onDismiss: () => refetch(),
                 },
             );
         }

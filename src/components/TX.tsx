@@ -3,7 +3,7 @@ import { HiExternalLink } from 'react-icons/hi';
 import { useReadLocalStorage } from 'usehooks-ts';
 import { Explorer } from '../types';
 import { explorers } from '../constants';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export default function TX (props: { tx: string }) {
     const preferredExplorer = useReadLocalStorage<Explorer>('preferredExplorer');
