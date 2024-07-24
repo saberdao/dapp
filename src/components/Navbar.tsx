@@ -29,40 +29,16 @@ const WrappedSolBlock = () => {
     const { network } = useNetwork();
     const { data: ata, refetch } = useUserATA(WRAPPED_SOL[network], true);
     const { unwrap } = useUnwrap();
-    const [lastTxHash, setLastTxHash] = useState('');
     const {
         mutate: execUnwrap,
         isPending,
-        isSuccess,
-        data: hash,
     } = useMutation({
-        mutationKey: ['unwrap', lastTxHash],
+        mutationKey: ['unwrap'],
         mutationFn: async () => {
-            const hash = await unwrap();
-            return hash;
+            await unwrap();
+            refetch();
         },
     });
-
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        if (lastTxHash) {
-            toast.success(
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastTxHash} />
-                </div>,
-                {
-                    onAutoClose: () => refetch(),
-                    onDismiss: () => refetch(),
-                },
-            );
-        }
-    }, [lastTxHash]);
-
-    if (isSuccess && hash && lastTxHash !== hash) {
-        setLastTxHash(hash);
-    }
 
     return (
         (ata?.balance.asNumber ?? 0) > 0 && (

@@ -22,7 +22,6 @@ import { findMergePoolAddress, getReplicaRewards } from '@/src/helpers/replicaRe
 import { findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
 import useQuarry from '../../useQuarry';
 import BN from 'bn.js';
-import { showTxSuccessMessage } from '@/src/components/TX';
 import { TransactionEnvelope } from '@saberhq/solana-contrib';
 
 export interface IWithdrawal {

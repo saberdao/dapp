@@ -15,7 +15,6 @@ import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 import clsx from 'clsx';
 import { getSymbol } from '../../helpers/pool';
-import { toast } from 'sonner';
 
 export default function DepositForm(props: { pool: PoolData }) {
     const { register, watch, setValue } = useForm<{
@@ -23,7 +22,6 @@ export default function DepositForm(props: { pool: PoolData }) {
         amountTokenB: number;
         noStake: boolean;
     }>();
-    const [lastStakeHash, setLastStakeHash] = useState('');
     const ssTokens = useStableSwapTokens(props.pool);
 
     const token0 = useMemo(() => {
@@ -74,49 +72,20 @@ export default function DepositForm(props: { pool: PoolData }) {
     const {
         mutate: execDeposit,
         isPending,
-        isSuccess,
         data: hash,
     } = useMutation({
-        mutationKey: ['deposit', lastStakeHash],
+        mutationKey: ['deposit'],
         mutationFn: async () => {
             if (!amountTokenA && !amountTokenB) {
                 return;
             }
-            const hash = await deposit?.handleDeposit(noStake);
-            return hash;
+            await deposit?.handleDeposit(noStake);
+            refetch();
+            refetchLP();
+            refetchBalances0();
+            refetchBalances1();
         },
     });
-
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        if (lastStakeHash) {
-            toast.success(
-                <div className="text-sm">
-                    <p>Transaction successful! Your transaction hash:</p>
-                    <TX tx={lastStakeHash} />
-                </div>,
-                {
-                    onDismiss: () => {
-                        refetch();
-                        refetchLP();
-                        refetchBalances0();
-                        refetchBalances1();
-                    },
-                    onAutoClose: () => {
-                        refetch();
-                        refetchLP();
-                        refetchBalances0();
-                        refetchBalances1();
-                    },
-                },
-            );
-        }
-    }, [lastStakeHash]);
-
-    if (isSuccess && hash && lastStakeHash !== hash) {
-        setLastStakeHash(hash);
-    }
 
     return (
         <div className="w-full">

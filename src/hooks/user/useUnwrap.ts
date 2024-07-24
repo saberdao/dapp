@@ -1,6 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WRAPPED_SOL } from '@saberhq/token-utils';
-import { createVersionedTransaction } from '../../helpers/transaction';
+import { createVersionedTransaction, executeMultipleTxs } from '../../helpers/transaction';
 import {  TransactionInstruction } from '@solana/web3.js';
 import useUserATA from './useUserATA';
 import useNetwork from '../useNetwork';
@@ -26,16 +26,10 @@ export default function useUnwrap() {
             [],
         ));
         
-        const vt = await createVersionedTransaction(
-            connection,
-            instructions,
-            wallet.adapter.publicKey,
-        );
-
-        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-
-        return hash;
+        await executeMultipleTxs(connection, [{
+            txs: instructions,
+            description: 'Unwrap SOL'
+        }], wallet);
     };
 
     return { unwrap };

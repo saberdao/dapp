@@ -27,7 +27,7 @@ import { calculateDepositSlippage } from './calculateDepositSlippage';
 import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
 import useProvider from '../../useProvider';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { createVersionedTransaction } from '../../../helpers/transaction';
+import { createVersionedTransaction, executeMultipleTxs } from '../../../helpers/transaction';
 
 interface IDeposit {
   tokenAmounts: readonly TokenAmount[];
@@ -35,7 +35,7 @@ interface IDeposit {
 }
 
 export interface IUseDeposit {
-    handleDeposit: (noStake: boolean) => Promise<string | undefined>;
+    handleDeposit: (noStake: boolean) => Promise<void>;
     depositDisabledReason?: string;
     priceImpact: Percent | null;
     estimatedDepositSlippage: Percent | null;
@@ -150,7 +150,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             noStake: boolean,
-        ): Promise<string | undefined> => {
+        ): Promise<void> => {
             const allInstructions = [];
             // create ATAs if they don't exist
             const result = await getOrCreateATAs({
@@ -222,44 +222,20 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             // Close the ephemeral account for wrapped SOL
             allInstructions.push(...close.instructions);
 
-            // This is turned off for now, until we are sure we can deal with the
-            // transaction sizes for all cases.
-            // If the LP token checkbox wasn't checked, apply stake.
-            // if (!noStake) {
-            //     if (!(await saber.provider.getAccountInfo(data.miner.minerKey))) {
-            //         const newMiner = await data.quarry.createMiner({ authority: wallet.adapter.publicKey });
-            //         allInstructions.push(...newMiner.tx.instructions);
-            //     }
-            //     const ataTX = await data.miner.createATAIfNotExists();
-            //     if (ataTX) {
-            //         allInstructions.push(...ataTX.instructions);
-            //     }
-
-            //     const stakeTX = data.miner.stake(estimatedMint.mintAmount);
-            //     allInstructions.push(...stakeTX.instructions);
-            // }
-
             const txEnv: TransactionEnvelope = saber.newTx(allInstructions, [
                 ephemeralAccount,
             ]);
 
-            const vt = await createVersionedTransaction(
-                connection,
-                txEnv.instructions,
-                wallet.adapter.publicKey,
-            );
-
-            vt.transaction.sign(txEnv.signers);
-
-            const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-            await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-            return hash;
+            await executeMultipleTxs(connection, [{
+                txs: txEnv.instructions,
+                description: 'Deposit'
+            }], wallet);
         },
         [maxSlippagePercent, tokenAmounts, tokenAmountsWrapped],
     );
 
     const handleDeposit = useCallback(
-        async (noStake: boolean): Promise<string | undefined> => {
+        async (noStake: boolean): Promise<void> => {
             if (!swap || !pool.exchangeInfo) {
                 throw new Error('swap or wallet or exchangeInfo is null');
             }
@@ -359,34 +335,12 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
                 }),
             );
 
-            // This is turned off for now, until we are sure we can deal with the
-            // transaction sizes for all cases.
-            // If the LP token checkbox wasn't checked, apply stake.
-            // if (!noStake) {
-            //     if (!(await saber.provider.getAccountInfo(data.miner.minerKey))) {
-            //         const newMiner = await data.quarry.createMiner({ authority: wallet.adapter.publicKey });
-            //         allInstructions.push(...newMiner.tx.instructions);
-            //     }
-            //     const ataTX = await data.miner.createATAIfNotExists();
-            //     if (ataTX) {
-            //         allInstructions.push(...ataTX.instructions);
-            //     }
-
-            //     const stakeTX = data.miner.stake(estimatedMint.mintAmount);
-            //     allInstructions.push(...stakeTX.instructions);
-            // }
-
             const txEnv: TransactionEnvelope = saber.newTx(allInstructions);
 
-            const vt = await createVersionedTransaction(
-                connection,
-                txEnv.instructions,
-                wallet.adapter.publicKey,
-            );
-
-            const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-            await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-            return hash;
+            await executeMultipleTxs(connection, [{
+                txs: txEnv.instructions,
+                description: 'Deposit'
+            }], wallet);
         },
         [
             pool.exchangeInfo,

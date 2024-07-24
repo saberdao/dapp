@@ -1,7 +1,7 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import invariant from 'tiny-invariant';
-import { createVersionedTransaction } from '../../helpers/transaction';
+import { createVersionedTransaction, executeMultipleTxs } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import BigNumber from 'bignumber.js';
 import useQuarryMiner from './useQuarryMiner';
@@ -11,19 +11,14 @@ import { SBR_REWARDER } from '@saberhq/saber-periphery';
 import { findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
 import { findMergePoolAddress } from '@/src/helpers/replicaRewards';
 import { PoolData } from '@/src/types';
-import { showTxSuccessMessage } from '@/src/components/TX';
 
 export default function useStake(pool: PoolData) {
     const { connection } = useConnection();
     const { wallet } = useWallet();
     const { data: balance } = useUserGetLPTokenBalance(pool.info.lpToken.address);
-    const { data, error, isFetching } = useQuarryMiner(pool.info.lpToken);
-
-    const { provider } = useProvider();
+    const { data } = useQuarryMiner(pool.info.lpToken);
 
     const stake = async (amountInput: number) => {
-        console.log('hoi')
-        console.log(data, error, balance, isFetching)
         if (!data || !wallet?.adapter.publicKey || !balance) {
             return;
         }
@@ -37,29 +32,29 @@ export default function useStake(pool: PoolData) {
 
         const signers: Signer[] = [];
 
-        // This pool has replicas
-        if (data.replicaInfo && data.replicaInfo.replicaQuarries && data.replicaInfo.isReplica) {
-            invariant(pool.quarryData?.rewarder);
+        invariant(pool.quarryData?.rewarder);
 
-            const mergePoolAddress = findMergePoolAddress({
-                primaryMint: new PublicKey(pool.info.lpToken.address),
-            });
-            const mergePool = data.quarry.sdk.mergeMine.loadMP({
-                mpKey: mergePoolAddress,
-            });
-            
-            // Primary deposit 
-            const txEnv = await mergePool.deposit({
-                rewarder: pool.quarryData.rewarder,
-                amount,
-            });
+        const mergePoolAddress = findMergePoolAddress({
+            primaryMint: new PublicKey(pool.info.lpToken.address),
+        });
+        const mergePool = data.quarry.sdk.mergeMine.loadMP({
+            mpKey: mergePoolAddress,
+        });
+        
+        // Primary deposit 
+        const txEnv = await mergePool.deposit({
+            rewarder: pool.quarryData.rewarder,
+            amount,
+        });
 
-            allInstructions.push(...txEnv.instructions);
-            signers.push(...txEnv.signers);
+        allInstructions.push(...txEnv.instructions);
+        signers.push(...txEnv.signers);
 
+        // Replica deposit
+        if (data.replicaInfo) {
             await Promise.all(data.replicaInfo.replicaQuarries.map(async (replica) => {
                 invariant(wallet.adapter.publicKey);
-                
+            
                 const [mmAddress] = await findMergeMinerAddress({
                     pool: mergePoolAddress,
                     owner: wallet.adapter.publicKey,
@@ -73,34 +68,12 @@ export default function useStake(pool: PoolData) {
                 signers.push(...tx.signers);
                 return;
             }))
-        } else {
-            const stakeTX = data.miner.stake(amount);
-
-            if (!(await provider.getAccountInfo(data.miner.minerKey))) {
-                const newMiner = await data.quarry.createMiner();
-                allInstructions.push(...newMiner.tx.instructions);
-                signers.push(...newMiner.tx.signers);
-            }
-    
-            const ataTX = await data.miner.createATAIfNotExists();
-            if (ataTX) {
-                allInstructions.push(...ataTX.instructions);
-                signers.push(...ataTX.signers);
-            }
-    
-            allInstructions.push(...stakeTX.instructions);
-            signers.push(...stakeTX.signers);
         }
 
-        const vt = await createVersionedTransaction(connection, allInstructions, wallet.adapter.publicKey);
-
-        vt.transaction.sign(signers);
-
-        const hash = await wallet.adapter.sendTransaction(vt.transaction, connection);
-        await connection.confirmTransaction({ signature: hash, ...vt.latestBlockhash }, 'processed');
-        showTxSuccessMessage(hash);
-
-        return hash;
+        await executeMultipleTxs(connection, [{
+            txs: allInstructions,
+            description: 'Stake'
+        }], wallet);
     };
 
     return { stake };

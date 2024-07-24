@@ -1,18 +1,18 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
 import invariant from 'tiny-invariant';
-import { sendTransaction } from '../../helpers/transaction';
+import { executeMultipleTxs, sendTransaction } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
 import { getClaimIxs } from '../../helpers/claim';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import useQuarry from '../useQuarry';
 import useNetwork from '../useNetwork';
 import BN from 'bn.js';
 import { getReplicaRewards } from '@/src/helpers/replicaRewards';
 
-export default function useClaim(lpToken: TokenInfo, onSuccess: (tx: string) => void) {
+export default function useClaim(lpToken: TokenInfo) {
     const { connection } = useConnection();
     const { wallet } = useWallet();
     const { data: balance } = useUserGetLPTokenBalance(lpToken.address);
@@ -25,14 +25,14 @@ export default function useClaim(lpToken: TokenInfo, onSuccess: (tx: string) => 
             return;
         }
 
+        const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
+
         // Primary rewards
         const ixs = await getClaimIxs(saber, miner, wallet);
-        await sendTransaction(
-            connection,
-            ixs,
-            wallet,
-            onSuccess,
-        )
+        allTxsToExecute.push({
+            txs: ixs,
+            description: 'Claim SBR rewards'
+        });
 
         // Secondary rewards
         if (miner.mergeMiner && miner.replicaInfo && miner.mergePool) {
@@ -72,16 +72,15 @@ export default function useClaim(lpToken: TokenInfo, onSuccess: (tx: string) => 
                     // No rewards
                     return;
                 }
-            
-                await sendTransaction(
-                    connection,
-                    T.instructions,
-                    wallet,
-                    onSuccess,
-                )
-            }));
 
+                allTxsToExecute.push({
+                    txs: T.instructions,
+                    description: 'Claim replica rewards'
+                });
+            }));
         }
+
+        await executeMultipleTxs(connection, allTxsToExecute, wallet);
     };
 
     return { claim };

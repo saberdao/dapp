@@ -244,26 +244,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         return { valueA, valueB, usdValue };
     }, [miner]);
 
-    const { claim } = useClaim(props.pool.info.lpToken, (tx: string) => toast.success(
-        <div className="text-sm">
-            <p>Transaction successful! Your transaction hash:</p>
-            <TX tx={tx} />
-        </div>,
-        {
-            onAutoClose: () => {
-                reset();
-                refetch();
-                refetchRewards();
-                setLastStakeHash(tx);
-            },
-            onDismiss: () => {
-                reset();
-                refetch();
-                refetchRewards();
-                setLastStakeHash(tx);
-            },
-        },
-    ));
+    const { claim } = useClaim(props.pool.info.lpToken);
     const { reset } = useClaimableRewards(props.pool.info.lpToken);
     const {
         mutate: execClaim,

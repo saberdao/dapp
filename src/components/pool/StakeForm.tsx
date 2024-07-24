@@ -15,31 +15,21 @@ export default function StakeForm (props: { pool: PoolData }) {
     const { stake } = useStake(props.pool);
     const { refetch } = useQuarryMiner(props.pool.info.lpToken, true);
     const { data: balance, refetch: refetchLP } = useUserGetLPTokenBalance(props.pool.pair.pool.state.poolTokenMint.toString());
-    const [lastStakeHash, setLastStakeHash] = useState('');
 
     const { mutate: execStake, isPending, isSuccess, data: hash } = useMutation({
-        mutationKey: ['stake', lastStakeHash],
+        mutationKey: ['stake'],
         mutationFn: async (amount: number) => {
             if (!amount) {
                 return null;
             }
 
-            return stake(amount);
+            await stake(amount);
+            refetch();
+            refetchLP();
         },
     });
-
-    // Do it like this so that when useMutation is called twice, the toast will only show once.
-    // But it still works with multiple stake invocations.
-    useEffect(() => {
-        refetch();
-        refetchLP();
-    }, [lastStakeHash]);
     
     const amount = watch('amount');
-
-    if (isSuccess && hash && lastStakeHash !== hash) {
-        setLastStakeHash(hash);
-    }
 
     return (
         <div className="w-full" onClick={() => {
