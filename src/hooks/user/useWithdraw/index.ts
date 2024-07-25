@@ -235,6 +235,7 @@ export const useWithdraw = ({
         if (withdrawPoolTokenAmount === undefined) {
             throw new Error('No withdraw percentage');
         }
+        invariant(quarry);
 
         const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
         let amountUnstakedFromMM = new BN(0);
@@ -260,6 +261,20 @@ export const useWithdraw = ({
                 await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replica) => {
                     invariant(wallet.adapter.publicKey);
                     invariant(miner.mergeMiner);
+
+                    // Only unstake if there is balance in this MM
+                    const [mmAddress] = await findMergeMinerAddress({
+                        pool: mergePool.key,
+                        owner: wallet.adapter.publicKey,
+                    })
+                    const mergeMiner = await quarry.sdk.mergeMine.loadMM({
+                        mmKey: mmAddress
+                    });
+
+                    if (mergeMiner.mm.data.replicaBalance.eq(new BN(0))) {
+                        return;
+                    }
+
                     const ixs = await mergePool.unstakeAllReplica(
                         new PublicKey(replica.rewarder),
                         mmAddress,
@@ -267,10 +282,12 @@ export const useWithdraw = ({
                     unstakeReplicaTx.push(...ixs.instructions);
                 }));
 
-                allTxsToExecute.push({
-                    txs: unstakeReplicaTx,
-                    description: 'Unstake replicas'
-                });
+                if (unstakeReplicaTx.length > 0) {
+                    allTxsToExecute.push({
+                        txs: unstakeReplicaTx,
+                        description: 'Unstake replicas'
+                    });
+                }
 
                 // Claim Saber
                 const claimSaberIxs: TransactionInstruction[] = [];
