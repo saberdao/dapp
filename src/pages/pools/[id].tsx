@@ -42,6 +42,7 @@ import UniversalPopover, { Ref } from '../../components/models/universal-popover
 import ModelHeader from '../../components/models/model-header';
 import LeverageModel from '../../components/models/leverage-model';
 import { toast } from 'sonner';
+import { TokenDisplay } from '@/src/components/TokenDisplay';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -158,7 +159,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
                     return (
                         <React.Fragment key={i}>
                             <div className="flex justify-end">
-                                {miner.replicaInfo.replicaQuarries[i].rewardsToken.mint.slice(0, 4)}...
+                                <TokenDisplay mint={miner.replicaInfo.replicaQuarries[i].rewardsToken.mint} />
                             </div>
                             <div className="text-right font-mono">
                                 {secondaryAmount.toFixed(digits.secondary[i])}
@@ -358,6 +359,26 @@ const EmissionRate = (props: { pool: PoolData }) => {
     );
 };
 
+const ReplicaEmissionRate = (props: { replica: NonNullable<PoolData['replicaQuarryData']>[number] }) => {
+    const emissionRate = useMemo(() => {
+        const annualRate = props.replica.data.annualRewardsRate;
+        const dailyRate = annualRate.div(new BN(365));
+        const rate = dailyRate.div(new BN(10 ** SBR_INFO.decimals));
+
+        return rate.toNumber();
+    }, [props.replica]);
+
+    if (emissionRate === 0) {
+        return null;
+    }
+
+    return (
+        <div key="sbr-emission-rate" className="flex gap-1">
+            {toPrecision(emissionRate, 4)} / day
+        </div>
+    );
+};
+
 const PoolPage = (props: { params: { id: string } }) => {
     const pools = usePoolsInfo();
 
@@ -390,6 +411,14 @@ const PoolPage = (props: { params: { id: string } }) => {
     const poolData = [
         ['---'],
         ['SBR emission rate', pool ? <EmissionRate pool={pool} /> : null],
+        ...(pool.replicaQuarryData ? pool.replicaQuarryData.map((replica) => {
+            if (replica.data.annualRewardsRate.toString() === '0') {
+                return [];
+            }
+            return [<div>
+                <TokenDisplay mint={replica.info.rewardsToken.mint} /> emission rate
+            </div>, <ReplicaEmissionRate replica={replica} />];
+        }) : []),
         ['---'],
         [
             <div key={`${token0.address}-deposits`} className="flex items-center gap-1">

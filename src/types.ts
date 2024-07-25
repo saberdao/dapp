@@ -4,6 +4,7 @@ import { IExchangeInfo, StableSwapConfig, StableSwapState, SwapTokenInfo } from 
 import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
 import { PoolMetricInfo } from './hooks/usePoolsData';
+import { QuarryRewarderInfo } from './helpers/rewarder';
 
 export enum Explorer {
     SOLSCAN = 'SOLSCAN'
@@ -222,6 +223,10 @@ export type PoolData = {
         stakedUsdValue: number;
     }
     quarryData?: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
+    replicaQuarryData?: {
+        data: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
+        info: QuarryRewarderInfo['replicaQuarries'][number];
+    }[]
 };
 
 interface TokenMeta {

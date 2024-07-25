@@ -13,8 +13,8 @@ import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
 import { getPoolTVL } from '../helpers/prices';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
-import { QUARRY_ADDRESSES, QuarrySDK, findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
-import { chunk } from 'lodash';
+import { QUARRY_ADDRESSES, QuarrySDK, findMergeMinerAddress, findReplicaMintAddress } from '@quarryprotocol/quarry-sdk';
+import { add, chunk, merge } from 'lodash';
 import throat from 'throat';
 import { Percent, Token, TokenAmount, getATAAddressSync, getATAAddressesSync } from '@saberhq/token-utils';
 import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
@@ -26,6 +26,7 @@ import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 import useGetRewarders from './useGetRewarders';
 import { findMergePoolAddress } from '../helpers/replicaRewards';
 import BN from 'bn.js';
+import { QuarryRewarderInfo } from '../helpers/rewarder';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -71,11 +72,10 @@ const getStakedBalanceAta = (
     };
 };
 
-const getQuarryInfo = async (quarry: QuarrySDK, pools: PoolData[]) => {
+const getQuarryInfo = async (quarry: QuarrySDK, rewarders: QuarryRewarderInfo[], pools: PoolData[]) => {
     // Get quarry info
-    const rewarders = pools.map((pool) => pool.info.quarry);
-
-    const chunks = chunk(rewarders, 100);
+    const infos = pools.map((pool) => pool.info.quarry);
+    const chunks = chunk(infos, 100);
 
     // Ask the RPC to execute this
     const rewarderInfo = (await Promise.all(chunks.map(throat(10, async (chunk) => {
@@ -86,6 +86,46 @@ const getQuarryInfo = async (quarry: QuarrySDK, pools: PoolData[]) => {
     // Merge in pool
     pools.forEach(pool => {
         pool.quarryData = rewarderInfo.find((info) => info?.tokenMintKey.toString() === pool.info.lpToken.address);
+    });
+
+    const poolChunks = chunk(pools, 100);
+
+    // Get all replica infos
+    const replicaInfos = (await Promise.all(poolChunks.map(throat(10, async (chunk) => {
+        const addressesToFetch: string[] = [];
+        await Promise.all(chunk.map(async pool => {
+            const mergePoolAddress = pool.info.summary.addresses.mergePool;
+            const replicaInfo = mergePoolAddress && rewarders?.find(rewarder => rewarder.mergePool === mergePoolAddress);
+            if (replicaInfo) {
+                // There are replicas, for every replica we need to constract a call that fetches the info
+                addressesToFetch.push(...replicaInfo.replicaQuarries.map(q => q.quarry));
+            }
+        }))
+
+        const result: Awaited<ReturnType<typeof quarry.programs.Mine.account.quarry.fetch>>[] = await quarry.programs.Mine.account.quarry.fetchMultiple(addressesToFetch) as any;
+        return result;
+    })))).flat();
+
+    // Merge replica stuff into pools
+    pools.forEach(pool => {
+        if (!pool.replicaQuarryData) {
+            pool.replicaQuarryData = [];
+        }
+
+        const mergePoolAddress = pool.info.summary.addresses.mergePool;
+        const replicaInfo = mergePoolAddress && rewarders?.find(rewarder => rewarder.mergePool === mergePoolAddress);
+        if (!replicaInfo) {
+            return;
+        }
+
+        pool.replicaQuarryData = replicaInfos
+            .filter(info => {
+                return info.tokenMintKey.toString() === replicaInfo.replicaMint;
+            })
+            .map(data => ({
+                data,
+                info: replicaInfo.replicaQuarries.filter(replica => replica.rewarder.toString() === data.rewarder.toString())?.[0],
+            }));
     });
 };
 
@@ -98,6 +138,7 @@ export default function () {
     const { data: poolsInfo } = usePoolsData();
     const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
     const { data: quarry } = useQuarry();
+    const { data: rewarders } = useGetRewarders(network);
     const { connection } = useConnection();
     const { maxSlippagePercent } = useSettings();
     const { wallet } = useWallet();
@@ -111,7 +152,7 @@ export default function () {
             // prevent re-fetching on every page load.
             // Especially for the reverse balances this
             // saves a ton of RPC calls.
-            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo) {
+            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo || !rewarders) {
                 return;
             }
 
@@ -149,7 +190,7 @@ export default function () {
                 }),
             };
 
-            await getQuarryInfo(quarry.sdk, data.pools);
+            await getQuarryInfo(quarry.sdk, rewarders, data.pools);
 
             data.pools.forEach((pool) => {
                 const metricInfo = poolsInfo?.find(info => info.poolId === pool.info.swap.config.swapAccount.toString());
@@ -245,6 +286,6 @@ export default function () {
 
             return data;
         },
-        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo,
+        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo && !!rewarders,
     });
 }
