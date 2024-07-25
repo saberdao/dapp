@@ -87,10 +87,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
                 >{balance}</div>
             </div>
 
-            {/* <Input register={register('noWithdraw')} type={InputType.CHECKBOX} label="Receive LP tokens instead" size="full" />
-
-            <div className="mt-5" /> */}
-            
             {isPending
                 ? <Button disabled size="full">
                     Unstaking...
@@ -101,9 +97,6 @@ export default function UnunstakeForm (props: { pool: PoolData }) {
             
             <div className="text-right text-gray-400 text-xs mt-2">
                 ${amount > 0 ? toPrecision(stakedUsdValue, 4) : '—'}
-            </div>
-            <div className="text-right text-gray-400 text-xs mt-2">
-                Unstaking will take between 1 and 4 transactions.
             </div>
         </div>
     );

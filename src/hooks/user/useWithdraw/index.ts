@@ -172,7 +172,7 @@ export const useWithdraw = ({
     pool,
     actions,
 }: IWithdrawal): IUseWithdraw | undefined => {
-    const { wallet, signAllTransactions } = useWallet();
+    const { wallet } = useWallet();
     const { provider, saber } = useProvider();
     const { connection } = useConnection();
     const { data: miner } = useQuarryMiner(pool.info.lpToken, true);
@@ -245,7 +245,6 @@ export const useWithdraw = ({
                 const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalanceMM.toString()), withdrawPoolTokenAmount.raw.toString());
                 const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
 
-                const claimReplicaTx: TransactionInstruction[] = [];
                 const unstakeReplicaTx: TransactionInstruction[] = [];
                 const mergePoolAddress = findMergePoolAddress({
                     primaryMint: new PublicKey(pool.info.lpToken.address),
@@ -266,46 +265,8 @@ export const useWithdraw = ({
                         mmAddress,
                     );
                     unstakeReplicaTx.push(...ixs.instructions);
-
-                    try {
-                        // Get the amount to claim. If <=0, skip.
-                        const { payroll, replicaMinerData } = await getReplicaRewards(
-                            quarry!.sdk,
-                            pool.info.lpToken,
-                            replica,
-                            wallet.adapter.publicKey
-                        );    
-                        const rewards = new TokenAmount(new Token({
-                            ...replica.rewardsToken,
-                            symbol: 'R',
-                            chainId: 103,
-                            address: replica.rewardsToken.mint,
-                            name: 'Reward token'
-                        }), payroll.calculateRewardsEarned(
-                            new BN(Math.floor(Date.now() / 1000)),
-                            replicaMinerData.balance,
-                            replicaMinerData.rewardsPerTokenPaid,
-                            replicaMinerData.rewardsEarned,
-                        ));
-    
-                        const reward = rewards.asNumber;
-                        if (reward <= 0) {
-                            throw Error('Not enough rewards');
-                        }
-                    } catch (e) {
-                        // No rewards
-                        return;
-                    }
-
-                    const T = await miner.mergeMiner.claimReplicaRewards(new PublicKey(replica.rewarder));
-                    claimReplicaTx.push(...T.instructions);
                 }));
 
-                // Execute these separately because it doesn't fit in 1 TX
-                allTxsToExecute.push({
-                    txs: claimReplicaTx,
-                    description: 'Claim replica rewards'
-                });
                 allTxsToExecute.push({
                     txs: unstakeReplicaTx,
                     description: 'Unstake replicas'
@@ -313,35 +274,12 @@ export const useWithdraw = ({
 
                 // Claim Saber
                 const claimSaberIxs: TransactionInstruction[] = [];
-                const claimSbr = await mergePool.claimPrimaryRewards(SBR_REWARDER, mmAddress);
                 const withdrawSbr = await mergePool.withdraw({ amount, rewarder: SBR_REWARDER, mergeMiner: mmAddress });
-                // const unstakeSbr = await mergePool.unstakePrimaryMiner(SBR_REWARDER, mmAddress, amount);
-                claimSaberIxs.push(...claimSbr.instructions);
-                // claimSaberIxs.push(...unstakeSbr.instructions);
                 claimSaberIxs.push(...withdrawSbr.instructions);
-                const redeemer = await saber.loadRedeemer({
-                    iouMint: SABER_IOU_MINT,
-                    redemptionMint: new PublicKey(SBR_MINT),
-                });
-                const { accounts, instructions } = await getOrCreateATAs({
-                    provider: saber.provider,
-                    mints: {
-                        iou: redeemer.data.iouMint,
-                        redemption: redeemer.data.redemptionMint,
-                    },
-                    owner: wallet.adapter.publicKey,
-                });
-                const redeemTx = await redeemer.redeemAllTokensFromMintProxyIx({
-                    iouSource: accounts.iou,
-                    redemptionDestination: accounts.redemption,
-                    sourceAuthority: wallet.adapter.publicKey,
-                });
-                claimSaberIxs.push(...instructions);
-                claimSaberIxs.push(redeemTx);
 
                 allTxsToExecute.push({
                     txs: claimSaberIxs,
-                    description: 'Claim SBR'
+                    description: 'Unstake LP'
                 });
 
                 // If not unstaking everything, restake replicas
@@ -381,16 +319,17 @@ export const useWithdraw = ({
                     const stakeTX = miner.miner.withdraw(amount);
                     legacyUnstakeTx.push(...stakeTX.instructions);
 
-                    const ixs = await getClaimIxs(saber, miner, wallet);
-                    legacyUnstakeTx.push(...ixs);
-
                     allTxsToExecute.push({
                         txs: legacyUnstakeTx,
                         description: 'Legacy unstake'
                     });
                 }
             }
-            
+
+            // Add claim
+            invariant(quarry);
+            const claimTxs = await getClaimIxs(saber, quarry.sdk, miner, pool.info.lpToken, wallet)
+            allTxsToExecute.push(...claimTxs);
         }
 
         if (actions.withdraw) {

@@ -23,15 +23,26 @@ export default function useClaim(lpToken: TokenInfo) {
 
         // Primary
         const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
-        const rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
+        let rewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
             new BN(timeInSec),
-            miner.stakedBalance,
+            miner.stakedBalanceLegacy,
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
 
         // Secondary
         const secondaryRewards = secondaryPayrolls.map((secondaryPayroll) => {
+            if (!secondaryPayroll) {
+                return 0;
+            }
+
+            rewards = rewards.add(new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
+                new BN(timeInSec),
+                secondaryPayroll.primaryMinerData.balance,
+                secondaryPayroll.primaryMinerData.rewardsPerTokenPaid,
+                secondaryPayroll.primaryMinerData.rewardsEarned,
+            )))
+
             return (new TokenAmount(new Token(SBR_INFO), secondaryPayroll.payroll.calculateRewardsEarned(
                 new BN(timeInSec),
                 secondaryPayroll.replicaMinerData.balance,

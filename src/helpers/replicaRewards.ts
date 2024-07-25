@@ -4,6 +4,8 @@ import { PublicKey } from "@solana/web3.js";
 import { ReplicaQuarryInfo } from "./rewarder";
 import { Token, TokenInfo } from "@saberhq/token-utils";
 import { createQuarryPayroll } from "./quarry";
+import { SBR_MINT, SBR_REWARDER } from "@saberhq/saber-periphery";
+import BN from "bn.js";
 
 const findPDASync = (
     seeds: (string | Uint8Array | Buffer | PublicKey)[],
@@ -65,7 +67,24 @@ export const getReplicaRewards = async (quarry: QuarrySDK, lpToken: TokenInfo, r
     const replicaMiner = await replicaQuarry.getMinerActions(mmAddress);
     const replicaMinerData = await replicaMiner.fetchData()
 
+    const annualRewardsRate = replicaMiner.quarry.computeAnnualRewardsRate()
+    if (annualRewardsRate.eq(new BN(0))) {
+        return undefined;
+    }
+
     const payroll = createQuarryPayroll(replicaMiner.quarry.quarryData);
 
-    return { payroll, replicaMinerData };
+    // Get the miner data of the primary for this mergeminer
+    const primaryRewarder = await quarry.mine.loadRewarderWrapper(SBR_REWARDER);
+    const primaryQuarry = await primaryRewarder.getQuarry(new Token({
+        decimals: lpToken.decimals,
+        symbol: lpToken.symbol,
+        chainId: 103,
+        address: lpToken.address,
+        name: lpToken.name
+    }));
+    const primaryMiner = await primaryQuarry.getMinerActions(mmAddress);
+    const primaryMinerData = await primaryMiner.fetchData()
+
+    return { payroll, replicaMinerData, primaryMinerData };
 }
