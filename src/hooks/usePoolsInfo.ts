@@ -11,7 +11,7 @@ import useGetPrices from './useGetPrices';
 import useGetReserves from './useGetReserves';
 import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
-import { getPoolTVL } from '../helpers/prices';
+import { getPoolTVL, getPrice } from '../helpers/prices';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import { QUARRY_ADDRESSES, QuarrySDK, findMergeMinerAddress, findReplicaMintAddress } from '@quarryprotocol/quarry-sdk';
 import { add, chunk, merge } from 'lodash';
@@ -20,7 +20,7 @@ import { Percent, Token, TokenAmount, getATAAddressSync, getATAAddressesSync } f
 import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
 import useSettings from './useSettings';
 import useQuarry from './useQuarry';
-import { getEmissionApy, getFeeApy } from '../helpers/apy';
+import { getEmissionApy, getFeeApy, getSecondaryEmissionApy } from '../helpers/apy';
 import usePoolsData from './usePoolsData';
 import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 import useGetRewarders from './useGetRewarders';
@@ -192,9 +192,22 @@ export default function () {
 
             await getQuarryInfo(quarry.sdk, rewarders, data.pools);
 
-            data.pools.forEach((pool) => {
+            await Promise.all(data.pools.map(async (pool) => {
                 const metricInfo = poolsInfo?.find(info => info.poolId === pool.info.swap.config.swapAccount.toString());
                 pool.metricInfo = metricInfo;
+
+                // Get prices of secondary rewards
+                let secondaryApy: number[] = [];
+                if (pool.replicaQuarryData) {
+                    secondaryApy = await Promise.all(pool.replicaQuarryData.map(async (replica) => {
+                        if (replica.data.annualRewardsRate.lte(new BN(0 ))) {
+                            return 0;
+                        }
+
+                        const price = await getPrice(replica.info.rewardsToken.mint, replica.info.rewardsToken.decimals);
+                        return getSecondaryEmissionApy(pool, replica, price);
+                    }));
+                }
 
                 const tvl = getPoolTVL(pool);
                 const feeApy = getFeeApy(metricInfo?.['24hFeeInUsd'] ?? 0, tvl ?? 0);
@@ -203,9 +216,10 @@ export default function () {
                     tvl,
                     feeApy,
                     emissionApy,
-                    totalApy: feeApy + emissionApy,
+                    secondaryApy: pool.replicaQuarryData?.map((_, i) => secondaryApy[i] ?? 0) ?? [],
+                    totalApy: feeApy + emissionApy + secondaryApy.reduce((acc, val) => acc + val, 0),
                 };
-            });
+            }));
 
             if (wallet?.adapter.publicKey) {                
                 // LP token balances

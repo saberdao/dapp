@@ -74,6 +74,6 @@ export default function useGetPrices() {
             
             return prices;
         },
-        staleTime: 1000 * 60,
+        staleTime: 1000 * 600,
     });
 }

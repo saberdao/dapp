@@ -42,7 +42,7 @@ import UniversalPopover, { Ref } from '../../components/models/universal-popover
 import ModelHeader from '../../components/models/model-header';
 import LeverageModel from '../../components/models/leverage-model';
 import { toast } from 'sonner';
-import { TokenDisplay } from '@/src/components/TokenDisplay';
+import { TokenDisplay, TokenLogo } from '@/src/components/TokenDisplay';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -545,6 +545,12 @@ const PoolPage = (props: { params: { id: string } }) => {
                                                     />
                                                 </div>
                                             </div>
+                                            {pool.metrics?.secondaryApy.map((apy, i) => (
+                                                apy > 0 ? <div key={i} className="flex items-center gap-2">
+                                                    + <TokenLogo mint={pool.replicaQuarryData![i].info.rewardsToken.mint} />{' '}
+                                                    {toAPY(apy, 4)}%
+                                                </div> : null
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
