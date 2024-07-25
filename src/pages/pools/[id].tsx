@@ -289,7 +289,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                                 <p>{toPrecision(stakedValue.valueB, 4)}</p>
                             </div>
                         ],
-                        ['USD value', `$${toPrecision(stakedValue.usdValue, 4)}`],
+                        ['Staked USD value', `$${toPrecision(stakedValue.usdValue, 4)}`],
                         lpTokenBalance && lpTokenBalance.balance.value.uiAmount
                             ? [
                                   'LP token balance',

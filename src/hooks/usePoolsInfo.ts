@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import invariant from 'tiny-invariant';
 import useGetSwaps from './useGetSwaps';
 import useGetPools from './useGetPools';
 import useNetwork from '../hooks/useNetwork';
@@ -12,10 +13,10 @@ import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
 import { getPoolTVL } from '../helpers/prices';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
-import { QUARRY_ADDRESSES, QuarrySDK } from '@quarryprotocol/quarry-sdk';
+import { QUARRY_ADDRESSES, QuarrySDK, findMergeMinerAddress } from '@quarryprotocol/quarry-sdk';
 import { chunk } from 'lodash';
 import throat from 'throat';
-import { Percent, Token, TokenAmount, getATAAddressSync } from '@saberhq/token-utils';
+import { Percent, Token, TokenAmount, getATAAddressSync, getATAAddressesSync } from '@saberhq/token-utils';
 import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
 import useSettings from './useSettings';
 import useQuarry from './useQuarry';
@@ -23,6 +24,8 @@ import { getEmissionApy, getFeeApy } from '../helpers/apy';
 import usePoolsData from './usePoolsData';
 import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 import useGetRewarders from './useGetRewarders';
+import { findMergePoolAddress } from '../helpers/replicaRewards';
+import BN from 'bn.js';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -163,9 +166,21 @@ export default function () {
                 };
             });
 
-            if (wallet?.adapter.publicKey) {
-                // Also add all staked balances
-                const balanceAddresses = data.pools.map((pool) => {
+            if (wallet?.adapter.publicKey) {                
+                // LP token balances
+                const lpTokenBalances = data.pools.map((pool) => {
+                    invariant(wallet.adapter.publicKey);
+                    return {
+                        ata: getATAAddressSync({
+                                mint: new PublicKey(pool.info.lpToken.address),
+                                owner: wallet.adapter.publicKey,
+                        }),
+                        lpTokenAddress: new PublicKey(pool.info.lpToken.address),
+                    }
+                });
+
+                // Also add all legacy staked balances
+                const legacyMinerBalances = data.pools.map((pool) => {
                     return getStakedBalanceAta(
                         wallet.adapter.publicKey!,
                         new PublicKey(pool.info.quarry),
@@ -173,8 +188,27 @@ export default function () {
                     );
                 });
 
+                // And all merge miner balances
+                const mergeMinerBalances = await Promise.all(data.pools.map(async (pool) => {
+                    invariant(wallet.adapter.publicKey);
+
+                    const mergePool = findMergePoolAddress({
+                        primaryMint: new PublicKey(pool.info.lpToken.address),
+                    });
+                    const [mmAddress] = await findMergeMinerAddress({
+                        pool: mergePool,
+                        owner: wallet.adapter.publicKey,
+                    })
+
+                    return getStakedBalanceAta(
+                        mmAddress,
+                        new PublicKey(pool.info.quarry),
+                        new PublicKey(pool.info.lpToken.address),
+                    );
+                }));
+
                 // Now we need to fetch the balances of all these addresses, we can do that in chunks of 100
-                const chunks = chunk(balanceAddresses, 100);
+                const chunks = chunk(lpTokenBalances.concat(legacyMinerBalances).concat(mergeMinerBalances), 100);
                 
                 // Ask the RPC to execute this
                 const tokenAmounts = (await Promise.all(chunks.map(throat(10, async (chunk) => {
@@ -195,10 +229,15 @@ export default function () {
                     if (amount.amount) {
                         const pool = data.pools.find((pool) => pool.info.lpToken.address === amount.lpTokenAddress.toString());
                         if (pool) {
-                            pool.userInfo = {
-                                stakedBalance: amount.amount,
-                                stakedUsdValue: calculateUsdValue(pool, amount.amount, maxSlippagePercent),
-                            };
+                            if (!pool.userInfo) {
+                                pool.userInfo = {
+                                    stakedBalance: '0',
+                                    stakedUsdValue: 0,
+                                };
+                            }
+
+                            pool.userInfo.stakedBalance = new BN(pool.userInfo.stakedBalance).add(new BN(amount.amount)).toString();
+                            pool.userInfo.stakedUsdValue = calculateUsdValue(pool, pool.userInfo.stakedBalance.toString(), maxSlippagePercent);
                         }
                     }
                 });
