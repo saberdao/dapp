@@ -11,10 +11,10 @@ import useGetPrices from './useGetPrices';
 import useGetReserves from './useGetReserves';
 import useGetLPTokenAmounts from './useGetLPTokenAmounts';
 import { getExchange } from '../helpers/exchange';
-import { getPoolTVL, getPrice } from '../helpers/prices';
+import { getPoolTVL, getPoolTokenPercentages, getPrice } from '../helpers/prices';
 import { ParsedAccountData, PublicKey } from '@solana/web3.js';
 import { QUARRY_ADDRESSES, QuarrySDK, findMergeMinerAddress, findReplicaMintAddress } from '@quarryprotocol/quarry-sdk';
-import { add, chunk, merge } from 'lodash';
+import { chunk } from 'lodash';
 import throat from 'throat';
 import { Percent, Token, TokenAmount, getATAAddressSync, getATAAddressesSync } from '@saberhq/token-utils';
 import { calculateWithdrawAll } from './user/useWithdraw/calculateWithdrawAll';
@@ -27,6 +27,7 @@ import useGetRewarders from './useGetRewarders';
 import { findMergePoolAddress } from '../helpers/replicaRewards';
 import BN from 'bn.js';
 import { QuarryRewarderInfo } from '../helpers/rewarder';
+import useGetStakePoolAPY from './useGetStakePoolAPY';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -139,6 +140,7 @@ export default function () {
     const { data: lpTokenAmounts } = useGetLPTokenAmounts(pools?.pools);
     const { data: quarry } = useQuarry();
     const { data: rewarders } = useGetRewarders(network);
+    const { data: stakePoolApy } = useGetStakePoolAPY(network);
     const { connection } = useConnection();
     const { maxSlippagePercent } = useSettings();
     const { wallet } = useWallet();
@@ -152,7 +154,7 @@ export default function () {
             // prevent re-fetching on every page load.
             // Especially for the reverse balances this
             // saves a ton of RPC calls.
-            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo || !rewarders) {
+            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo || !rewarders || !stakePoolApy) {
                 return;
             }
 
@@ -212,12 +214,17 @@ export default function () {
                 const tvl = getPoolTVL(pool);
                 const feeApy = getFeeApy(metricInfo?.['24hFeeInUsd'] ?? 0, tvl ?? 0);
                 const emissionApy = getEmissionApy(pool, prices[SBR_ADDRESS.toString()]);
+                const tokenPercentages = getPoolTokenPercentages(pool);
+                const stakePoolApyToken0 = 100 * (stakePoolApy[pool.info.swap.state.tokenA.mint.toString()] ?? 0) * tokenPercentages.tokenA;
+                const stakePoolApyToken1 = 100 * (stakePoolApy[pool.info.swap.state.tokenB.mint.toString()] ?? 0) * tokenPercentages.tokenB;
                 pool.metrics = {
                     tvl,
                     feeApy,
                     emissionApy,
                     secondaryApy: pool.replicaQuarryData?.map((_, i) => secondaryApy[i] ?? 0) ?? [],
-                    totalApy: feeApy + emissionApy + secondaryApy.reduce((acc, val) => acc + val, 0),
+                    stakePoolApyToken0,
+                    stakePoolApyToken1,
+                    totalApy: feeApy + emissionApy + secondaryApy.reduce((acc, val) => acc + val, 0) + stakePoolApyToken0 + stakePoolApyToken1,
                 };
             }));
 
@@ -300,6 +307,6 @@ export default function () {
 
             return data;
         },
-        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo && !!rewarders,
+        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo && !!rewarders && !!stakePoolApy,
     });
 }

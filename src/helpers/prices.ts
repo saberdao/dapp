@@ -18,6 +18,17 @@ export const getPoolTVL = (pool: Omit<PoolData, 'metrics'>) => {
     return tvl;
 };
 
+export const getPoolTokenPercentages = (pool: Omit<PoolData, 'metrics'>) => {
+    // Get amount token A and B, and their USD prices, and calculate TVL
+    const amountTokenA = pool.exchangeInfo.reserves[0].amount.asNumber;
+    const amountTokenB = pool.exchangeInfo.reserves[1].amount.asNumber;
+
+    return {
+        tokenA: amountTokenA / (amountTokenA + amountTokenB),
+        tokenB: amountTokenB / (amountTokenA + amountTokenB),
+    };
+};
+
 const priceCache: Record<string, number> = {};
 export const getPrice = async (mint: string, decimals: number) => {
     if (blacklist.includes(mint)) {

@@ -218,6 +218,8 @@ export type PoolData = {
         emissionApy: number;
         totalApy: number;
         secondaryApy: number[];
+        stakePoolApyToken0: number;
+        stakePoolApyToken1: number;
     }
     userInfo?: {
         stakedBalance: string;

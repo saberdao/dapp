@@ -148,7 +148,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
                         <Saber className="rounded-full p-1 text-saber-dark bg-black border border-saber-dark" />
                     </div>
                     <div className="text-right font-mono">
-                        {amounts.primary.toFixed(digits.primary)}
+                        {isNaN(amounts.primary) ? '0' : amounts.primary.toFixed(digits.primary)}
                     </div>
                 </>
                 : null}
@@ -163,7 +163,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
                                 <TokenLogo className="w-5 h-5" mint={miner.replicaInfo.replicaQuarries[i].rewardsToken.mint} />
                             </div>
                             <div className="text-right font-mono">
-                                {secondaryAmount.toFixed(digits.secondary[i])}
+                                {isNaN(secondaryAmount) ? '0' : secondaryAmount.toFixed(digits.secondary[i])}
                             </div>
                         </React.Fragment>
                     )
@@ -351,12 +351,6 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                     && miner.replicaInfo.replicaQuarries.length > 0
                     && <UpgradeStakeButton pool={props.pool} />}
             </Block>
-            {/* {props.pool?.info?.name === 'bSOL-SOL' ||
-                (props.pool?.info?.name === 'mSOL-SOL' && (
-                    <Button size="full" onClick={props.handleOpenModel}>
-                        Boost your APY up to 70%!
-                    </Button>
-                ))} */}
             <Block noPadding className="mt-4">
                 <LiquidityForms pool={props.pool} />
             </Block>
@@ -580,6 +574,30 @@ const PoolPage = (props: { params: { id: string } }) => {
                                                     {toAPY(apy, 4)}%
                                                 </div> : null
                                             ))}
+                                            {(pool.metrics?.stakePoolApyToken0) ?? 0 > 0 ?
+                                                <div className="flex items-center gap-1">
+                                                    + <img
+                                                        className="w-4 h-4 rounded-full"
+                                                        src={getLogo(
+                                                            pool.info.tokens[0].symbol,
+                                                            pool.info.tokenIcons[0].logoURI,
+                                                        )}
+                                                    />{' '}
+                                                    {toAPY(pool.metrics?.stakePoolApyToken0 ?? 0, 4)}%
+                                                </div> : null
+                                            }
+                                            {(pool.metrics?.stakePoolApyToken1) ?? 0 > 0 ?
+                                                <div className="flex items-center gap-1">
+                                                    + <img
+                                                        className="w-4 h-4 rounded-full"
+                                                        src={getLogo(
+                                                            pool.info.tokens[1].symbol,
+                                                            pool.info.tokenIcons[1].logoURI,
+                                                        )}
+                                                    />{' '}
+                                                    {toAPY(pool.metrics?.stakePoolApyToken1 ?? 0, 4)}%
+                                                </div> : null
+                                            }
                                         </div>
                                     </div>
                                 </div>
