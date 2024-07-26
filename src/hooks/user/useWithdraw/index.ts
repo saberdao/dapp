@@ -320,14 +320,15 @@ export const useWithdraw = ({
                         description: 'Redeposit replicas'
                     });
                 }
-
-                amountUnstakedFromMM = new BN(amount.asNumber);
+                amountUnstakedFromMM = new BN(amount.raw.toString());
             } 
 
             if (miner.stakedBalanceLegacy.gt(new BN(0))) {
+                const amountLeftToUnstake = new BigNumber(withdrawPoolTokenAmount.raw.toString())
+                    .minus(amountUnstakedFromMM.toNumber())
+
                 const maxAmount = BigNumber
-                    .min(new BigNumber(miner.stakedBalanceLegacy.toString()), withdrawPoolTokenAmount.raw.toString())
-                    .minus(amountUnstakedFromMM.toNumber());
+                    .min(new BigNumber(miner.stakedBalanceLegacy.toString()), amountLeftToUnstake)
                 if (maxAmount.gt(0)) {
                     const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
                     const legacyUnstakeTx: TransactionInstruction[] = [];

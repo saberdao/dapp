@@ -160,7 +160,7 @@ const FarmCounter = (props: { pool: PoolData }) => {
                     return (
                         <React.Fragment key={i}>
                             <div className="flex justify-end">
-                                <TokenDisplay mint={miner.replicaInfo.replicaQuarries[i].rewardsToken.mint} />
+                                <TokenLogo className="w-5 h-5" mint={miner.replicaInfo.replicaQuarries[i].rewardsToken.mint} />
                             </div>
                             <div className="text-right font-mono">
                                 {secondaryAmount.toFixed(digits.secondary[i])}
@@ -402,6 +402,7 @@ const ReplicaEmissionRate = (props: { replica: NonNullable<PoolData['replicaQuar
 
     return (
         <div key="sbr-emission-rate" className="flex gap-1">
+            <TokenLogo className="w-5 h-5" mint={props.replica.info.rewardsToken.mint} />
             {toPrecision(emissionRate, 4)} / day
         </div>
     );
@@ -450,7 +451,7 @@ const PoolPage = (props: { params: { id: string } }) => {
         ['---'],
         [
             <div key={`${token0.address}-deposits`} className="flex items-center gap-1">
-                <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5" />
+                <img src={getLogo(token0.symbol, token0.logoURI)} className="w-5 h-5 rounded-full" />
                 <p>{getSymbol(token0.symbol)}</p>
             </div>,
             `${toPrecision(
@@ -463,7 +464,7 @@ const PoolPage = (props: { params: { id: string } }) => {
         ],
         [
             <div key={`${token1.address}-deposits`} className="flex items-center gap-1">
-                <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5" />
+                <img src={getLogo(token1.symbol, token1.logoURI)} className="w-5 h-5 rounded-full" />
                 <p>{getSymbol(token1.symbol)}</p>
             </div>,
             `${toPrecision(
@@ -574,8 +575,8 @@ const PoolPage = (props: { params: { id: string } }) => {
                                                 </div>
                                             </div>
                                             {pool.metrics?.secondaryApy.map((apy, i) => (
-                                                apy > 0 ? <div key={i} className="flex items-center gap-2">
-                                                    + <TokenLogo mint={pool.replicaQuarryData![i].info.rewardsToken.mint} />{' '}
+                                                apy > 0 ? <div key={i} className="flex items-center gap-1">
+                                                    + <TokenLogo className="w-4 h-4" mint={pool.replicaQuarryData![i].info.rewardsToken.mint} />{' '}
                                                     {toAPY(apy, 4)}%
                                                 </div> : null
                                             ))}
