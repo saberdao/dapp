@@ -43,6 +43,7 @@ import ModelHeader from '../../components/models/model-header';
 import LeverageModel from '../../components/models/leverage-model';
 import { toast } from 'sonner';
 import { TokenDisplay, TokenLogo } from '@/src/components/TokenDisplay';
+import useUpgradeStake from '@/src/hooks/user/useUpgradeStake';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -206,6 +207,30 @@ const LiquidityForms = (props: { pool: PoolData }) => {
     );
 };
 
+const UpgradeStakeButton = (props: { pool: PoolData}) => {
+    const { upgradeStake } = useUpgradeStake(props.pool);
+
+    const {
+        mutate: execUpgradeStake,
+        isPending,
+    } = useMutation({
+        mutationKey: ['deposit'],
+        mutationFn: async () => {
+            await upgradeStake();
+        },
+    });
+
+    return (
+        <button
+            className="bg-yellow-600 cursor-pointer hover:bg-yellow-800 text-center text-xs text-slate-200 z-1 relative p-2 rounded-lg flex gap-1 justify-center items-center transition-colors"
+            onClick={() => execUpgradeStake()}
+            disabled={isPending}
+        >
+            {isPending ? 'Upgrading stake...' : 'You have staked your LP tokens in our legacy miner. Click here to upgrade to merge mining and receive dual rewards.'}
+        </button>
+    )
+}
+
 const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void }) => {
     const { wallet } = useWallet();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
@@ -249,10 +274,8 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     const {
         mutate: execClaim,
         isPending,
-        isSuccess,
-        data: hash,
     } = useMutation({
-        mutationKey: ['deposit'],
+        mutationKey: ['claim'],
         mutationFn: async () => {
             await claim();
             reset();
@@ -322,6 +345,11 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                         {toPrecision(dailyRewards, 4)} / day
                     </div>
                 )}
+
+                {miner?.stakedBalanceLegacy?.gt(new BN(0))
+                    && miner.replicaInfo
+                    && miner.replicaInfo.replicaQuarries.length > 0
+                    && <UpgradeStakeButton pool={props.pool} />}
             </Block>
             {/* {props.pool?.info?.name === 'bSOL-SOL' ||
                 (props.pool?.info?.name === 'mSOL-SOL' && (

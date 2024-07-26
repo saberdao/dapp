@@ -18,7 +18,7 @@ export default function useStake(pool: PoolData) {
     const { data: balance } = useUserGetLPTokenBalance(pool.info.lpToken.address);
     const { data } = useQuarryMiner(pool.info.lpToken);
 
-    const stake = async (amountInput: number) => {
+    const stake = async (amountInput: number, returnTxs = false) => {
         if (!data || !wallet?.adapter.publicKey || !balance) {
             return;
         }
@@ -89,6 +89,10 @@ export default function useStake(pool: PoolData) {
             allInstructions.push(...stakeTX.instructions);
             signers.push(...stakeTX.signers);
          */
+
+        if (returnTxs) {
+            return allInstructions;
+        }
 
         await executeMultipleTxs(connection, [{
             txs: allInstructions,

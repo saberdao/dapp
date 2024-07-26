@@ -23,6 +23,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             if (!quarry || !rewarders) {
                 return null;
             }
+            try{
 
             const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
             const quarryW = await rewarderW.getQuarry(new Token(lpToken));
@@ -58,7 +59,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             let stakedBalanceMM = new BN(0);
             const stakedBalanceLegacy = minerData?.balance ?? new BN(0);
 
-            if (replicaInfo) {
+            if (replicaInfo && replicaInfo.replicaQuarries.length > 0) {
                 mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
                 const mmKey = await mergePool.mergeMine.findMergeMinerAddress({
                     owner: wallet.adapter.publicKey,
@@ -84,6 +85,7 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 stakedBalanceLegacy,
                 stakedBalanceMM
             };
+        }catch(e){console.log(e)}
         },
         enabled: !!lpToken && !!quarry && !!rewarders,
         refetchInterval: 60000,

@@ -1,5 +1,11 @@
 import { PoolData } from '../types';
 
+const blacklist = [
+    'CowKesoLUaHSbAMaUxJUj7eodHHsaLsS65cy8NFyRDGP',
+    'LUN9joXyojPTbKf3HwcHw12PKMLrmzEMrUSAinUGKr5',
+    'SLNAAQ8VT6DRDc3W9UPDjFyRt7u4mzh8Z4WYMDjJc35',
+]
+
 export const getPoolTVL = (pool: Omit<PoolData, 'metrics'>) => {
     // Get amount token A and B, and their USD prices, and calculate TVL
     const amountTokenA = pool.exchangeInfo.reserves[0].amount;
@@ -14,6 +20,10 @@ export const getPoolTVL = (pool: Omit<PoolData, 'metrics'>) => {
 
 const priceCache: Record<string, number> = {};
 export const getPrice = async (mint: string, decimals: number) => {
+    if (blacklist.includes(mint)) {
+        return 0;
+    }
+
     if (priceCache[mint]) {
         return priceCache[mint];
     }
