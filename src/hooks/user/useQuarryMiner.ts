@@ -35,12 +35,17 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             const minerW = await quarryW.getMinerActions(wallet.adapter.publicKey);
 
             let minerData;
-            console.log(fetchData)
             if (fetchData) {
                 try {
                     minerData = await minerW.fetchData();
                 } catch (e) {
                     console.log(e)
+                    minerData = {
+                        status: 'not initialised',
+                        balance: new BN(0),
+                        rewardsPerTokenPaid: new BN(0),
+                        rewardsEarned: new BN(0),
+                    }
                     // not initialised
                 }
             }

@@ -239,10 +239,11 @@ export const useWithdraw = ({
 
         const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
         let amountUnstakedFromMM = new BN(0);
+        try{
 
         if (actions.unstake && miner?.data) {
             // Merge miner withdraw IXs
-            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries) {
+            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries.length > 0) {
                 const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalanceMM.toString()), withdrawPoolTokenAmount.raw.toString());
                 const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
 
@@ -346,6 +347,9 @@ export const useWithdraw = ({
 
             // Add claim
             invariant(quarry);
+            if (!miner.data) {
+                await miner.miner.fetchData();
+            }
             const claimTxs = await getClaimIxs(saber, quarry.sdk, miner, pool.info.lpToken, wallet)
             allTxsToExecute.push(...claimTxs);
         }
@@ -363,6 +367,7 @@ export const useWithdraw = ({
                 withdrawPoolTokenAmount
             ));
         }
+    }catch(e){console.log(e)}
 
         await executeMultipleTxs(connection, allTxsToExecute, wallet);
     };

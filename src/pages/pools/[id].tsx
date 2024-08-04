@@ -428,7 +428,7 @@ const PoolPage = (props: { params: { id: string } }) => {
     }, []);
 
     if (!pool || !token0 || !token1) {
-        return null;
+        return <p>Loading pool...</p>;
     }
 
     const poolData = [

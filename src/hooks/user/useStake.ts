@@ -15,6 +15,7 @@ import { PoolData } from '@/src/types';
 export default function useStake(pool: PoolData) {
     const { connection } = useConnection();
     const { wallet } = useWallet();
+    const { provider } = useProvider();
     const { data: balance } = useUserGetLPTokenBalance(pool.info.lpToken.address);
     const { data } = useQuarryMiner(pool.info.lpToken);
 
@@ -22,7 +23,6 @@ export default function useStake(pool: PoolData) {
         if (!data || !wallet?.adapter.publicKey || !balance) {
             return;
         }
-
         const allInstructions: TransactionInstruction[] = [];
 
         const maxAmount = BigNumber.min(new BigNumber(balance.balance.value.amount), amountInput * 10 ** pool.info.lpToken.decimals);
@@ -41,7 +41,39 @@ export default function useStake(pool: PoolData) {
             mpKey: mergePoolAddress,
         });
         
-        // Primary deposit 
+        // Check if the mergePool exists, otherwise use legacy stake
+        try {
+            await mergePool.data();
+        } catch (e) {
+            const stakeTX = data.miner.stake(amount);
+
+            if (!(await provider.getAccountInfo(data.miner.minerKey))) {
+                const newMiner = await data.quarry.createMiner();
+                allInstructions.push(...newMiner.tx.instructions);
+                signers.push(...newMiner.tx.signers);
+            }
+    
+            const ataTX = await data.miner.createATAIfNotExists();
+            if (ataTX) {
+                allInstructions.push(...ataTX.instructions);
+                signers.push(...ataTX.signers);
+            }
+    
+            allInstructions.push(...stakeTX.instructions);
+            signers.push(...stakeTX.signers);
+
+            if (returnTxs) {
+                return allInstructions;
+            }
+    
+            await executeMultipleTxs(connection, [{
+                txs: allInstructions,
+                description: 'Stake'
+            }], wallet);
+            return;
+        }
+
+        // Primary deposit
         const txEnv = await mergePool.deposit({
             rewarder: pool.quarryData.rewarder,
             amount,
@@ -69,26 +101,6 @@ export default function useStake(pool: PoolData) {
                 return;
             }))
         }
-
-        /**
-         * legacy depost for testing
-         * const stakeTX = data.miner.stake(amount);
-
-            if (!(await provider.getAccountInfo(data.miner.minerKey))) {
-                const newMiner = await data.quarry.createMiner();
-                allInstructions.push(...newMiner.tx.instructions);
-                signers.push(...newMiner.tx.signers);
-            }
-    
-            const ataTX = await data.miner.createATAIfNotExists();
-            if (ataTX) {
-                allInstructions.push(...ataTX.instructions);
-                signers.push(...ataTX.signers);
-            }
-    
-            allInstructions.push(...stakeTX.instructions);
-            signers.push(...stakeTX.signers);
-         */
 
         if (returnTxs) {
             return allInstructions;

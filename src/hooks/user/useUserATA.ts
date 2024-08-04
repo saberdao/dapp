@@ -85,6 +85,7 @@ export default function useUserATA(
             return batcher(connection, network, wallet.adapter.publicKey!).fetch({ mint, ignoreWrap });
         },
         refetchInterval: 5000,
+        enabled: !!connection && !!network && !!wallet?.adapter.publicKey,
     });
     
 }
