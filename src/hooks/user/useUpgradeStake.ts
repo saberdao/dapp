@@ -1,11 +1,9 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import invariant from 'tiny-invariant';
-import { Token, TokenAmount, TokenInfo } from '@saberhq/token-utils';
-import { executeMultipleTxs, sendTransaction } from '../../helpers/transaction';
-import useUserGetLPTokenBalance from './useGetLPTokenBalance';
+import { Token, TokenAmount } from '@saberhq/token-utils';
+import { executeMultipleTxs } from '../../helpers/transaction';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
-import { getClaimIxs } from '../../helpers/claim';
 import useQuarry from '../useQuarry';
 import { TransactionInstruction } from '@solana/web3.js';
 import useStake from './useStake';

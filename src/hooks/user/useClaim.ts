@@ -1,6 +1,6 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { TokenInfo } from '@saberhq/token-utils';
-import { executeMultipleTxs, sendTransaction } from '../../helpers/transaction';
+import { executeMultipleTxs } from '../../helpers/transaction';
 import useUserGetLPTokenBalance from './useGetLPTokenBalance';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';

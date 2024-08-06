@@ -61,11 +61,11 @@ export default function useClaim(lpToken: TokenInfo) {
             const extraMs = time - timeInSec * 1000;
 
             // Calculate primary reward per millisecond
-            const rewardPerMilliSec = ((reward.primary - rewardsT0.primary) / (timeInSec - timeT0)) / 1000;
+            const rewardPerMilliSec = timeInSec - timeT0 > 0 ? ((reward.primary - rewardsT0.primary) / (timeInSec - timeT0)) / 1000 : 0;
 
             // Calculate secondary reward per millisecond
             const secondaryRewardPerMilliSec = secondaryRewards
-                .map((secondaryReward, i) => ((secondaryReward - rewardsT0.secondary[i]) / (timeInSec - timeT0)) / 1000)
+                .map((secondaryReward, i) => timeInSec - timeT0 > 0 ? ((secondaryReward - rewardsT0.secondary[i]) / (timeInSec - timeT0)) / 1000 : 0)
             
             // Add to reward
             return {

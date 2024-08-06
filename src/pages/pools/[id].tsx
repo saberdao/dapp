@@ -234,6 +234,7 @@ const UpgradeStakeButton = (props: { pool: PoolData}) => {
 const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void }) => {
     const { wallet } = useWallet();
     const { data: miner, refetch } = useQuarryMiner(props.pool.info.lpToken, true);
+    const { claimableRewards, reset } = useClaimableRewards(props.pool.info.lpToken);
     const { data: lpTokenBalance } = useUserGetLPTokenBalance(
         props.pool.pair.pool.state.poolTokenMint.toString(),
     );
@@ -247,6 +248,10 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     const token1 = useMemo(() => {
         return props.pool?.info.tokens[1];
     }, [props.pool]);
+    const rewards = useMemo(() => {
+        return claimableRewards?.() ?? { primary: 0, secondary: [] };
+    }, [claimableRewards]);
+    console.log(rewards);
 
     const stakedValue = useMemo(() => {
         if (!miner?.data || !miner.stakedBalance) {
@@ -270,7 +275,6 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     }, [miner]);
 
     const { claim } = useClaim(props.pool.info.lpToken);
-    const { reset } = useClaimableRewards(props.pool.info.lpToken);
     const {
         mutate: execClaim,
         isPending,
@@ -324,7 +328,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
                     ].filter((x) => x.length !== 0)}
                 />
 
-                {miner?.stakedBalance?.gt(new BN(0)) &&
+                {(rewards.primary + rewards.secondary.reduce((a, b) => a + b, 0) > 0) &&
                     (isPending ? (
                         <Button size="full" disabled key="g">
                             Claiming...

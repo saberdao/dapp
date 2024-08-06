@@ -26,7 +26,7 @@ const RPCForm = () => {
                 type={!rpc ? 'primary' : 'secondary'}
                 onClick={() => setValue('rpc', '')}
             >
-                Helius
+                Triton
             </Button>
             <Input type={InputType.TEXT} register={register('rpc')} placeholder="Custom..." defaultValue={storedRpc} />
         </div>

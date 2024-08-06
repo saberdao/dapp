@@ -228,6 +228,7 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
 
             await executeMultipleTxs(connection, [{
                 txs: txEnv.instructions,
+                signers: [ephemeralAccount],
                 description: 'Deposit'
             }], wallet);
         },

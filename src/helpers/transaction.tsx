@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wallet } from '@solana/wallet-adapter-react';
 import invariant from 'tiny-invariant';
-import { ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { ComputeBudgetProgram, Connection, LAMPORTS_PER_SOL, PublicKey, Signer, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import TX from '../components/TX';
 import { toast } from 'sonner';
 
@@ -28,6 +28,7 @@ const getCUsForTx = async (
 export const createVersionedTransaction = async (
     connection: Connection,
     txs: TransactionInstruction[],
+    signers: Signer[],
     payerKey: PublicKey,
     minCU = 0,
 ) => {
@@ -50,6 +51,7 @@ export const createVersionedTransaction = async (
         instructions: txs,
     }).compileToV0Message();
     const transaction = new VersionedTransaction(messageV0);
+    transaction.sign(signers);
 
     console.log(Buffer.from(transaction.serialize()).toString('base64'));
 
@@ -59,6 +61,7 @@ export const createVersionedTransaction = async (
 export const sendTransaction = async (
     connection: Connection,
     txs: TransactionInstruction[],
+    signers: Signer[],
     wallet: Wallet,
     onSuccess?: (tx: string) => void,
 ) => {
@@ -69,6 +72,7 @@ export const sendTransaction = async (
     const vt = await createVersionedTransaction(
         connection,
         txs,
+        signers,
         wallet.adapter.publicKey,
     );
 
@@ -87,13 +91,13 @@ export const sendTransaction = async (
 
 export const executeMultipleTxs = async (
     connection: Connection,
-    txs: { txs: TransactionInstruction[], description: string }[],
+    txs: { txs: TransactionInstruction[], description: string; signers?: Signer[] }[],
     wallet: Wallet,
 ) => {
     invariant(wallet.adapter.publicKey);
 
     for (let i = 0; i < txs.length; i++) {
-        const tx = sendTransaction(connection, txs[i].txs, wallet);
+        const tx = sendTransaction(connection, txs[i].txs, txs[i].signers ?? [], wallet);
         toast.promise(tx, {
             loading: `(${i + 1} / ${txs.length}) ${txs[i].description}`,
             success: (data) => <div className="text-sm">
