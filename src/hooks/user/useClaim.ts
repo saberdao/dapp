@@ -19,10 +19,8 @@ export default function useClaim(lpToken: TokenInfo) {
         if (!miner || !quarry || !wallet?.adapter.publicKey || !balance || !saber) {
             return;
         }
-
         // Primary rewards
         const txs = await getClaimIxs(saber, quarry.sdk, miner, lpToken, wallet);
-        
         await executeMultipleTxs(connection, txs, wallet);
     };
 

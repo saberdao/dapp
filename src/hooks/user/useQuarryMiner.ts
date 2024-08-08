@@ -23,8 +23,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             if (!quarry || !rewarders) {
                 return null;
             }
-            try{
-
             const rewarderW = await quarry.sdk.mine.loadRewarderWrapper(SBR_REWARDER);
             const quarryW = await rewarderW.getQuarry(new Token(lpToken));
 
@@ -90,7 +88,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 stakedBalanceLegacy,
                 stakedBalanceMM
             };
-        }catch(e){console.log(e)}
         },
         enabled: !!lpToken && !!quarry && !!rewarders,
         refetchInterval: 60000,

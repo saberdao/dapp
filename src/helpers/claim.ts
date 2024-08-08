@@ -9,6 +9,7 @@ import { findMergePoolAddress, getReplicaRewards } from './replicaRewards';
 import BN from 'bn.js';
 import { createQuarryPayroll } from './quarry';
 import { ReplicaQuarryInfo } from './rewarder';
+import { SBR_INFO } from '../utils/builtinTokens';
 
 const getClaimReplicaIx = async (
     quarry: QuarrySDK,
@@ -109,12 +110,21 @@ export const getClaimIxs = async (
     invariant(wallet.adapter.publicKey);
     invariant(miner?.miner);
 
+    // Calculate actual legacy rewards, as we can't trust the quarry miner data rewardsEarned.
+    const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
+    const legacyRewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
+        new BN(Math.floor(Date.now() / 1000)),
+        miner.stakedBalanceLegacy,
+        miner.data?.rewardsPerTokenPaid ?? new BN(0),
+        miner.data?.rewardsEarned ?? new BN(0),
+    ));
+
     const txToExecute: {
         txs: TransactionInstruction[],
         description: string
     }[] = [];
 
-    if ((miner.data?.rewardsEarned.toNumber() ?? 0) > 0) {
+    if (legacyRewards.asNumber > 0) {
         const claimTx = await miner.miner.claim();
         txToExecute.push({
             txs: [...claimTx.instructions],
