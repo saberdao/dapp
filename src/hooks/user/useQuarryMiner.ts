@@ -37,7 +37,6 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
                 try {
                     minerData = await minerW.fetchData();
                 } catch (e) {
-                    console.log(e)
                     minerData = {
                         status: 'not initialised',
                         balance: new BN(0),
@@ -63,17 +62,21 @@ export default function useQuarryMiner(lpToken: TokenInfo, fetchData = false) {
             const stakedBalanceLegacy = minerData?.balance ?? new BN(0);
 
             if (replicaInfo && replicaInfo.replicaQuarries.length > 0) {
-                mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
-                const mmKey = await mergePool.mergeMine.findMergeMinerAddress({
-                    owner: wallet.adapter.publicKey,
-                    pool: new PublicKey(replicaInfo.mergePool)
-                });
-                mergeMiner = await quarry.sdk.mergeMine.loadMM({
-                    mmKey
-                });
+                try {
+                    mergePool = quarry.sdk.mergeMine.loadMP({ mpKey: new PublicKey(replicaInfo.mergePool) });
+                    const mmKey = await mergePool.mergeMine.findMergeMinerAddress({
+                        owner: wallet.adapter.publicKey,
+                        pool: new PublicKey(replicaInfo.mergePool)
+                    });
+                    mergeMiner = await quarry.sdk.mergeMine.loadMM({
+                        mmKey
+                    });
 
-                stakedBalance = stakedBalance.add(mergeMiner.mm.data.primaryBalance);
-                stakedBalanceMM = mergeMiner.mm.data.primaryBalance;
+                    stakedBalance = stakedBalance.add(mergeMiner.mm.data.primaryBalance);
+                    stakedBalanceMM = mergeMiner.mm.data.primaryBalance;
+                } catch (e) {
+                    // Do nothing, maybe the miner is not initialised yet
+                }
             }
 
             return {
