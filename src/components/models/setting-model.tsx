@@ -34,7 +34,7 @@ const RPCForm = () => {
 }
 
 export default function SettingModel() {
-    const [priorityFee, setPriorityFee] = useLocalStorage('priorityFee', 0);
+    const [priorityFee, setPriorityFee] = useLocalStorage('priorityFee', 0.0001);
 
     return (
         <>
@@ -46,6 +46,12 @@ export default function SettingModel() {
                         onClick={() => setPriorityFee(0)}
                     >
                         None
+                    </Button>
+                    <Button
+                        type={priorityFee === 0.0001 ? 'primary' : 'secondary'}
+                        onClick={() => setPriorityFee(0.0001)}
+                    >
+                        0.0001 SOL
                     </Button>
                     <Button
                         type={priorityFee === 0.001 ? 'primary' : 'secondary'}

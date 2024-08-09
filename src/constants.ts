@@ -21,3 +21,20 @@ export const QUARRY_ADDRESSES = {
   };
 
 export const SABER_DATA_REPO = 'https://raw.githubusercontent.com/saberdao/data/main/';
+
+export const saberQuarryInfo = {
+    "displayRewardsToken": {
+        "address": "Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1",
+        "chainId": 103,
+        "decimals": 6,
+        "extensions": {},
+        "logoURI": "https://registry.saber.so/token-icons/sbr.svg",
+        "name": "Saber Protocol Token",
+        "symbol": "SBR",
+        "tags": []
+    },
+    rewardsToken: {
+        mint: 'iouQcQBAiEXe6cKLS85zmZxUqaCqBdeHFpqKoSz615u',
+        decimals: 6,
+    }
+}

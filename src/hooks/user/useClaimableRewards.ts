@@ -29,6 +29,14 @@ export default function useClaim(lpToken: TokenInfo) {
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
+        if (miner.mergeMinerData) {
+            rewards = rewards.add(new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
+                new BN(timeInSec),
+                miner.stakedBalanceMM,
+                miner.mergeMinerData.rewardsPerTokenPaid,
+                miner.mergeMinerData.rewardsEarned,
+            )))
+        }
 
         // Secondary
         const secondaryRewards = secondaryPayrolls.map((secondaryPayroll) => {

@@ -37,7 +37,7 @@ export const createVersionedTransaction = async (
     console.log(CUs)
 
     const priorityFeeLS = parseFloat(localStorage.getItem('priorityFee') ?? '');
-    const priorityFee = (priorityFeeLS || 0) * LAMPORTS_PER_SOL * 1e6;
+    const priorityFee = (priorityFeeLS ?? 0.0001) * LAMPORTS_PER_SOL * 1e6;
 
     txs.unshift(ComputeBudgetProgram.setComputeUnitLimit({
         units: CUs,

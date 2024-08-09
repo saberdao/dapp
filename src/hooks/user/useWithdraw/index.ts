@@ -243,7 +243,8 @@ export const useWithdraw = ({
 
         if (actions.unstake && miner?.data) {
             // Merge miner withdraw IXs
-            if (miner.replicaInfo && miner.replicaInfo.replicaQuarries.length > 0) {
+            console.log(miner)
+            if (miner.mergeMiner && miner.replicaInfo) {
                 const maxAmount = BigNumber.min(new BigNumber(miner.stakedBalanceMM.toString()), withdrawPoolTokenAmount.raw.toString());
                 const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
 

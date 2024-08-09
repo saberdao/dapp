@@ -10,6 +10,7 @@ import BN from 'bn.js';
 import { createQuarryPayroll } from './quarry';
 import { ReplicaQuarryInfo } from './rewarder';
 import { SBR_INFO } from '../utils/builtinTokens';
+import { saberQuarryInfo } from '../constants';
 
 const getClaimReplicaIx = async (
     quarry: QuarrySDK,
@@ -61,7 +62,7 @@ const getClaimPrimaryIx = async (
     quarry: QuarrySDK,
     miner: ReturnType<typeof useQuarryMiner>['data'],
     lpToken: TokenInfo,
-    replicaQuarryInfo: ReplicaQuarryInfo,
+    replicaQuarryInfo: Pick<ReplicaQuarryInfo, 'rewardsToken'>,
     wallet: Wallet,
 ) => {
     invariant(wallet.adapter.publicKey);
@@ -110,6 +111,11 @@ export const getClaimIxs = async (
     invariant(wallet.adapter.publicKey);
     invariant(miner?.miner);
 
+    const txToExecute: {
+        txs: TransactionInstruction[],
+        description: string
+    }[] = [];
+
     // Calculate actual legacy rewards, as we can't trust the quarry miner data rewardsEarned.
     const payroll = createQuarryPayroll(miner.miner.quarry.quarryData);
     const legacyRewards = new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
@@ -119,11 +125,6 @@ export const getClaimIxs = async (
         miner.data?.rewardsEarned ?? new BN(0),
     ));
 
-    const txToExecute: {
-        txs: TransactionInstruction[],
-        description: string
-    }[] = [];
-
     if (legacyRewards.asNumber > 0) {
         const claimTx = await miner.miner.claim();
         txToExecute.push({
@@ -131,6 +132,31 @@ export const getClaimIxs = async (
             description: 'Claim rewards'
         });
     }
+
+    // Calculate MM rewards from primary miner
+    if (miner.mergeMinerData) {
+        const payrollMM = createQuarryPayroll(miner.miner.quarry.quarryData);
+        const mmRewards = new TokenAmount(new Token(SBR_INFO), payrollMM.calculateRewardsEarned(
+            new BN(Math.floor(Date.now() / 1000)),
+            miner.stakedBalanceMM,
+            miner.mergeMinerData.rewardsPerTokenPaid,
+            miner.mergeMinerData.rewardsEarned,
+        ));
+
+        if (mmRewards.asNumber > 0) {
+            txToExecute.push({
+                txs: [...await getClaimPrimaryIx(
+                    quarry,
+                    miner,
+                    lpToken,
+                    saberQuarryInfo,
+                    wallet
+                )],
+                description: 'Claim rewards'
+            });
+        }
+    }
+    
 
     // Secondary rewards
     if (miner.mergeMiner && miner.replicaInfo) {
