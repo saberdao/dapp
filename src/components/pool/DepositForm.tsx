@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import Button from '../Button';
 import { PoolData } from '../../types';
 import useUserATA from '../../hooks/user/useUserATA';
-import { Token, TokenAmount } from '@saberhq/token-utils';
+import { RAW_SOL_MINT, Token, TokenAmount, WRAPPED_SOL } from '@saberhq/token-utils';
 import { toPrecision } from '../../helpers/number';
 import TX from '../TX';
 import { useDeposit } from '../../hooks/user/useDeposit';
@@ -15,8 +15,11 @@ import useUserGetLPTokenBalance from '../../hooks/user/useGetLPTokenBalance';
 import { useStableSwapTokens } from '../../hooks/useStableSwapTokens';
 import clsx from 'clsx';
 import { getSymbol } from '../../helpers/pool';
+import { getMax } from '@/src/helpers/token';
+import useNetwork from '@/src/hooks/useNetwork';
 
 export default function DepositForm(props: { pool: PoolData }) {
+    const { network } = useNetwork();
     const { register, watch, setValue } = useForm<{
         amountTokenA: number;
         amountTokenB: number;
@@ -100,9 +103,9 @@ export default function DepositForm(props: { pool: PoolData }) {
                     Balance:{' '}
                     <span
                         className="text-saber-light cursor-pointer"
-                        onClick={() => setValue('amountTokenA', ataInfo0?.balance.asNumber ?? 0)}
+                        onClick={() => setValue('amountTokenA', getMax(ataInfo0?.balance.asNumber ?? 0, ataInfo0?.mint === WRAPPED_SOL[network].address))}
                     >
-                        {ataInfo0?.balance.asNumber ?? 0}
+                        {getMax(ataInfo0?.balance.asNumber ?? 0, ataInfo0?.mint === WRAPPED_SOL[network].address)}
                     </span>
                 </span>
             </div>
@@ -119,9 +122,9 @@ export default function DepositForm(props: { pool: PoolData }) {
                     Balance:{' '}
                     <span
                         className="text-saber-light cursor-pointer"
-                        onClick={() => setValue('amountTokenB', ataInfo1?.balance.asNumber ?? 0)}
+                        onClick={() => setValue('amountTokenB', getMax(ataInfo1?.balance.asNumber ?? 0, ataInfo1?.mint === WRAPPED_SOL[network].address))}
                     >
-                        {ataInfo1?.balance.asNumber ?? 0}
+                        {getMax(ataInfo1?.balance.asNumber ?? 0, ataInfo1?.mint === WRAPPED_SOL[network].address)}
                     </span>
                 </span>
             </div>

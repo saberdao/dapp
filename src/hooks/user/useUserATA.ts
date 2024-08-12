@@ -8,7 +8,7 @@ import { memoize } from 'lodash';
 import { create, windowScheduler } from '@yornaath/batshit';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const batcher = memoize((connection: Connection, network: WalletAdapterNetwork, owner: PublicKey) => create({
+const batcherFn = memoize((connection: Connection, network: WalletAdapterNetwork, owner: PublicKey) => create({
     fetcher: async (query: { mint: (Pick<Token, 'address'> | null | undefined), ignoreWrap: boolean }[]) => {
         const userAtasObj = getATAAddressesSync({
             mints: query.filter((x): x is { mint: Token; ignoreWrap: boolean } => !!x).reduce((acc, mint, i) => {
@@ -67,6 +67,14 @@ const batcher = memoize((connection: Connection, network: WalletAdapterNetwork, 
     scheduler: windowScheduler(500),
   }));
 
+type TokenAta = {
+    mint: string;
+    ignoreWrap: boolean;
+    key: PublicKey;
+    balance: TokenAmount;
+    isInitialized?: boolean;
+}
+
 export default function useUserATA(
     mint: (Pick<Token, 'address'> | null | undefined),
     ignoreWrap = false,
@@ -77,12 +85,14 @@ export default function useUserATA(
 
     return useQuery({
         queryKey: ['userATA', endpoint, wallet?.adapter.publicKey, mint?.address, ignoreWrap],
-        queryFn: async (): Promise<AssociatedTokenAccount | null> => {
+        queryFn: async (): Promise<TokenAta | null> => {
             if (!wallet?.adapter.publicKey) {
                 return null;
             }
 
-            return batcher(connection, network, wallet.adapter.publicKey!).fetch({ mint, ignoreWrap });
+            const batcher = batcherFn(connection, network, wallet.adapter.publicKey!);
+
+            return batcher.fetch({ mint, ignoreWrap });
         },
         refetchInterval: 5000,
         enabled: !!connection && !!network && !!wallet?.adapter.publicKey,
