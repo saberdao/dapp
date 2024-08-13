@@ -85,20 +85,24 @@ export default function useStake(pool: PoolData) {
         // Replica deposit
         if (data.replicaInfo) {
             await Promise.all(data.replicaInfo.replicaQuarries.map(async (replica) => {
-                invariant(wallet.adapter.publicKey);
-            
-                const [mmAddress] = await findMergeMinerAddress({
-                    pool: mergePoolAddress,
-                    owner: wallet.adapter.publicKey,
-                })
+                try {
+                    invariant(wallet.adapter.publicKey);
+                
+                    const [mmAddress] = await findMergeMinerAddress({
+                        pool: mergePoolAddress,
+                        owner: wallet.adapter.publicKey,
+                    })
 
-                const tx = await mergePool.stakeReplicaMiner(
-                    new PublicKey(replica.rewarder),
-                    mmAddress,
-                );
-                allInstructions.push(...tx.instructions);
-                signers.push(...tx.signers);
-                return;
+                    const tx = await mergePool.stakeReplicaMiner(
+                        new PublicKey(replica.rewarder),
+                        mmAddress,
+                    );
+                    allInstructions.push(...tx.instructions);
+                    signers.push(...tx.signers);
+                    return;
+                } catch (e) {
+                    // Do nothing
+                }
             }))
         }
 

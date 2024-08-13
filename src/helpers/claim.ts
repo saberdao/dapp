@@ -160,36 +160,40 @@ export const getClaimIxs = async (
 
     // Secondary rewards
     if (miner.mergeMiner && miner.replicaInfo) {
-        await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replicaQuarryInfo) => {
-            invariant(miner.mergeMiner);
-            invariant(miner.mergePool);
-            invariant(wallet.adapter.publicKey);
+        try {
+            await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replicaQuarryInfo) => {
+                invariant(miner.mergeMiner);
+                invariant(miner.mergePool);
+                invariant(wallet.adapter.publicKey);
 
-            const instructions: TransactionInstruction[] = [];
+                const instructions: TransactionInstruction[] = [];
 
-            // Add replica claim
-            instructions.push(...await getClaimReplicaIx(
-                quarry,
-                miner,
-                lpToken,
-                replicaQuarryInfo,
-                wallet
-            ));
+                // Add replica claim
+                instructions.push(...await getClaimReplicaIx(
+                    quarry,
+                    miner,
+                    lpToken,
+                    replicaQuarryInfo,
+                    wallet
+                ));
 
-            // Add primary claim
-            instructions.push(...await getClaimPrimaryIx(
-                quarry,
-                miner,
-                lpToken,
-                replicaQuarryInfo,
-                wallet
-            ));
+                // Add primary claim
+                instructions.push(...await getClaimPrimaryIx(
+                    quarry,
+                    miner,
+                    lpToken,
+                    replicaQuarryInfo,
+                    wallet
+                ));
 
-            txToExecute.push({
-                txs: instructions,
-                description: 'Claim replica rewards'
-            });
-        }));
+                txToExecute.push({
+                    txs: instructions,
+                    description: 'Claim replica rewards'
+                });
+            }));
+        } catch (e) {
+            // Do nothing
+        }
     }
 
     // Redeem tx

@@ -263,26 +263,30 @@ export const useWithdraw = ({
                 await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replica) => {
                     invariant(wallet.adapter.publicKey);
                     invariant(miner.mergeMiner);
+                    try {
+                        // Only unstake if there is balance in this MM
+                        const [mmAddress] = await findMergeMinerAddress({
+                            pool: mergePool.key,
+                            owner: wallet.adapter.publicKey,
+                        })
+                        const mergeMiner = await quarry.sdk.mergeMine.loadMM({
+                            mmKey: mmAddress
+                        });
 
-                    // Only unstake if there is balance in this MM
-                    const [mmAddress] = await findMergeMinerAddress({
-                        pool: mergePool.key,
-                        owner: wallet.adapter.publicKey,
-                    })
-                    const mergeMiner = await quarry.sdk.mergeMine.loadMM({
-                        mmKey: mmAddress
-                    });
+                        if (mergeMiner.mm.data.replicaBalance.eq(new BN(0))) {
+                            return;
+                        }
 
-                    if (mergeMiner.mm.data.replicaBalance.eq(new BN(0))) {
+                        const ixs = await mergePool.unstakeAllReplica(
+                            new PublicKey(replica.rewarder),
+                            mmAddress,
+                        );
+                        unstakeReplicaTx.push(...ixs.instructions);
                         return;
+                    } catch (e) {
+                        // Do nothing
                     }
-
-                    const ixs = await mergePool.unstakeAllReplica(
-                        new PublicKey(replica.rewarder),
-                        mmAddress,
-                    );
-                    unstakeReplicaTx.push(...ixs.instructions);
-                }));
+            }))
 
                 if (unstakeReplicaTx.length > 0) {
                     allTxsToExecute.push({
