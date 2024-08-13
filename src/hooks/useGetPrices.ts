@@ -34,19 +34,7 @@ export default function useGetPrices() {
             }
 
             // We can add more from pyth here later
-            const prices: OraclePrice = {
-                'JEFFSQ3s8T3wKsvp4tnRAsUBW7Cqgnf8ukBZC4C8XBm1': pythData.productPrice.get('Crypto.USDC/USD')?.aggregate.price ?? 0, // Saber wrapped USDC
-                'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': pythData.productPrice.get('Crypto.USDC/USD')?.aggregate.price ?? 0,
-                'CDJWUqTcYTVAKXAVXoQZFes5JUFc7owSeq7eMQcDSbo5': pythData.productPrice.get('Crypto.WBTC/USD')?.aggregate.price ?? 0,
-                'KNVfdSJyq1pRQk9AKKv1g5uyGuk6wpm4WG16Bjuwdma': pythData.productPrice.get('Crypto.ETH/USD')?.aggregate.price ?? 0,
-                '7g166TuBmnoHKvS2PEkZx6kREZtbfjUxCHGWjCqoDXZv': pythData.productPrice.get('Crypto.EURC/USD')?.aggregate.price ?? 0,
-                'EzfgjvkSwthhgHaceR3LnKXUoRkP6NUhfghdaHAj1tUv': pythData.productPrice.get('Crypto.FTT/USD')?.aggregate.price ?? 0,
-                'LUNGEjUXyP48nrC1GYY5o4eTAkwm4RdX8BxFUxWJBLB': pythData.productPrice.get('Crypto.LUNC/USD')?.aggregate.price ?? 0,
-                'Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1': pythData.productPrice.get('Crypto.SBR/USD')?.aggregate.price ?? 0,
-                'So11111111111111111111111111111111111111112': pythData.productPrice.get('Crypto.SOL/USD')?.aggregate.price ?? 0,
-                'SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt': pythData.productPrice.get('Crypto.SRM/USD')?.aggregate.price ?? 0,
-                'A94X2fRy3wydNShU4dRaDyap2UuoeWJGWyATtyp61WZf': tryPrice ?? 0,
-            };
+            const prices: OraclePrice = {};
 
             // Get the rest from Jupiter for now, until all Pyth oracles are defined.
             const oraclePriceMints = Object.keys(prices);
@@ -71,7 +59,7 @@ export default function useGetPrices() {
                     prices[priceRecord.id] = priceRecord.price;
                 });
             });
-            
+
             return prices;
         },
         staleTime: 1000 * 600,

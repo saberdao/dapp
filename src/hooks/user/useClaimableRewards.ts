@@ -29,7 +29,7 @@ export default function useClaim(lpToken: TokenInfo) {
             miner.data.rewardsPerTokenPaid,
             miner.data.rewardsEarned,
         ));
-        if (miner.mergeMinerData) {
+        if (miner.mergeMinerData && secondaryPayrolls.length === 0) {
             rewards = rewards.add(new TokenAmount(new Token(SBR_INFO), payroll.calculateRewardsEarned(
                 new BN(timeInSec),
                 miner.stakedBalanceMM,
