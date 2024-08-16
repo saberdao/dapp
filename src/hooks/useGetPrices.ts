@@ -5,6 +5,7 @@ import useNetwork from '../hooks/useNetwork';
 import { OraclePrice } from '../types';
 import { chunk } from 'lodash';
 import useGetPools from './useGetPools';
+import { SBR_MINT } from '@saberhq/saber-periphery';
 
 export default function useGetPrices() {
     const { formattedNetwork } = useNetwork();
@@ -38,12 +39,16 @@ export default function useGetPrices() {
 
             // Get the rest from Jupiter for now, until all Pyth oracles are defined.
             const oraclePriceMints = Object.keys(prices);
-            const allContractMints = pools.map(pool => {
-                return [
-                    pool.tokens[0].address,
-                    pool.tokens[1].address,
-                ];
-            }).flat().filter(address => !oraclePriceMints.includes(address));
+            const allContractMints = pools
+                .map(pool => {
+                    return [
+                        pool.tokens[0].address,
+                        pool.tokens[1].address,
+                    ];
+                })
+                .flat()
+                .filter(address => !oraclePriceMints.includes(address))
+                .concat(SBR_MINT);
 
             // Chunk them per 100 (Jup limit)
             const chunks = chunk(allContractMints, 100);
@@ -59,6 +64,7 @@ export default function useGetPrices() {
                     prices[priceRecord.id] = priceRecord.price;
                 });
             });
+            console.log(prices)
 
             return prices;
         },
