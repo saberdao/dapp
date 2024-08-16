@@ -15,7 +15,8 @@ const FEATURED_POOL_NAMES = [
     'stSOL-SOL',
     'UXD-USDC',
     'USDT-USDC',
-    'mSOL-SOL'
+    'mSOL-SOL',
+    'jupSOL-hubSOL'
 ];
 
 export const isPoolFeatured = (poolName: string) => {
