@@ -94,6 +94,10 @@ const AboutBlock = (props: { token: TokenInfo }) => {
                 <ExternalLink href={props.token.extensions?.medium} icon={FaMedium} />
                 <ExternalLink href={props.token.extensions?.twitter} icon={FaXTwitter} />
                 <ExternalLink href={props.token.extensions?.tggroup} icon={FaTelegram} />
+                {/* @ts-ignore */}
+                {props.token.extensions?.other?.map((link, i) => (
+                    <ExternalLink key={i} href={link} icon={FaGlobe} />
+                ))}
             </div>
         </Block>
     );

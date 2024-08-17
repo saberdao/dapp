@@ -28,6 +28,7 @@ import { findMergePoolAddress } from '../helpers/replicaRewards';
 import BN from 'bn.js';
 import { QuarryRewarderInfo } from '../helpers/rewarder';
 import useGetStakePoolAPY from './useGetStakePoolAPY';
+import useGetPoolInfo from './useGetPoolnfo';
 
 function encode(input: string): Uint8Array {
     const encoder = new TextEncoder();
@@ -134,6 +135,7 @@ export default function () {
     const { formattedNetwork, network, endpoint } = useNetwork();
     const { data: swaps } = useGetSwaps(formattedNetwork);
     const { data: pools } = useGetPools(formattedNetwork);
+    const { data: poolInfo } = useGetPoolInfo();
     const { data: prices } = useGetPrices();
     const { data: reserves } = useGetReserves(pools?.pools);
     const { data: poolsInfo } = usePoolsData();
@@ -154,7 +156,7 @@ export default function () {
             // prevent re-fetching on every page load.
             // Especially for the reverse balances this
             // saves a ton of RPC calls.
-            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo || !rewarders || !stakePoolApy) {
+            if (!swaps || !pools || !prices || !reserves || !lpTokenAmounts || !quarry || !poolsInfo || !rewarders || !stakePoolApy || !poolInfo) {
                 return;
             }
 
@@ -176,6 +178,22 @@ export default function () {
                             config: valuesToKeys(pool.swap.config),
                             state: parseRawSwapState(pool.swap.state),
                         },
+                        tokens: [
+                            {
+                                ...pool.tokens[0],
+                                extensions: {
+                                    ...pool.tokens[0].extensions,
+                                    ...poolInfo[pool.tokens[0].address],
+                                }
+                            },
+                            {
+                                ...pool.tokens[1],
+                                extensions: {
+                                    ...pool.tokens[1].extensions,
+                                    ...poolInfo[pool.tokens[1].address],
+                                }
+                            },
+                        ]
                     };
 
                     const data = {
@@ -307,6 +325,6 @@ export default function () {
 
             return data;
         },
-        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo && !!rewarders && !!stakePoolApy,
+        enabled: !!swaps && !!pools && !!prices && !!reserves && !!lpTokenAmounts && !!quarry && !!poolsInfo && !!rewarders && !!stakePoolApy && !!poolInfo,
     });
 }
