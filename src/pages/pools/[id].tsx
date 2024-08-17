@@ -14,7 +14,6 @@ import Saber from '../../svg/saber';
 import { PoolData } from '../../types';
 
 import { toAPY, toPrecision } from '../../helpers/number';
-import { isPoolDeprecated } from '../../helpers/deprecatedPools';
 import { SBR_INFO } from '../../utils/builtinTokens';
 import { getLogo, getPoolId, getPoolName, getSymbol } from '../../helpers/pool';
 
@@ -40,10 +39,10 @@ import DepositForm from '../../components/pool/DepositForm';
 import TX from '../../components/TX';
 import UniversalPopover, { Ref } from '../../components/models/universal-popover';
 import ModelHeader from '../../components/models/model-header';
-import LeverageModel from '../../components/models/leverage-model';
 import { toast } from 'sonner';
 import { TokenDisplay, TokenLogo } from '@/src/components/TokenDisplay';
 import useUpgradeStake from '@/src/hooks/user/useUpgradeStake';
+import useDeprecatedPools from '@/src/hooks/useDeprecatedPools';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -184,7 +183,8 @@ const FarmRewards = (props: { pool: PoolData }) => {
 };
 
 const LiquidityForms = (props: { pool: PoolData }) => {
-    const deprecated = isPoolDeprecated(props.pool.info.name);
+    const { data: deprecatedPools } = useDeprecatedPools();
+    const deprecated = deprecatedPools?.includes(props.pool.info.name);
     const [selectedTab, setSelectedTab] = useState(deprecated ? 'Unstake' : 'Deposit');
 
     const tabs = [
@@ -526,7 +526,6 @@ const PoolPage = (props: { params: { id: string } }) => {
                         handleClose={handleModelClose}
                         title={`Leveraged ${pool.info.name} LP`}
                     /> */}
-                    <LeverageModel pool={pool} />
                 </div>
             </UniversalPopover>
             <div>

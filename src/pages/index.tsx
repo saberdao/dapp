@@ -14,13 +14,13 @@ import LoadingText from '../components/LoadingText';
 import Button from '@/src/components/Button';
 import Input, { InputType } from '../components/Input';
 import ActiveText from '../components/ActiveText';
-import { isPoolDeprecated } from '../helpers/deprecatedPools';
 import PoolSwitch, { PoolsView } from '../components/PoolSwitch';
 import { CurrencyMarket, PoolData } from '../types';
 import { toAPY, toPrecision } from '../helpers/number';
 import useGetPrices from '../hooks/useGetPrices';
-import { isPoolFeatured } from '../helpers/featuredPools';
 import useGetStats from '../hooks/useGetStats';
+import useDeprecatedPools from '../hooks/useDeprecatedPools';
+import useFeaturedPools from '../hooks/useFeaturedPools';
 
 const KNOWN_GROUPS = [
     CurrencyMarket.USD,
@@ -87,6 +87,8 @@ const IndexPage: React.FC<PageProps> = () => {
     const { data: sbrStats } = useGetStats();
     const { wallet } = useWallet();
     const [sort, setSort] = useState(SORTS.DEFAULT);
+    const { data: deprecatedPools } = useDeprecatedPools();
+    const { data: featuredPools } = useFeaturedPools();
 
     const { watch, register, resetField } = useForm<{
         filterText: string;
@@ -199,11 +201,11 @@ const IndexPage: React.FC<PageProps> = () => {
                             return false;
                         }
 
-                        if (!filterDeprecated && isPoolDeprecated(pool.info.name)) {
+                        if (!filterDeprecated && deprecatedPools?.includes(pool.info.name)) {
                             return false;
                         }
 
-                        if (!filterDeprecated && !isPoolFeatured(pool.info.name) && !filterText) {
+                        if (!filterDeprecated && !featuredPools?.includes(pool.info.name) && !filterText) {
                             return false;
                         }
 
@@ -237,7 +239,7 @@ const IndexPage: React.FC<PageProps> = () => {
                                             pool.info.tokenIcons[1].logoURI,
                                         )}
                                     />
-                                    {isPoolDeprecated(pool.info.name) ? (
+                                    {deprecatedPools?.includes(pool.info.name) ? (
                                         <p className="line-through">
                                             {getPoolName(pool.info.name)}
                                         </p>
