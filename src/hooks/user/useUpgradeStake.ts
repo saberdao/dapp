@@ -5,7 +5,7 @@ import { executeMultipleTxs } from '../../helpers/transaction';
 import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
 import useQuarry from '../useQuarry';
-import { TransactionInstruction } from '@solana/web3.js';
+import { Signer, TransactionInstruction } from '@solana/web3.js';
 import useStake from './useStake';
 import { PoolData } from '@/src/types';
 
@@ -26,7 +26,7 @@ export default function useUpgradeStake(pool: PoolData) {
             return;
         }
 
-        const allTxsToExecute: { txs: TransactionInstruction[], description: string }[] = [];
+        const allTxsToExecute: { txs: TransactionInstruction[], signers: Signer[], description: string }[] = [];
 
         // Legacy unstake
         const amount = new TokenAmount(new Token(pool.info.lpToken), miner.stakedBalanceLegacy.toString());
@@ -36,18 +36,15 @@ export default function useUpgradeStake(pool: PoolData) {
 
         allTxsToExecute.push({
             txs: legacyUnstakeTx,
+            signers: stakeTX.signers,
             description: 'Legacy unstake'
         });
 
         // Stake in merge miner
-        const stakeIxs = await stake(amount.asNumber, true);
-        invariant(stakeIxs, 'No stake instructions');
-        allTxsToExecute.push({
-            txs: stakeIxs,
-            description: 'Stake in merge mienr',
-        })
+        const stakeTxs = await stake(amount.asNumber, true);
+        invariant(stakeTxs, 'No stake instructions');
         
-        await executeMultipleTxs(connection, allTxsToExecute, wallet);
+        await executeMultipleTxs(connection, [...allTxsToExecute, ...stakeTxs], wallet);
     };
 
     return { upgradeStake };

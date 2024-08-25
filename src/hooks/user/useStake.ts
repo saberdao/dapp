@@ -63,7 +63,10 @@ export default function useStake(pool: PoolData) {
             signers.push(...stakeTX.signers);
 
             if (returnTxs) {
-                return allInstructions;
+                return [{
+                    txs: allInstructions,
+                    description: 'Stake'
+                }];
             }
     
             await executeMultipleTxs(connection, [{
@@ -74,6 +77,8 @@ export default function useStake(pool: PoolData) {
         }
 
         // Primary deposit
+        const txs: { txs: TransactionInstruction[], signers: Signer[], description: string }[] = [];
+
         const txEnv = await mergePool.deposit({
             rewarder: pool.quarryData.rewarder,
             amount,
@@ -84,9 +89,14 @@ export default function useStake(pool: PoolData) {
 
         // Replica deposit
         if (data.replicaInfo) {
-            await Promise.all(data.replicaInfo.replicaQuarries.map(async (replica) => {
+            await Promise.all(data.replicaInfo.replicaQuarries.map(async (replica, i) => {
                 try {
                     invariant(wallet.adapter.publicKey);
+
+                    if (replica.rewarder === 'BKhCscLJiaWRPzuSDDtJ8xStMS5y5iUrBwPHDg1Aa1XJ') {
+                        // This is broken vault rewarder
+                        return;
+                    }
                 
                     const [mmAddress] = await findMergeMinerAddress({
                         pool: mergePoolAddress,
@@ -97,8 +107,21 @@ export default function useStake(pool: PoolData) {
                         new PublicKey(replica.rewarder),
                         mmAddress,
                     );
-                    allInstructions.push(...tx.instructions);
-                    signers.push(...tx.signers);
+                    
+                    if (i === 0) {
+                        txs.push({
+                            txs: [...allInstructions, ...tx.instructions],
+                            signers: [...signers, ...tx.signers],
+                            description: 'Stake replica miner'
+                        });
+                    } else {
+                        txs.push({
+                            txs: tx.instructions,
+                            signers: tx.signers,
+                            description: 'Stake replica miner'
+                        });
+                    }
+                    
                     return;
                 } catch (e) {
                     // Do nothing
@@ -107,13 +130,10 @@ export default function useStake(pool: PoolData) {
         }
 
         if (returnTxs) {
-            return allInstructions;
+            return txs;
         }
 
-        await executeMultipleTxs(connection, [{
-            txs: allInstructions,
-            description: 'Stake'
-        }], wallet);
+        await executeMultipleTxs(connection, txs, wallet);
     };
 
     return { stake };
