@@ -14,6 +14,8 @@ const lsts = [
     'LnTRntk2kTfWEY6cVB8K9649pgJbt6dJLS1Ns1GZCWg',
     'HUBsveNpjo5pWqNkH57QzxjQASdTVXcSK7bVKTSZtcSX',
     'BonK1YhkXEGLZzwtcvRTip3gAL9nCeQD7ppZBLXhtTs',
+    'CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE',
+    'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn',
 ]
 
 export default function useGetStakePoolAPY(network: string) {
