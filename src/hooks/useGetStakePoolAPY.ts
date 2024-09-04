@@ -23,10 +23,15 @@ export default function useGetStakePoolAPY(network: string) {
         queryKey: ['stakePoolApy'],
         staleTime: 1000 * 3600,
         queryFn: async () => {
-            const response = await fetch(`https://sanctum-extra-api.ngrok.dev/v1/apy/latest?${lsts.map(lst => `lst=${lst}`).join('&')}`)
-            const result = await response.json();
+            try {
+                const response = await fetch(`https://sanctum-extra-api.ngrok.dev/v1/apy/latest?${lsts.map(lst => `lst=${lst}`).join('&')}`)
+                const result = await response.json();
 
-            return result.apys as Record<string, number>;
+                return result.apys as Record<string, number>;
+            } catch (error) {
+                console.error(error);
+                return {};
+            }
         },
         enabled: !!network,
     });
