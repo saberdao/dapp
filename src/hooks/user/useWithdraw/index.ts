@@ -226,7 +226,7 @@ export const useWithdraw = ({
         if (!actions.unstake && !actions.withdraw) {
             throw new Error('No actions');
         }
-        if (!wallet.adapter.publicKey || !userLP) {
+        if (!wallet.adapter.publicKey) {
             throw new Error('wallet is null');
         }
         if (!wrappedTokens) {
@@ -239,7 +239,6 @@ export const useWithdraw = ({
 
         const allTxsToExecute: { txs: TransactionInstruction[]; description: string }[] = [];
         let amountUnstakedFromMM = new BN(0);
-        try{
 
         if (actions.unstake && miner?.data) {
             // Merge miner withdraw IXs
@@ -339,9 +338,18 @@ export const useWithdraw = ({
                     const amount = new TokenAmount(new Token(pool.info.lpToken), maxAmount.toString());
                     const legacyUnstakeTx: TransactionInstruction[] = [];
 
+                    const {
+                        instructions,
+                    } = await getOrCreateATAs({
+                        provider,
+                        mints: {
+                            lptoken: new PublicKey(pool.info.lpToken.address),
+                        },
+                    });
+
                     // For legacy
                     const stakeTX = miner.miner.withdraw(amount);
-                    legacyUnstakeTx.push(...stakeTX.instructions);
+                    legacyUnstakeTx.push(...instructions, ...stakeTX.instructions);
 
                     allTxsToExecute.push({
                         txs: legacyUnstakeTx,
@@ -360,7 +368,8 @@ export const useWithdraw = ({
         }
 
         if (actions.withdraw) {
-            allTxsToExecute.push(await getWithdrawIxs(
+            invariant(userLP)
+;            allTxsToExecute.push(await getWithdrawIxs(
                 provider,
                 saber,
                 wallet,
@@ -372,7 +381,6 @@ export const useWithdraw = ({
                 withdrawPoolTokenAmount
             ));
         }
-    }catch(e){console.log(e)}
 
         await executeMultipleTxs(connection, allTxsToExecute, wallet);
     };

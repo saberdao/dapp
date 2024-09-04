@@ -230,7 +230,7 @@ const UpgradeStakeButton = (props: { pool: PoolData}) => {
             onClick={() => execUpgradeStake()}
             disabled={isPending}
         >
-            {isPending ? 'Upgrading stake...' : 'You have staked your LP tokens in our legacy miner. Click here to upgrade to merge mining and receive dual rewards.'}
+            {isPending ? 'Upgrading stake...' : 'You have staked your LP tokens in our legacy miner. Click here to withdraw, then stake again to upgrade stake.'}
         </button>
     )
 }

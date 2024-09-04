@@ -16,7 +16,7 @@ export default function useClaim(lpToken: TokenInfo) {
     const { saber } = useProvider();
 
     const claim = async () => {
-        if (!miner || !quarry || !wallet?.adapter.publicKey || !balance || !saber) {
+        if (!miner || !quarry || !wallet?.adapter.publicKey || !saber) {
             return;
         }
         // Primary rewards
