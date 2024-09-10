@@ -146,7 +146,7 @@ export default function Navbar() {
                             <MdOutlineQueryStats />
                         </Button>
                     </a> */}
-                    <a href="https://twitter.com/The_Saber_DAO" target="_blank" rel="noreferrer">
+                    <a href="https://twitter.com/thesaberdao" target="_blank" rel="noreferrer">
                         <Button type="secondary" className="flex items-center gap-2 h-10 text-xl">
                             <FaXTwitter />
                         </Button>
