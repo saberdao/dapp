@@ -149,9 +149,9 @@ export default function DepositForm(props: { pool: PoolData }) {
                 <Button
                     size="full"
                     onClick={() => execDeposit()}
-                    disabled={!amountTokenA && !amountTokenB}
+                    disabled={(!amountTokenA && !amountTokenB) || Math.abs(slippage) > 0.01}
                 >
-                    Deposit
+                    {Math.abs(slippage) > 0.01 ? 'Slippage too high' : 'Deposit'}
                 </Button>
             )}
 
@@ -167,7 +167,7 @@ export default function DepositForm(props: { pool: PoolData }) {
                     </div>
                     <div>Slippage</div>
                     <div className={clsx('text-right', slippage > 0.1 && 'text-red-600 font-bold')}>
-                        {toPrecision((slippage ?? 0) * 100, 4)}%{slippage < 0 ? ' (bonus!)' : ''}
+                        {toPrecision((Math.abs(slippage) ?? 0) * 100, 4)}%
                     </div>
                     <div>Price impact</div>
                     <div
@@ -176,7 +176,7 @@ export default function DepositForm(props: { pool: PoolData }) {
                             priceImpact > 0.1 && 'text-red-600 font-bold',
                         )}
                     >
-                        {toPrecision(priceImpact * 100, 4)}%{priceImpact < 0 ? ' (bonus!)' : ''}
+                        {toPrecision(Math.abs(slippage) * 100, 4)}%
                     </div>
                 </div>
             )}
