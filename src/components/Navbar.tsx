@@ -8,7 +8,7 @@ import { FaCog } from 'react-icons/fa';
 import { FaDiscord, FaExternalLinkAlt } from 'react-icons/fa';
 import { MdOutlineQueryStats } from 'react-icons/md';
 import { useMutation } from '@tanstack/react-query';
-import { WRAPPED_SOL } from '@saberhq/token-utils';
+import { Token, WRAPPED_SOL } from '@saberhq/token-utils';
 import { FaMedium, FaXTwitter } from 'react-icons/fa6';
 import clsx from 'clsx';
 
@@ -24,6 +24,8 @@ import UniversalPopover, { Ref } from './models/universal-popover';
 import ModelHeader from './models/model-header';
 import SettingModel from './models/setting-model';
 import { toast } from 'sonner';
+import { SABER_IOU_MINT } from '@saberhq/saber-periphery';
+import useRedeemSbr from '../hooks/user/useRedeemSbr';
 
 const WrappedSolBlock = () => {
     const { network } = useNetwork();
@@ -51,6 +53,44 @@ const WrappedSolBlock = () => {
                 ) : (
                     <Button size="small" key="g" onClick={execUnwrap}>
                         Unwrap
+                    </Button>
+                )}
+            </Block>
+        )
+    );
+};
+
+const IOUSBRBlock = () => {
+    const { redeem } = useRedeemSbr();
+    const { data: iou, refetch } = useUserATA(new Token({
+        address: SABER_IOU_MINT.toString(),
+        decimals: 6,
+        symbol: 'IOU',
+        name: 'IOU',
+        chainId: 101,
+    }));
+    const {
+        mutate: execRedeem,
+        isPending,
+    } = useMutation({
+        mutationKey: ['redeem'],
+        mutationFn: async () => {
+            await redeem();
+            refetch();
+        },
+    });
+
+    return (
+        (iou?.balance.asNumber ?? 0) > 0 && (
+            <Block active className="flex gap-1 items-center">
+                You have {iou!.balance.asNumber} IOU SBR in your wallet. You can redeem it here.
+                {isPending ? (
+                    <Button size="small" disabled key="g">
+                        Redeeming...
+                    </Button>
+                ) : (
+                    <Button size="small" key="g" onClick={execRedeem}>
+                        Redeem
                     </Button>
                 )}
             </Block>
@@ -174,6 +214,7 @@ export default function Navbar() {
                 </div>
             </div>
             <WrappedSolBlock />
+            <IOUSBRBlock />
         </>
     );
 }
