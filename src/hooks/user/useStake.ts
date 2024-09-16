@@ -40,10 +40,13 @@ export default function useStake(pool: PoolData) {
         const mergePool = data.quarry.sdk.mergeMine.loadMP({
             mpKey: mergePoolAddress,
         });
-        
+
         // Check if the mergePool exists, otherwise use legacy stake
         try {
             await mergePool.data();
+            if (data.replicaInfo && data.replicaInfo.replicaQuarries.length === 0) {
+                throw Error('No replica quarries');
+            }
         } catch (e) {
             const stakeTX = data.miner.stake(amount);
 
@@ -68,7 +71,7 @@ export default function useStake(pool: PoolData) {
                     description: 'Stake'
                 }];
             }
-    
+
             await executeMultipleTxs(connection, [{
                 txs: allInstructions,
                 description: 'Stake'
@@ -128,12 +131,12 @@ export default function useStake(pool: PoolData) {
                 }
             }))
         }
-
+    
         if (returnTxs) {
             return txs;
         }
 
-        await executeMultipleTxs(connection, txs, wallet);
+            await executeMultipleTxs(connection, txs, wallet);
     };
 
     return { stake };
