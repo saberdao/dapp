@@ -3,7 +3,7 @@ import { Pair, StableSwapPool } from '@saberhq/saber-periphery';
 import { IExchangeInfo, StableSwapConfig, StableSwapState, SwapTokenInfo } from '@saberhq/stableswap-sdk';
 import { Fraction, TokenInfo, u64 } from '@saberhq/token-utils';
 import { PublicKey } from '@solana/web3.js';
-import { PoolMetricInfo } from './hooks/usePoolsData';
+import { PoolsMetricInfo } from './hooks/usePoolsData';
 import { QuarryRewarderInfo } from './helpers/rewarder';
 
 export enum Explorer {
@@ -211,7 +211,7 @@ export type PoolData = {
         tokenA: number;
         tokenB: number;
     };
-    metricInfo?: PoolMetricInfo;
+    metricInfo?: PoolsMetricInfo[string];
     metrics?: {
         tvl: number;
         feeApy: number;

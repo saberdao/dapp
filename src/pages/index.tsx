@@ -62,10 +62,10 @@ const sortFunctions = {
         return (a.metrics?.tvl ?? 0) - (b.metrics?.tvl ?? 0) > 0 ? -1 : 1;
     },
     [SORTS.VOLUME_DESC]: (a: PoolData, b: PoolData) => {
-        return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? -1 : 1;
+        return (a.metricInfo?.v ?? 0) > (b.metricInfo?.v ?? 0) ? -1 : 1;
     },
     [SORTS.VOLUME_ASC]: (a: PoolData, b: PoolData) => {
-        return (a.metricInfo?.volumeInUSD ?? 0) > (b.metricInfo?.volumeInUSD ?? 0) ? 1 : -1;
+        return (a.metricInfo?.v ?? 0) > (b.metricInfo?.v ?? 0) ? 1 : -1;
     },
     [SORTS.TVL_DESC]: (a: PoolData, b: PoolData) => {
         return (a.metrics?.tvl ?? 0) > (b.metrics?.tvl ?? 0) ? -1 : 1;
@@ -253,8 +253,8 @@ const IndexPage: React.FC<PageProps> = () => {
                                     ? ' '
                                     : '',
                                 `$${toPrecision(pool.metrics?.tvl ?? 0, 4)}`,
-                                pool.metricInfo?.volumeInUSD
-                                    ? `$${toPrecision(pool.metricInfo.volumeInUSD, 4)}`
+                                pool.metricInfo?.v
+                                    ? `$${toPrecision(pool.metricInfo.v, 4)}`
                                     : '$0',
                                 `${toAPY(pool.metrics?.totalApy ?? 0, 4)}%`,
                                 <>
@@ -281,10 +281,10 @@ const IndexPage: React.FC<PageProps> = () => {
                 return acc + (pool.metrics?.tvl ?? 0);
             }, 0) ?? 0,
             volume: pools.data?.pools.reduce((acc, pool) => {
-                return acc + (pool.metricInfo?.volumeInUSD ?? 0);
+                return acc + (pool.metricInfo?.v ?? 0);
             }, 0) ?? 0,
             fee: pools.data?.pools.reduce((acc, pool) => {
-                return acc + (pool.metricInfo?.['24hFeeInUsd'] ?? 0);
+                return acc + (pool.metricInfo?.feesUsd ?? 0);
             }, 0) ?? 0,
         }
     }, [pools])
@@ -297,10 +297,10 @@ const IndexPage: React.FC<PageProps> = () => {
                     <div className="grid grid-cols-2 lg:grid-cols-4 bg-saber-dark/20 rounded-lg p-3 gap-1">
                         <div className="font-bold">TVL</div>
                         <div>{`$${toPrecision(stats.tvl, 4)}`}</div>
-                        {/* <div className="font-bold">24h volume</div>
+                        <div className="font-bold">24h volume</div>
                         <div>{`$${toPrecision(stats.volume, 4)}`}</div>
                         <div className="font-bold">24h fees</div>
-                        <div>{`$${toPrecision(stats.fee, 4)}`}</div> */}
+                        <div>{`$${toPrecision(stats.fee, 4)}`}</div>
                         <div className="font-bold">Total SBR supply</div>
                         <div>{`${toPrecision(sbrStats?.totalSupply ?? 0, 4)}`}</div>
                         <div className="font-bold">SBR circulating</div>

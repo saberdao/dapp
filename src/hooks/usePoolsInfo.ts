@@ -213,8 +213,17 @@ export default function () {
             await getQuarryInfo(quarry.sdk, rewarders, data.pools);
 
             await Promise.all(data.pools.map(async (pool) => {
-                const metricInfo = poolsInfo?.find(info => info.poolId === pool.info.swap.config.swapAccount.toString());
-                pool.metricInfo = metricInfo;
+                const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()];
+                pool.metricInfo = metricInfo ?? { v: 0, feesUsd: 0 };
+
+                // Update volume and fees because they are prices in token0
+                try{
+                    pool.metricInfo.v = pool.metricInfo.v * pool.usdPrice.tokenA;
+                    pool.metricInfo.feesUsd = pool.metricInfo.feesUsd * pool.usdPrice.tokenA;
+                } catch (e) {
+                    pool.metricInfo.v = 0;
+                    pool.metricInfo.feesUsd = 0;
+                }
 
                 // Get prices of secondary rewards
                 let secondaryApy: number[] = [];
@@ -230,7 +239,7 @@ export default function () {
                 }
 
                 const tvl = getPoolTVL(pool);
-                const feeApy = getFeeApy(metricInfo?.['24hFeeInUsd'] ?? 0, tvl ?? 0);
+                const feeApy = getFeeApy(metricInfo?.feesUsd ?? 0, tvl ?? 0);
                 const emissionApy = getEmissionApy(pool, prices[SBR_ADDRESS.toString()]);
                 const tokenPercentages = getPoolTokenPercentages(pool);
                 const stakePoolApyToken0 = 100 * (stakePoolApy[pool.info.swap.state.tokenA.mint.toString()] ?? 0) * tokenPercentages.tokenA;

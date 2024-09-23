@@ -483,8 +483,8 @@ const PoolPage = (props: { params: { id: string } }) => {
             4,
         )}`],
         ['---'],
-        ['24h volume', `$${toPrecision(pool.metricInfo?.volumeInUSD ?? 0)}`],
-        ['24h fees', `$${toPrecision(pool.metricInfo?.['24hFeeInUsd'] ?? 0)}`],
+        ['24h volume', `$${toPrecision(pool.metricInfo?.v ?? 0)}`],
+        ['24h fees', `$${toPrecision(pool.metricInfo?.feesUsd ?? 0)}`],
         ['---'],
         [
             'Virtual price',

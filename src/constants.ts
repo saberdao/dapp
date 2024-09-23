@@ -20,8 +20,6 @@ export const QUARRY_ADDRESSES = {
     Registry: new PublicKey("QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"),
   };
 
-export const SABER_DATA_REPO = 'https://raw.githubusercontent.com/saberdao/data/main/';
-
 export const saberQuarryInfo = {
     "displayRewardsToken": {
         "address": "Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1",
