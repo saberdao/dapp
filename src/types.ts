@@ -211,7 +211,7 @@ export type PoolData = {
         tokenA: number;
         tokenB: number;
     };
-    metricInfo?: PoolsMetricInfo[string];
+    metricInfo?: Partial<PoolsMetricInfo[string]>;
     metrics?: {
         tvl: number;
         feeApy: number;

@@ -213,16 +213,19 @@ export default function () {
             await getQuarryInfo(quarry.sdk, rewarders, data.pools);
 
             await Promise.all(data.pools.map(async (pool) => {
-                const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()];
-                pool.metricInfo = metricInfo ?? { v: 0, feesUsd: 0 };
+                const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()] ?? { v: 0, feesUsd: 0 };
 
                 // Update volume and fees because they are prices in token0
                 try{
-                    pool.metricInfo.v = pool.metricInfo.v * pool.usdPrice.tokenA;
-                    pool.metricInfo.feesUsd = pool.metricInfo.feesUsd * pool.usdPrice.tokenA;
+                    pool.metricInfo = {
+                        v: metricInfo.v * pool.usdPrice.tokenA,
+                        feesUsd: metricInfo.feesUsd * pool.usdPrice.tokenA,
+                    };
                 } catch (e) {
-                    pool.metricInfo.v = 0;
-                    pool.metricInfo.feesUsd = 0;
+                    pool.metricInfo = {
+                        v: 0,
+                        feesUsd: 0,
+                    };
                 }
 
                 // Get prices of secondary rewards
