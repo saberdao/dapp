@@ -52,12 +52,8 @@ export const getEmissionApy = (pool: PoolData, sbrPrice: number) => {
 };
 
 export const getSecondaryEmissionApy = (pool: PoolData, replica: NonNullable<PoolData['replicaQuarryData']>[number], price: number) => {
-    console.log(pool, replica, price)
     const annualRate = replica.data.annualRewardsRate;
-
-    console.log(annualRate, replica, replica.info.rewardsToken.decimals)
     const rate = annualRate.div(new BN(10 ** replica.info.rewardsToken.decimals));
-    
 
     if (rate.toNumber() < 365) {
         return 0;

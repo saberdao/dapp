@@ -32,14 +32,24 @@ export type QuarryRewarderInfo = {
     }
 }
 
-const cache: Record<string, QuarryRewarderInfo[]> = {}
+export type RewarderInfo = {
+    quarries: QuarryRewarderInfo[];
+    info: {
+      redeemer?: {
+        redeemerKey: string;
+        underlyingToken: string;
+      }
+    }
+}
+
+const cache: Record<string, RewarderInfo> = {}
 
 export const getRewarder = async (network: string, rewarder: string) => {
     if (cache[`${network}|${rewarder}`]) {
         return cache[`${network}|${rewarder}`];
     }
 
-    const rewarders = await fetchNullableWithSessionCache<{ quarries: QuarryRewarderInfo[] }>(
+    const rewarders = await fetchNullableWithSessionCache<RewarderInfo>(
         `https://raw.githubusercontent.com/QuarryProtocol/rewarder-list-build/master/${network}/rewarders/${rewarder}/full.json`,
     );
 
@@ -47,7 +57,7 @@ export const getRewarder = async (network: string, rewarder: string) => {
         throw Error('Could not find rewarders');
     }
 
-    cache[`${network}|${rewarder}`] = rewarders.quarries;
+    cache[`${network}|${rewarder}`] = rewarders;
 
     return cache[`${network}|${rewarder}`];
 }

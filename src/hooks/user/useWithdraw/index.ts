@@ -363,7 +363,7 @@ export const useWithdraw = ({
             if (!miner.data) {
                 await miner.miner.fetchData();
             }
-            const claimTxs = await getClaimIxs(saber, quarry.sdk, miner, pool.info.lpToken, wallet)
+            const claimTxs = await getClaimIxs(saber, quarry.sdk, miner, pool, wallet)
             allTxsToExecute.push(...claimTxs);
         }
 

@@ -6,12 +6,13 @@ import useQuarryMiner from './useQuarryMiner';
 import useProvider from '../useProvider';
 import { getClaimIxs } from '../../helpers/claim';
 import useQuarry from '../useQuarry';
+import { PoolData } from '@/src/types';
 
-export default function useClaim(lpToken: TokenInfo) {
+export default function useClaim(pool: PoolData) {
     const { connection } = useConnection();
     const { wallet } = useWallet();
-    const { data: balance } = useUserGetLPTokenBalance(lpToken.address);
-    const { data: miner } = useQuarryMiner(lpToken, true);
+    const { data: balance } = useUserGetLPTokenBalance(pool.info.lpToken.address);
+    const { data: miner } = useQuarryMiner(pool.info.lpToken, true);
     const { data: quarry } = useQuarry();
     const { saber } = useProvider();
 
@@ -20,7 +21,7 @@ export default function useClaim(lpToken: TokenInfo) {
             return;
         }
         // Primary rewards
-        const txs = await getClaimIxs(saber, quarry.sdk, miner, lpToken, wallet);
+        const txs = await getClaimIxs(saber, quarry.sdk, miner, pool, wallet);
         try {
             await executeMultipleTxs(connection, txs, wallet);
         } catch (e) {

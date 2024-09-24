@@ -228,7 +228,29 @@ export type PoolData = {
     quarryData?: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
     replicaQuarryData?: {
         data: Awaited<ReturnType<MineProgram['account']['quarry']['fetch']>>;
-        info: QuarryRewarderInfo['replicaQuarries'][number];
+        info: QuarryRewarderInfo['replicaQuarries'][number] & {
+            redeemer?: {
+                redeemerKey: string;
+                underlyingToken: string;
+                tokenInfo: {
+                    address: string;
+                    name: string;
+                    symbol: string;
+                    decimals: number;
+                    logoURI: string;
+                    tags: string[];
+                    daily_volume: number | null;
+                    created_at: string;
+                    freeze_authority: string | null;
+                    mint_authority: string | null;
+                    permanent_delegate: string | null;
+                    minted_at: string | null;
+                    extensions: {
+                        coingeckoId: string;
+                    };
+                }
+            }
+        };
     }[]
 };
 

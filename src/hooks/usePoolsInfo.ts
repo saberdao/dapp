@@ -26,7 +26,7 @@ import { SBR_ADDRESS } from '@saberhq/saber-periphery';
 import useGetRewarders from './useGetRewarders';
 import { findMergePoolAddress } from '../helpers/replicaRewards';
 import BN from 'bn.js';
-import { QuarryRewarderInfo } from '../helpers/rewarder';
+import { getRewarder, QuarryRewarderInfo } from '../helpers/rewarder';
 import useGetStakePoolAPY from './useGetStakePoolAPY';
 import useGetPoolInfo from './useGetPoolnfo';
 
@@ -209,7 +209,36 @@ export default function () {
                     };
                 }),
             };
-            await getQuarryInfo(quarry.sdk, rewarders, data.pools);
+            await getQuarryInfo(quarry.sdk, rewarders.quarries, data.pools);
+
+            // Update the replicaQuarryData to handle decimals (for now, to be removed) and redeemer logic
+            await Promise.all(data.pools.map(async (pool) => {
+                if (pool.replicaQuarryData) {
+                    if (pool.info.name === 'SOL-bSOL')
+                        console.log(pool)
+                    await Promise.all(pool.replicaQuarryData.map(async (replica) => {
+                        if (replica.data.annualRewardsRate.lte(new BN(0 ))) {
+                            return 0;
+                        }
+
+                        // This should be removed when the CLBExchange repo is updated to read metadata
+                        if (replica.info.rewardsToken.decimals === -1) {
+                            replica.info.rewardsToken.decimals = 9;
+                        }
+
+                        // Check if there is a redeemer for this token
+                        const rewarder = await getRewarder(network, replica.info.rewarder);
+                        const redeemer = rewarder.info.redeemer;
+                        if (redeemer) {
+                            // Set up the redeemer token information
+                            const tokenInfo = await (await (await fetch(`https://tokens.jup.ag/token/${redeemer.underlyingToken}`)).json());
+                            replica.info.redeemer = { ...redeemer, tokenInfo };
+                        }
+
+                    }));
+                }
+            }));
+
 
             await Promise.all(data.pools.map(async (pool) => {
                 const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()] ?? { v: 0, feesUsd: 0 };
@@ -235,11 +264,11 @@ export default function () {
                             return 0;
                         }
 
-                        if (replica.info.rewardsToken.decimals === -1) {
-                            replica.info.rewardsToken.decimals = 9;
-                        }
-
-                        const price = await getPrice(replica.info.rewardsToken.mint, replica.info.rewardsToken.decimals);
+                        const price = await getPrice(
+                            replica.info.redeemer?.tokenInfo.address ?? replica.info.rewardsToken.mint,
+                            replica.info.redeemer?.tokenInfo.decimals ?? replica.info.rewardsToken.decimals
+                        );
+                        console.log(replica.info.redeemer?.tokenInfo.address,price, getSecondaryEmissionApy(pool, replica, price))
                         return getSecondaryEmissionApy(pool, replica, price);
                     }));
                 }

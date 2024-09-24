@@ -164,7 +164,11 @@ const FarmCounter = (props: { pool: PoolData }) => {
                     return (
                         <React.Fragment key={i}>
                             <div className="flex justify-end">
-                                <TokenLogo className="w-5 h-5" mint={miner.replicaInfo.replicaQuarries[i].rewardsToken.mint} />
+                                <TokenLogo
+                                    className="w-5 h-5"
+                                    mint={props.pool.replicaQuarryData?.[i].info.rewardsToken.mint ?? props.pool.replicaQuarryData![i].info.rewardsToken.mint}
+                                    img={props.pool.replicaQuarryData?.[i].info.redeemer?.tokenInfo.logoURI}
+                                />
                             </div>
                             <div className="text-right font-mono">
                                 {isNaN(secondaryAmount) ? '0' : secondaryAmount.toFixed(digits.secondary[i])}
@@ -231,7 +235,7 @@ const UpgradeStakeButton = (props: { pool: PoolData}) => {
             onClick={() => execUpgradeStake()}
             disabled={isPending}
         >
-            {isPending ? 'Upgrading stake...' : 'You have staked your LP tokens in our legacy miner. Click here to withdraw, then stake again to upgrade stake.'}
+            {isPending ? 'Unstaking...' : 'You have staked your LP tokens in our legacy miner. Click here to withdraw, then stake again to upgrade stake.'}
         </button>
     )
 }
@@ -278,7 +282,7 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
         return { valueA, valueB, usdValue };
     }, [miner]);
 
-    const { claim } = useClaim(props.pool.info.lpToken);
+    const { claim } = useClaim(props.pool);
     const {
         mutate: execClaim,
         isPending,
@@ -404,7 +408,7 @@ const ReplicaEmissionRate = (props: { replica: NonNullable<PoolData['replicaQuar
 
     return (
         <div key="sbr-emission-rate" className="flex gap-1">
-            <TokenLogo className="w-5 h-5" mint={props.replica.info.rewardsToken.mint} />
+            <TokenLogo className="w-5 h-5" mint={props.replica.info.rewardsToken.mint} img={props.replica.info.redeemer?.tokenInfo.logoURI} />
             {toPrecision(emissionRate, 4)} / day
         </div>
     );
@@ -447,7 +451,7 @@ const PoolPage = (props: { params: { id: string } }) => {
                 return [];
             }
             return [<div>
-                <TokenDisplay mint={replica.info.rewardsToken.mint} /> emission rate
+                <TokenDisplay name={replica.info.redeemer?.tokenInfo.symbol} mint={replica.info.rewardsToken.mint} /> emission rate
             </div>, <ReplicaEmissionRate replica={replica} />];
         }) : []),
         ['---'],
@@ -577,7 +581,11 @@ const PoolPage = (props: { params: { id: string } }) => {
                                             </div>
                                             {pool.metrics?.secondaryApy.map((apy, i) => (
                                                 apy > 0 ? <div key={i} className="flex items-center gap-1">
-                                                    + <TokenLogo className="w-4 h-4" mint={pool.replicaQuarryData![i].info.rewardsToken.mint} />{' '}
+                                                    + <TokenLogo
+                                                        className="w-4 h-4"
+                                                        mint={pool.replicaQuarryData?.[i].info.redeemer?.tokenInfo.address ?? pool.replicaQuarryData![i].info.rewardsToken.mint}
+                                                        img={pool.replicaQuarryData?.[i].info.redeemer?.tokenInfo.logoURI}
+                                                    />{' '}
                                                     {toAPY(apy, 4)}%
                                                 </div> : null
                                             ))}

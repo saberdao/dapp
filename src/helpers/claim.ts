@@ -11,6 +11,7 @@ import { createQuarryPayroll } from './quarry';
 import { ReplicaQuarryInfo } from './rewarder';
 import { SBR_INFO } from '../utils/builtinTokens';
 import { saberQuarryInfo } from '../constants';
+import { PoolData } from '../types';
 
 const getClaimReplicaIx = async (
     quarry: QuarrySDK,
@@ -31,7 +32,7 @@ const getClaimReplicaIx = async (
     );
 
     if (!replicaRewards) {
-        return [];
+        return { instructions: [] };
     }
     
     const { payroll, replicaMinerData } = replicaRewards;
@@ -52,10 +53,10 @@ const getClaimReplicaIx = async (
     const reward = rewards.asNumber;
     if (reward > 0) {
         const T = await miner.mergeMiner.claimReplicaRewards(new PublicKey(replicaQuarryInfo.rewarder));
-        return T.instructions;
+        return { instructions: T.instructions, reward: rewards.toU64() };
     }
 
-    return [];
+    return { instructions: [], reward: rewards.toU64() };
 }
 
 const getClaimPrimaryIx = async (
@@ -105,9 +106,10 @@ export const getClaimIxs = async (
     saber: Saber,
     quarry: QuarrySDK,
     miner: ReturnType<typeof useQuarryMiner>['data'],
-    lpToken: TokenInfo,
+    pool: PoolData,
     wallet: Wallet,
 ) => {
+    console.log(pool)
     invariant(wallet.adapter.publicKey);
     invariant(miner?.miner);
 
@@ -148,7 +150,7 @@ export const getClaimIxs = async (
                 txs: [...await getClaimPrimaryIx(
                     quarry,
                     miner,
-                    lpToken,
+                    pool.info.lpToken,
                     saberQuarryInfo,
                     wallet
                 )],
@@ -161,7 +163,7 @@ export const getClaimIxs = async (
     // Secondary rewards
     if (miner.mergeMiner && miner.replicaInfo) {
         try {
-            await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replicaQuarryInfo) => {
+            await Promise.all(miner.replicaInfo.replicaQuarries.map(async (replicaQuarryInfo, i) => {
                 invariant(miner.mergeMiner);
                 invariant(miner.mergePool);
                 invariant(wallet.adapter.publicKey);
@@ -170,19 +172,45 @@ export const getClaimIxs = async (
                 const instructions2: TransactionInstruction[] = [];
 
                 // Add replica claim
-                instructions1.push(...await getClaimReplicaIx(
+                const replicaClaim = await getClaimReplicaIx(
                     quarry,
                     miner,
-                    lpToken,
+                    pool.info.lpToken,
                     replicaQuarryInfo,
                     wallet
-                ));
+                );
+                instructions1.push(...replicaClaim.instructions);
+                
+                // Maybe redeem
+                if (pool.replicaQuarryData?.[i].info.redeemer && replicaClaim?.reward) {
+                    const redeemer = await quarry.loadRedeemer({
+                        iouMint: new PublicKey(pool.replicaQuarryData?.[i].info.rewardsToken.mint),
+                        redemptionMint: new PublicKey(pool.replicaQuarryData?.[i].info.redeemer.underlyingToken),
+                    });
+                    const { accounts, instructions } = await getOrCreateATAs({
+                        provider: saber.provider,
+                        mints: {
+                            iou: redeemer.data.iouMint,
+                            redemption: redeemer.data.redemptionMint,
+                        },
+                        owner: wallet.adapter.publicKey,
+                    });
+                
+                    const redeemTx = await redeemer.redeemTokensIx({
+                        tokenAmount: replicaClaim.reward,
+                        sourceAuthority: wallet.adapter.publicKey,
+                        iouSource: accounts.iou,
+                        redemptionDestination: accounts.redemption,
+                    });
+
+                    instructions1.push(...instructions, redeemTx);
+                }
 
                 // Add primary claim
                 instructions2.push(...await getClaimPrimaryIx(
                     quarry,
                     miner,
-                    lpToken,
+                    pool.info.lpToken,
                     replicaQuarryInfo,
                     wallet
                 ));
