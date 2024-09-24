@@ -13,6 +13,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import Footer from '../components/Footer';
 import { PageProps } from 'gatsby';
 import { Toaster } from 'sonner';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const CACHE_TIME = 1000 * 60 * 60;
 
@@ -66,6 +67,7 @@ const Dapp = <T extends PageProps>(props: { children: React.ReactElement<T>; pro
                 },
             },
         }}>
+            <ReactQueryDevtools initialIsOpen={false} />
             <ConnectionProvider endpoint={endpoint} config={{ wsEndpoint: wsEndpoint }}>
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>

@@ -55,12 +55,16 @@ export default function useGetPrices() {
 
             // Call Jup price api for each chunk
             const result = (await Promise.all(chunks.map(async (chunk) => {
-                return fetch(`https://price.jup.ag/v4/price?ids=${chunk.join(',')}`).then(res => res.json());
+                try {
+                    return await fetch(`https://price.jup.ag/v4/price?ids=${chunk.join(',')}`).then(res => res.json());
+                } catch (e) {
+                    return {};
+                }
             }))).flat();
 
             // Merge the results into prices
             result.forEach((item: any) => {
-                Object.values(item.data).forEach((priceRecord: any) => {
+                Object.values(item?.data ?? {}).forEach((priceRecord: any) => {
                     prices[priceRecord.id] = priceRecord.price;
                 });
             });

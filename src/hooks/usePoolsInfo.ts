@@ -209,10 +209,12 @@ export default function () {
                     };
                 }),
             };
-
+console.log(1)
             await getQuarryInfo(quarry.sdk, rewarders, data.pools);
+            console.log(2)
 
             await Promise.all(data.pools.map(async (pool) => {
+                try {
                 const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()] ?? { v: 0, feesUsd: 0 };
 
                 // Update volume and fees because they are prices in token0
@@ -256,8 +258,11 @@ export default function () {
                     stakePoolApyToken1,
                     totalApy: feeApy + emissionApy + secondaryApy.reduce((acc, val) => acc + val, 0) + stakePoolApyToken0 + stakePoolApyToken1,
                 };
+            }catch(e) {
+                console.log(e)
+            }
             }));
-
+            console.log(3)
             if (wallet?.adapter.publicKey) {                
                 // LP token balances
                 const lpTokenBalances = data.pools.map((pool) => {
@@ -315,7 +320,7 @@ export default function () {
                         };
                     });
                 })))).flat();
-
+                console.log(4)
                 // Merge into pools by updating by reference
                 tokenAmounts.map((amount) => {
                     if (amount.amount) {
@@ -334,6 +339,7 @@ export default function () {
                     }
                 });
             }
+            console.log(5)
 
             return data;
         },

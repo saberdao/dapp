@@ -39,20 +39,31 @@ export const getPrice = async (mint: string, decimals: number) => {
         return priceCache[mint];
     }
 
-    const result = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`).then(res => res.json());
-    if (result.data[mint]) {
+    try {
+        const result = await fetch(`https://price.jup.ag/v4/price?ids=${mint}`).then(res => res.json());
+        if (!result.data) {
+            throw Error('No data');
+        }
         Object.values(result.data).forEach((priceRecord: any) => {
             priceCache[priceRecord.id] = priceRecord.price;
         });
-    } else {
+    } catch (e) {
         // Try using quote
-        const quote = await fetch(`https://quote-api.jup.ag/v6/quote?inputMint=${mint}&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=${10 ** decimals}`).then(res => res.json());
+        try {
+            const quote = await fetch(`https://quote-api.jup.ag/v6/quote?inputMint=${mint}&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=${10 ** decimals}`).then(res => res.json());
 
-        if (quote?.outAmount) {
-            priceCache[mint] = parseInt(quote.outAmount) / (10 ** 6);
-        } else {
+            if (quote?.outAmount) {
+                priceCache[mint] = parseInt(quote.outAmount) / (10 ** 6);
+            } else {
+                priceCache[mint] = 0;
+            }
+        } catch(e) {
             priceCache[mint] = 0;
         }
+    }
+
+    if (!priceCache[mint]) {
+        priceCache[mint] = 0;
     }
 
     return priceCache[mint];

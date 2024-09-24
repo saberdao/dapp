@@ -33,6 +33,7 @@
     "@solana/web3.js": "^1.87.6",
     "@tanstack/query-sync-storage-persister": "^5.22.2",
     "@tanstack/react-query": "^5.22.2",
+    "@tanstack/react-query-devtools": "^5.56.2",
     "@tanstack/react-query-persist-client": "^5.22.2",
     "@ubeswap/token-math": "^5.2.1",
     "@yornaath/batshit": "^0.10.1",
