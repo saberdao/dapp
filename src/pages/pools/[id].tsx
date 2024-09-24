@@ -43,6 +43,7 @@ import { toast } from 'sonner';
 import { TokenDisplay, TokenLogo } from '@/src/components/TokenDisplay';
 import useUpgradeStake from '@/src/hooks/user/useUpgradeStake';
 import useDeprecatedPools from '@/src/hooks/useDeprecatedPools';
+import BigNumber from 'bignumber.js';
 
 const InfoPanel = (props: { data: any[][] }) => {
     return (
@@ -255,7 +256,6 @@ const LiquidityBlock = (props: { pool: PoolData; handleOpenModel?: () => void })
     const rewards = useMemo(() => {
         return claimableRewards?.() ?? { primary: 0, secondary: [] };
     }, [claimableRewards]);
-    console.log(rewards);
 
     const stakedValue = useMemo(() => {
         if (!miner?.data || !miner.stakedBalance) {
@@ -392,8 +392,8 @@ const EmissionRate = (props: { pool: PoolData }) => {
 const ReplicaEmissionRate = (props: { replica: NonNullable<PoolData['replicaQuarryData']>[number] }) => {
     const emissionRate = useMemo(() => {
         const annualRate = props.replica.data.annualRewardsRate;
-        const dailyRate = annualRate.div(new BN(365));
-        const rate = dailyRate.div(new BN(10 ** SBR_INFO.decimals));
+        const dailyRate = new BigNumber(annualRate.div(new BN(365)).toString());
+        const rate = dailyRate.div(new BigNumber(10 ** props.replica.info.rewardsToken.decimals));
 
         return rate.toNumber();
     }, [props.replica]);

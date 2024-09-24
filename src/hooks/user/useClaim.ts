@@ -21,7 +21,11 @@ export default function useClaim(lpToken: TokenInfo) {
         }
         // Primary rewards
         const txs = await getClaimIxs(saber, quarry.sdk, miner, lpToken, wallet);
-        await executeMultipleTxs(connection, txs, wallet);
+        try {
+            await executeMultipleTxs(connection, txs, wallet);
+        } catch (e) {
+            console.log(e)
+        }
     };
 
     return { claim };

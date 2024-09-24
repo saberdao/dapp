@@ -51,7 +51,7 @@ export default function useClaim(lpToken: TokenInfo) {
                 secondaryPayroll.primaryMinerData.rewardsEarned,
             )))
 
-            return (new TokenAmount(new Token(SBR_INFO), secondaryPayroll.payroll.calculateRewardsEarned(
+            return (new TokenAmount(secondaryPayroll.rewardsToken, secondaryPayroll.payroll.calculateRewardsEarned(
                 new BN(timeInSec),
                 secondaryPayroll.replicaMinerData.balance,
                 secondaryPayroll.replicaMinerData.rewardsPerTokenPaid,
@@ -74,7 +74,7 @@ export default function useClaim(lpToken: TokenInfo) {
             // Calculate secondary reward per millisecond
             const secondaryRewardPerMilliSec = secondaryRewards
                 .map((secondaryReward, i) => timeInSec - timeT0 > 0 ? ((secondaryReward - rewardsT0.secondary[i]) / (timeInSec - timeT0)) / 1000 : 0)
-            
+
             // Add to reward
             return {
                 primary: reward.primary + rewardPerMilliSec * extraMs,

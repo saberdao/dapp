@@ -166,10 +166,11 @@ export const getClaimIxs = async (
                 invariant(miner.mergePool);
                 invariant(wallet.adapter.publicKey);
 
-                const instructions: TransactionInstruction[] = [];
+                const instructions1: TransactionInstruction[] = [];
+                const instructions2: TransactionInstruction[] = [];
 
                 // Add replica claim
-                instructions.push(...await getClaimReplicaIx(
+                instructions1.push(...await getClaimReplicaIx(
                     quarry,
                     miner,
                     lpToken,
@@ -178,7 +179,7 @@ export const getClaimIxs = async (
                 ));
 
                 // Add primary claim
-                instructions.push(...await getClaimPrimaryIx(
+                instructions2.push(...await getClaimPrimaryIx(
                     quarry,
                     miner,
                     lpToken,
@@ -187,14 +188,20 @@ export const getClaimIxs = async (
                 ));
 
                 txToExecute.push({
-                    txs: instructions,
-                    description: 'Claim replica rewards'
+                    txs: instructions1,
+                    description: 'Claim replica rewards (1 / 2)'
+                });
+
+                txToExecute.push({
+                    txs: instructions2,
+                    description: 'Claim replica rewards (2 / 2)'
                 });
             }));
         } catch (e) {
             // Do nothing
         }
     }
+    console.log('here')
 
     // Redeem tx
     const redeemer = await saber.loadRedeemer({

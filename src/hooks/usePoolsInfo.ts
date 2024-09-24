@@ -209,12 +209,9 @@ export default function () {
                     };
                 }),
             };
-console.log(1)
             await getQuarryInfo(quarry.sdk, rewarders, data.pools);
-            console.log(2)
 
             await Promise.all(data.pools.map(async (pool) => {
-                try {
                 const metricInfo = poolsInfo[pool.info.swap.config.swapAccount.toString()] ?? { v: 0, feesUsd: 0 };
 
                 // Update volume and fees because they are prices in token0
@@ -238,6 +235,10 @@ console.log(1)
                             return 0;
                         }
 
+                        if (replica.info.rewardsToken.decimals === -1) {
+                            replica.info.rewardsToken.decimals = 9;
+                        }
+
                         const price = await getPrice(replica.info.rewardsToken.mint, replica.info.rewardsToken.decimals);
                         return getSecondaryEmissionApy(pool, replica, price);
                     }));
@@ -258,11 +259,7 @@ console.log(1)
                     stakePoolApyToken1,
                     totalApy: feeApy + emissionApy + secondaryApy.reduce((acc, val) => acc + val, 0) + stakePoolApyToken0 + stakePoolApyToken1,
                 };
-            }catch(e) {
-                console.log(e)
-            }
             }));
-            console.log(3)
             if (wallet?.adapter.publicKey) {                
                 // LP token balances
                 const lpTokenBalances = data.pools.map((pool) => {
@@ -320,7 +317,6 @@ console.log(1)
                         };
                     });
                 })))).flat();
-                console.log(4)
                 // Merge into pools by updating by reference
                 tokenAmounts.map((amount) => {
                     if (amount.amount) {
@@ -339,7 +335,6 @@ console.log(1)
                     }
                 });
             }
-            console.log(5)
 
             return data;
         },

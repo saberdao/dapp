@@ -57,13 +57,14 @@ export const getReplicaRewards = async (quarry: QuarrySDK, lpToken: TokenInfo, r
         owner: wallet,
     })
 
-    const replicaQuarry = await replicaRewarder.getQuarry(new Token({
+    const rewardsToken = new Token({
         ...replicaQuarryInfo.rewardsToken,
         symbol: 'R',
         chainId: 103,
         address: findReplicaMintAddress({ primaryMint: new PublicKey(lpToken.address) }).toString(),
         name: 'Reward token'
-    }));
+    });
+    const replicaQuarry = await replicaRewarder.getQuarry(rewardsToken);
     const replicaMiner = await replicaQuarry.getMinerActions(mmAddress);
     const replicaMinerData = await replicaMiner.fetchData()
 
@@ -86,5 +87,5 @@ export const getReplicaRewards = async (quarry: QuarrySDK, lpToken: TokenInfo, r
     const primaryMiner = await primaryQuarry.getMinerActions(mmAddress);
     const primaryMinerData = await primaryMiner.fetchData()
 
-    return { payroll, replicaMinerData, primaryMinerData };
+    return { payroll, replicaMinerData, primaryMinerData, rewardsToken };
 }
