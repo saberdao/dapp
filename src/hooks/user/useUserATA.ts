@@ -8,7 +8,8 @@ import { memoize } from 'lodash';
 import { create, windowScheduler } from '@yornaath/batshit';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const batcherFn = memoize((connection: Connection, network: WalletAdapterNetwork, owner: PublicKey) => create({
+const batcherFn = memoize((connection: Connection, owner: PublicKey) => create({
+    name: 'userATA',
     fetcher: async (query: { mint: (Pick<Token, 'address'> | null | undefined), ignoreWrap: boolean }[]) => {
         const userAtasObj = getATAAddressesSync({
             mints: query.filter((x): x is { mint: Token; ignoreWrap: boolean } => !!x).reduce((acc, mint, i) => {
@@ -29,7 +30,7 @@ const batcherFn = memoize((connection: Connection, network: WalletAdapterNetwork
 
         const data = await Promise.all(result.value.map(async (item, i) => {
             try {
-                if (!userAtas[i].mint.ignoreWrap && (userAtas[i].mint.mint.address === RAW_SOL_MINT.toString() || userAtas[i].mint.mint.address === WRAPPED_SOL[network].address)) {
+                if (!userAtas[i].mint.ignoreWrap && (userAtas[i].mint.mint.address === RAW_SOL_MINT.toString() || userAtas[i].mint.mint.address === WRAPPED_SOL['mainnet-beta'].address)) {
                     const solBalance = await connection.getBalance(owner);
                     return {
                         mint: userAtas[i].mint.mint.address,
@@ -62,7 +63,7 @@ const batcherFn = memoize((connection: Connection, network: WalletAdapterNetwork
         return data;
     },
     resolver: (atas, query) => {
-        return atas.find(ata => ata.mint === query?.mint?.address && ata.ignoreWrap === query.ignoreWrap) ?? null;
+        return atas?.find(ata => ata.mint === query?.mint?.address && ata.ignoreWrap === query.ignoreWrap) ?? null;
     },
     scheduler: windowScheduler(500),
   }));
@@ -75,27 +76,30 @@ type TokenAta = {
     isInitialized?: boolean;
 }
 
+let batcher: ReturnType<typeof batcherFn> | null = null;
+
 export default function useUserATA(
     mint: (Pick<Token, 'address'> | null | undefined),
     ignoreWrap = false,
 ) {
     const { wallet } = useWallet();
     const { connection } = useConnection();
-    const { network, endpoint } = useNetwork();
 
     return useQuery({
-        queryKey: ['userATA', endpoint, wallet?.adapter.publicKey, mint?.address, ignoreWrap],
+        queryKey: ['userATA', wallet?.adapter.publicKey, mint?.address, ignoreWrap],
         queryFn: async (): Promise<TokenAta | null> => {
             if (!wallet?.adapter.publicKey) {
                 return null;
             }
 
-            const batcher = batcherFn(connection, network, wallet.adapter.publicKey!);
+            if (!batcher) {
+                batcher = batcherFn(connection, wallet.adapter.publicKey);
+            }
 
             return batcher.fetch({ mint, ignoreWrap });
         },
         refetchInterval: 5000,
-        enabled: !!connection && !!network && !!wallet?.adapter.publicKey,
+        enabled: !!connection && !!wallet?.adapter.publicKey,
     });
     
 }
