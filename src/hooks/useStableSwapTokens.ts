@@ -15,10 +15,10 @@ interface ExchangeTokens {
     tokens?: readonly [Token, Token];
     underlyingTokens?: Token[];
     wrappedTokens: WrappedToken[];
-    poolTokenAccount?: AssociatedTokenAccount | null;
-    tokenAccounts: readonly (AssociatedTokenAccount | null | undefined)[];
+    poolTokenAccount?: Token | null;
+    tokenAccounts: readonly (Token | null | undefined)[];
     underlyingTokenAccounts: readonly (
-        | AssociatedTokenAccount
+        | Token
         | null
         | undefined
     )[];
@@ -50,17 +50,6 @@ export const useStableSwapTokens = (pool: PoolData): ExchangeTokens | undefined 
                         const err = new Error(
                             'Missing decimal wrapper underlying in token list.',
                         );
-                        Sentry.captureException(err, {
-                            extra: {
-                                tokenInfo: JSON.stringify(tok.info, null, 2),
-                                underlying: tok.info.extensions?.assetContract,
-                                tokenList: JSON.stringify(
-                                    allTokens.tokens.map((t) => t.address),
-                                    null,
-                                    2,
-                                ),
-                            },
-                        });
                         throw err;
                     }
                     return realTok;
@@ -78,18 +67,17 @@ export const useStableSwapTokens = (pool: PoolData): ExchangeTokens | undefined 
             return { underlyingTokens, newUnderlyingTokens, wrappedTokens };
         }, [allTokens, tokens]);
 
+    if (!result) {
+        return undefined;
+    }
+
     const tokenAccounts = [
         new Token(pool.info.lpToken),
         ...(tokens ?? []),
         ...(result?.newUnderlyingTokens.map(tok => new Token(tok)) ?? []),
-    ].map(rawSOLOverride).map((token) => useUserATA(token).data);
+    ].map(rawSOLOverride);
 
-    const underlyingTokenAccounts = (result?.underlyingTokens?.map(tok => rawSOLOverride(new Token(tok))) ?? [])
-     .map((token) => useUserATA(token).data);
-
-    if (!result) {
-        return undefined;
-    }
+    const underlyingTokenAccounts = (result?.underlyingTokens?.map(tok => rawSOLOverride(new Token(tok))) ?? []);
 
     return {
         tokens,

@@ -28,6 +28,7 @@ import { createEphemeralWrappedSolAccount } from '../../../utils/wrappedSol';
 import useProvider from '../../useProvider';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { createVersionedTransaction, executeMultipleTxs } from '../../../helpers/transaction';
+import useUserATA from '../useUserATA';
 
 interface IDeposit {
   tokenAmounts: readonly TokenAmount[];
@@ -128,10 +129,6 @@ export const useDeposit = ({ tokenAmounts, pool }: IDeposit): IUseDeposit => {
             ? 'Connect wallet'
             : swap.state.isPaused
                 ? 'Pool is paused'
-                : tokenAmounts.find((amount, i) =>
-                    amount.greaterThan(ssTokens?.underlyingTokenAccounts[i]?.balance ?? 0),
-                )
-                    ? 'Insufficient balance'
                     : tokenAmounts.every((amount) => amount.isZero()) ||
               tokenAmounts.length === 0
                         ? 'Enter an amount'
