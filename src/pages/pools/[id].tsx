@@ -229,6 +229,8 @@ const UpgradeStakeButton = (props: { pool: PoolData}) => {
         },
     });
 
+    return null;
+
     return (
         <button
             className="bg-yellow-600 cursor-pointer hover:bg-yellow-800 text-center text-xs text-slate-200 z-1 relative p-2 rounded-lg flex gap-1 justify-center items-center transition-colors"
