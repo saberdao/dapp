@@ -221,11 +221,6 @@ export default function () {
                             return 0;
                         }
 
-                        // This should be removed when the CLBExchange repo is updated to read metadata
-                        if (replica.info.rewardsToken.decimals === -1) {
-                            replica.info.rewardsToken.decimals = 9;
-                        }
-
                         // Check if there is a redeemer for this token
                         const rewarder = await getRewarder(network, replica.info.rewarder);
                         const redeemer = rewarder.info.redeemer;
