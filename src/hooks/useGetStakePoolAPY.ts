@@ -18,6 +18,7 @@ const lsts = [
   "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
   "strng7mqqc1MBJJV6vMzYbEqnwVGvKKGKedeCvtktWA",
   "SouL4UuxKaFutpyZGb2weXUPEQCCsmEHSubMJEs7ttH",
+  "9qTUytXyBsbhU1CT8n5EwLGCBVs2Ber8QBxWubocpnjT",
 ];
 
 export default function useGetStakePoolAPY(network: string) {
