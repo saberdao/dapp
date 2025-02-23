@@ -407,7 +407,7 @@ export default function () {
           }
 
           const tvl = getPoolTVL(pool);
-          const feeApy = getFeeApy(metricInfo?.feesUsd ?? 0, tvl ?? 0);
+          const feeApy = getFeeApy(pool.metricInfo?.feesUsd ?? 0, tvl ?? 0);
           const emissionApy = getEmissionApy(
             pool,
             prices[SBR_ADDRESS.toString()]
