@@ -192,7 +192,7 @@ export default function Navbar() {
                         </Button>
                     </a>
                     <a
-                        href="https://discord.com/invite/cmVUgRXS53"
+                        href="https://discord.gg/GBNtJb7tBy"
                         target="_blank"
                         rel="noreferrer"
                     >
