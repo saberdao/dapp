@@ -21,6 +21,14 @@ const lsts = [
   "9qTUytXyBsbhU1CT8n5EwLGCBVs2Ber8QBxWubocpnjT",
 ];
 
+const vaultLSTs = [
+  "gridBR1TSJcV1JjAEE9g7ouoiVaEgDNT3dhY6n9oKQq",
+  "broKrYYAnJ4jHSQVTCf2wmS6i6SR2sDXDDaWrPD2kJJ",
+  "band7sdCo7F9ySg2AHg2jStFR4omSFLdLiJoDE3zoS9",
+  "sagasDqusfYSQMf7DD2dNfUvX3coLZdmKE3ajyPK9kL",
+  "nordicHi2uzn7pMe4wCUzTHQXeU2N42ViDVtTrahTRn",
+];
+
 export default function useGetStakePoolAPY(network: string) {
   return useQuery({
     queryKey: ["stakePoolApy"],
@@ -33,6 +41,13 @@ export default function useGetStakePoolAPY(network: string) {
             .join("&")}`
         );
         const result = await response.json();
+
+        // vSOL LSTs APY is the same as vSOL APY
+        const data = result.apys as Record<string, number>;
+        for (const lst of vaultLSTs) {
+          data[lst] =
+            result.apys["vSoLxydx6akxyMD9XEcPvGYNGq6Nn66oqVb3UkGkei7"];
+        }
 
         return result.apys as Record<string, number>;
       } catch (error) {
