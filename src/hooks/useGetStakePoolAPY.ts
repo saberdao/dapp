@@ -27,6 +27,7 @@ const vaultLSTs = [
   "band7sdCo7F9ySg2AHg2jStFR4omSFLdLiJoDE3zoS9",
   "sagasDqusfYSQMf7DD2dNfUvX3coLZdmKE3ajyPK9kL",
   "nordicHi2uzn7pMe4wCUzTHQXeU2N42ViDVtTrahTRn",
+  "bookHxJxgu5PhRLof8pNYnWrvxcoG7jfamn61EwxyiP",
 ];
 
 export default function useGetStakePoolAPY(network: string) {
