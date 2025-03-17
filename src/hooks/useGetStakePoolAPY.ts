@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SBR_REWARDER } from "@saberhq/saber-periphery";
 import { getRewarder } from "../helpers/rewarder";
+import { vaultLSTs } from "../constants";
 
 const lsts = [
   "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
@@ -19,15 +20,6 @@ const lsts = [
   "strng7mqqc1MBJJV6vMzYbEqnwVGvKKGKedeCvtktWA",
   "SouL4UuxKaFutpyZGb2weXUPEQCCsmEHSubMJEs7ttH",
   "9qTUytXyBsbhU1CT8n5EwLGCBVs2Ber8QBxWubocpnjT",
-];
-
-const vaultLSTs = [
-  "gridBR1TSJcV1JjAEE9g7ouoiVaEgDNT3dhY6n9oKQq",
-  "broKrYYAnJ4jHSQVTCf2wmS6i6SR2sDXDDaWrPD2kJJ",
-  "band7sdCo7F9ySg2AHg2jStFR4omSFLdLiJoDE3zoS9",
-  "sagasDqusfYSQMf7DD2dNfUvX3coLZdmKE3ajyPK9kL",
-  "nordicHi2uzn7pMe4wCUzTHQXeU2N42ViDVtTrahTRn",
-  "bookHxJxgu5PhRLof8pNYnWrvxcoG7jfamn61EwxyiP",
 ];
 
 export default function useGetStakePoolAPY(network: string) {

@@ -1,20 +1,15 @@
-import {
-  PythHttpClient,
-  getPythProgramKeyForCluster,
-} from "@pythnetwork/client";
-import { useConnection } from "@solana/wallet-adapter-react";
 import { useQuery } from "@tanstack/react-query";
 import useNetwork from "../hooks/useNetwork";
 import { OraclePrice } from "../types";
 import { chunk } from "lodash";
 import useGetPools from "./useGetPools";
 import { SBR_MINT } from "@saberhq/saber-periphery";
+import { vaultLSTs } from "../constants";
 
 export default function useGetPrices() {
   const { formattedNetwork } = useNetwork();
-  const { connection } = useConnection();
   const { data: poolData } = useGetPools(formattedNetwork);
-  const { network, endpoint } = useNetwork();
+  const { endpoint } = useNetwork();
 
   const pools = poolData?.pools;
 
@@ -26,34 +21,15 @@ export default function useGetPrices() {
           return null;
         }
 
-        // Get prices from pyth
-        const client = new PythHttpClient(
-          connection,
-          getPythProgramKeyForCluster(network)
-        );
-        const pythData = await client.getData();
-
-        let tryPrice = 0;
-        try {
-          const cgData = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bilira&vs_currencies=usd"
-          );
-          tryPrice = (await cgData.json())?.bilira?.usd ?? 0;
-        } catch (e) {
-          // Do nothing (just assume is 0)
-        }
-
         // We can add more from pyth here later
         const prices: OraclePrice = {};
 
         // Get the rest from Jupiter for now, until all Pyth oracles are defined.
-        const oraclePriceMints = Object.keys(prices);
         const allContractMints = pools
           .map((pool) => {
             return [pool.tokens[0].address, pool.tokens[1].address];
           })
           .flat()
-          .filter((address) => !oraclePriceMints.includes(address))
           .concat(SBR_MINT);
 
         // Chunk them per 100 (Jup limit)
@@ -83,6 +59,12 @@ export default function useGetPrices() {
             prices[priceRecord.id] = parseFloat(priceRecord.price);
           });
         });
+
+        // Add vault LSTs
+        vaultLSTs.forEach((lst) => {
+          prices[lst] = prices["vSoLxydx6akxyMD9XEcPvGYNGq6Nn66oqVb3UkGkei7"];
+        });
+
         console.log(prices);
 
         return prices;

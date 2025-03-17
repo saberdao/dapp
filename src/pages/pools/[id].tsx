@@ -686,7 +686,7 @@ const PoolPage = (props: { params: { id: string } }) => {
                     <div className="text-left sm:text-right">
                       {toAPY(pool.metrics?.totalApy ?? 0, 4)}%
                     </div>
-                    <div className="flex gap-1 text-xs font-normal">
+                    <div className="flex gap-1 text-xs font-normal flex-wrap justify-end">
                       <div className="flex items-center gap-1 justify-start sm:justify-end">
                         {toAPY(pool.metrics?.emissionApy ?? 0, 4)}%
                         <Saber className="text-saber-dark bg-black border border-saber-dark rounded-full p-1 w-5 h-5" />
